@@ -4,9 +4,8 @@ import { Link, useLocation } from "react-router-dom";
 import styled from "styled-components";
 
 const navItems = [
-  { label: "탐색", path: "/search" },
-  { label: "내 일정", path: "/plan" },
-  { label: "혼잡도 지도", path: "/congestion" },
+  { label: "홈", path: "/" },
+  { label: "탐색", path: "/map" },
   { label: "이용 가이드", path: "/guide" },
 ];
 
