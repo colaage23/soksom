@@ -9,6 +9,7 @@ import {
   Sparkles,
   Ticket,
 } from "lucide-react";
+import { useState } from "react";
 
 interface ISpotDetailProps {
   spot: Spot;
@@ -18,7 +19,10 @@ interface ISpotDetailProps {
 const SpotDetail = ({ spot, setSelectedSpot }: ISpotDetailProps) => {
   const status = congestionStyle[spot.congestion];
 
-  console.log(spot);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const isLongText = spot.overview.length > 80;
+
   return (
     <SpotDetailContainer>
       <SpotHeaderWrapper>
@@ -81,7 +85,14 @@ const SpotDetail = ({ spot, setSelectedSpot }: ISpotDetailProps) => {
 
         <OverviewBox>
           <OverviewTitle>상세 정보</OverviewTitle>
-          <OverviewDescription>{spot.overview}</OverviewDescription>
+          <OverviewDescription $expanded={isExpanded}>
+            {spot.overview}
+          </OverviewDescription>
+          {isLongText && (
+            <MoreButton onClick={() => setIsExpanded((prev) => !prev)}>
+              {isExpanded ? "접기" : "더보기"}
+            </MoreButton>
+          )}
         </OverviewBox>
 
         <InfoContainer>
@@ -251,12 +262,15 @@ const SpotHeader = styled.div`
 
 const SpotName = styled.h2`
   font-family: Gowun Batang;
-  font-weight: 400;
+  font-weight: 600;
   font-size: 1.25rem;
 
   margin: 0;
 
   color: #fffafc;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+
+  line-height: 1.75rem;
 `;
 
 const SpotAddress = styled.p`
@@ -265,6 +279,9 @@ const SpotAddress = styled.p`
   margin: 0;
 
   color: #fffafccc;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
+
+  line-height: 1rem;
 `;
 
 const SpotContent = styled.div`
@@ -376,7 +393,7 @@ const OverviewTitle = styled.h3`
   letter-spacing: 0.05em;
 `;
 
-const OverviewDescription = styled.p`
+const OverviewDescription = styled.p<{ $expanded: boolean }>`
   margin: 0;
 
   color: #1c2024;
@@ -384,6 +401,27 @@ const OverviewDescription = styled.p`
   font-weight: 300;
 
   line-height: 1.625;
+
+  display: -webkit-box;
+  -webkit-line-clamp: ${({ $expanded }) => ($expanded ? "unset" : 2)};
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+`;
+
+const MoreButton = styled.button`
+  margin-top: 6px;
+
+  background: none;
+  border: none;
+  padding: 0;
+
+  font-size: 0.75rem;
+  color: #298e8c;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  align-self: flex-start;
 `;
 
 const InfoContainer = styled.div`
