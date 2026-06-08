@@ -1,6 +1,7 @@
 import styled from "styled-components";
-import type { Spot } from "../mock";
-import { MoveRight } from "lucide-react";
+import { congestionStyle, type Spot } from "../mock";
+import { Heart, MoveRight } from "lucide-react";
+import { useState } from "react";
 
 interface ISpotCardProps {
   spot: Spot;
@@ -8,33 +9,25 @@ interface ISpotCardProps {
   onClick: () => void;
 }
 
-const congestionStyle = {
-  여유: {
-    label: "여유",
-    bgColor: "#4CAF50",
-    color: "#12462c",
-    progress: 30,
-  },
-  보통: {
-    label: "보통",
-    bgColor: "#f3d843",
-    color: "#625019",
-    progress: 60,
-  },
-  혼잡: {
-    label: "혼잡",
-    bgColor: "#F97316",
-    color: "#fdfcf8",
-    progress: 90,
-  },
-} as const;
-
 const SpotCard = ({ spot, isActive, onClick }: ISpotCardProps) => {
+  const [liked, setLiked] = useState(false);
+
   const status = congestionStyle[spot.congestion];
 
   return (
     <SpotCardContainer $isActive={isActive} onClick={onClick}>
-      <SpotImage src={spot.firstimage} />
+      <SpotImageWrapper>
+        <SpotImage src={spot.firstimage} />
+        <IconButton
+          $active={liked}
+          onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+            e.stopPropagation();
+            setLiked((prev) => !prev);
+          }}
+        >
+          <LikeIcon $active={liked} />
+        </IconButton>
+      </SpotImageWrapper>
 
       <SpotInfoBox>
         <SubInfoText>
@@ -133,11 +126,58 @@ const ArrowIcon = styled(MoveRight)`
   stroke-width: 2;
 `;
 
+const SpotImageWrapper = styled.div`
+  position: relative;
+
+  width: 80px;
+  height: 80px;
+`;
+
 const SpotImage = styled.img`
   width: 80px;
   height: 80px;
 
   border-radius: 0.75rem;
+`;
+
+const LikeIcon = styled(Heart)<{ $active?: boolean }>`
+  width: 14px;
+  height: 14px;
+  stroke: ${({ $active }) => ($active ? "none" : "#999fa6")};
+  fill: ${({ $active }) => ($active ? "#fdfcf8" : "none")};
+  stroke-width: 2;
+`;
+
+const IconButton = styled.button<{ $active?: boolean }>`
+  position: absolute;
+
+  top: 6px;
+  left: 6px;
+
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  outline: none;
+  border: none;
+  border-radius: 30px;
+
+  background-color: ${({ $active }) => ($active ? "#f77036" : "#fffafccc")};
+
+  transition: 0.2s all ease;
+
+  z-index: 999;
+
+  &:hover {
+    cursor: pointer;
+  }
+
+  &:hover ${LikeIcon} {
+    stroke: ${({ $active }) => ($active ? "none" : "#f77036")};
+  }
 `;
 
 const SpotInfoBox = styled.div`

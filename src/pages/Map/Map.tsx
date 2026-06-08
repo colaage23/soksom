@@ -42,7 +42,9 @@ const Map = () => {
         )}
 
         <SpotDetailSection>
-          {selectedSpot && <SpotDetail spot={selectedSpot} />}
+          {selectedSpot && (
+            <SpotDetail spot={selectedSpot} setSelectedSpot={setSelectedSpot} />
+          )}
         </SpotDetailSection>
       </ListSection>
 
