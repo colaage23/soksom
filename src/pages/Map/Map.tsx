@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Route, Telescope } from "lucide-react";
+import { ChevronLeft, ChevronRight, Route, Telescope } from "lucide-react";
 import styled from "styled-components";
 import ExploreList from "./components/ExploreList";
 import RouteList from "./components/RouteList";
@@ -8,11 +8,21 @@ import type { Spot } from "./mock";
 
 const Map = () => {
   const [mode, setMode] = useState<"explore" | "route">("explore");
+  const [open, setOpen] = useState(true);
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
+
+  const Icon = open ? ChevronLeft : ChevronRight;
 
   return (
     <MapContainer>
-      <ListSection>
+      <ToggleButton
+        $visible={!!selectedSpot}
+        $open={open}
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <ToggleIcon as={Icon} />
+      </ToggleButton>
+      <ListSection $open={open}>
         <ModeTabs>
           <TabIndicator $mode={mode} />
 
@@ -43,7 +53,11 @@ const Map = () => {
 
         <SpotDetailSection>
           {selectedSpot && (
-            <SpotDetail spot={selectedSpot} setSelectedSpot={setSelectedSpot} />
+            <SpotDetail
+              key={selectedSpot?.id}
+              spot={selectedSpot}
+              setSelectedSpot={setSelectedSpot}
+            />
           )}
         </SpotDetailSection>
       </ListSection>
@@ -64,7 +78,59 @@ const MapContainer = styled.div`
   overflow: hidden;
 `;
 
-const ListSection = styled.aside`
+const ToggleIcon = styled.svg`
+  width: 16px;
+  height: 16px;
+
+  stroke-width: 3;
+
+  stroke: #298e8c;
+`;
+
+const ToggleButton = styled.button<{ $open: boolean; $visible: boolean }>`
+  position: absolute;
+
+  top: 50%;
+  right: calc(100% - 420px - 27px);
+
+  transform: ${({ $open }) =>
+    $open ? "translate(0, -50%)" : "translate(-420px, -50%)"};
+
+  width: 28px;
+  height: 48px;
+
+  padding: 0 4px;
+
+  display: ${({ $visible }) => ($visible ? "none" : "flex")};
+  justify-content: start;
+  align-items: center;
+
+  border: 1px solid #addad7;
+  border-left: none;
+
+  border-radius: 0 20px 20px 0;
+
+  background: #e5faf8;
+
+  cursor: pointer;
+
+  z-index: 10;
+
+  transition:
+    transform 0.3s ease,
+    background 0.2s ease;
+
+  &:hover {
+    border-color: #72c9c3;
+    background: #c9f3ed;
+  }
+
+  &:hover ${ToggleIcon} {
+    stroke: #298e8c;
+  }
+`;
+
+const ListSection = styled.aside<{ $open: boolean }>`
   position: relative;
 
   width: 420px;
@@ -74,6 +140,12 @@ const ListSection = styled.aside`
   flex-direction: column;
 
   background-color: #fdfcf8;
+
+  transition: transform 0.3s ease;
+
+  border-right: 1px solid #f5f2eb;
+
+  transform: ${({ $open }) => ($open ? "translateX(0)" : "translateX(-100%)")};
 `;
 
 const ModeTabs = styled.nav`
