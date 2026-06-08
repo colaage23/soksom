@@ -3,9 +3,12 @@ import { Route, Telescope } from "lucide-react";
 import styled from "styled-components";
 import ExploreList from "./components/ExploreList";
 import RouteList from "./components/RouteList";
+import SpotDetail from "./components/SpotDetail";
+import type { Spot } from "./mock";
 
 const Map = () => {
   const [mode, setMode] = useState<"explore" | "route">("explore");
+  const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
 
   return (
     <MapContainer>
@@ -29,7 +32,18 @@ const Map = () => {
           </ModeTabButton>
         </ModeTabs>
 
-        {mode === "explore" ? <ExploreList /> : <RouteList />}
+        {mode === "explore" ? (
+          <ExploreList
+            selectedSpot={selectedSpot}
+            setSelectedSpot={setSelectedSpot}
+          />
+        ) : (
+          <RouteList />
+        )}
+
+        <SpotDetailSection>
+          {selectedSpot && <SpotDetail spot={selectedSpot} />}
+        </SpotDetailSection>
       </ListSection>
 
       <MapSection></MapSection>
@@ -49,6 +63,8 @@ const MapContainer = styled.div`
 `;
 
 const ListSection = styled.aside`
+  position: relative;
+
   width: 420px;
   height: 100%;
 
@@ -129,6 +145,17 @@ const RouteIcon = styled(Route)`
   height: 16px;
   stroke: currentColor;
   stroke-width: 2;
+`;
+
+const SpotDetailSection = styled.aside`
+  position: absolute;
+
+  right: -420px;
+
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
 `;
 
 const MapSection = styled.section``;
