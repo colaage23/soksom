@@ -58,7 +58,7 @@ const ListSection = styled.aside`
   background-color: #fdfcf8;
 `;
 
-const ModeTabs = styled.div`
+const ModeTabs = styled.nav`
   position: relative;
 
   display: flex;
