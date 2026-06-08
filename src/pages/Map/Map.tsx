@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Route, Telescope } from "lucide-react";
 import styled from "styled-components";
+import ExploreList from "./components/ExploreList";
+import RouteList from "./components/RouteList";
 
 const Map = () => {
   const [mode, setMode] = useState<"explore" | "route">("explore");
@@ -26,6 +28,8 @@ const Map = () => {
             루트 모드
           </ModeTabButton>
         </ModeTabs>
+
+        {mode === "explore" ? <ExploreList /> : <RouteList />}
       </ListSection>
 
       <MapSection></MapSection>
@@ -35,7 +39,9 @@ const Map = () => {
 
 const MapContainer = styled.div`
   width: 100%;
-  height: 100%;
+  height: calc(
+    100vh - 72px
+  ); /* 추후 헤더 높이 고정하는 걸로 수정, 반응형도 적용 해야 함. */
 
   display: flex;
 
