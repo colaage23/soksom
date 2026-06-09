@@ -6,6 +6,7 @@ import RouteList from "./components/RouteList";
 import SpotDetail from "./components/SpotDetail";
 import KakaoMap from "./components/KakaoMap";
 import { useSpotStore } from "../../stores/useSpotStore";
+import { congestionStyle } from "./mock";
 
 const Map = () => {
   const { detailSpot } = useSpotStore();
@@ -14,6 +15,8 @@ const Map = () => {
   const [open, setOpen] = useState(true);
 
   const Icon = open ? ChevronLeft : ChevronRight;
+
+  const congestion = Object.values(congestionStyle).reverse();
 
   return (
     <MapContainer>
@@ -51,6 +54,17 @@ const Map = () => {
 
         <SpotDetailSection>{detailSpot && <SpotDetail />}</SpotDetailSection>
       </ListSection>
+      <CongestionOverlay $open={open} $hasDetail={!!detailSpot}>
+        <OverlayTitle>관광지</OverlayTitle>
+        {congestion.map((item) => (
+          <OverlayContent>
+            <OverlayColorChip $bgColor={item.bgColor} />
+            <OverlayText>
+              {item.label} ({item.min}~{item.max}%)
+            </OverlayText>
+          </OverlayContent>
+        ))}
+      </CongestionOverlay>
     </MapContainer>
   );
 };
@@ -136,6 +150,70 @@ const ListSection = styled.aside<{ $open: boolean }>`
   border-right: 1px solid #f5f2eb;
 
   transform: ${({ $open }) => ($open ? "translateX(0)" : "translateX(-100%)")};
+`;
+
+const CongestionOverlay = styled.div<{
+  $open: boolean;
+  $hasDetail: boolean;
+}>`
+  position: absolute;
+
+  bottom: 16px;
+  left: ${({ $open, $hasDetail }) => {
+    if (!$open) return "16px";
+
+    return $hasDetail ? "856px" : "436px";
+  }};
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: start;
+
+  gap: 8px;
+
+  padding: 14px 16px;
+
+  background-color: #faf9f9;
+
+  border: 1px solid #2e333919;
+  border-radius: 16px;
+
+  z-index: 0;
+
+  transition: left 0.15s ease;
+`;
+
+const OverlayTitle = styled.p`
+  margin: 0 0 4px;
+
+  font-size: 0.6875rem;
+  font-weight: 500;
+`;
+
+const OverlayContent = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  gap: 6px;
+`;
+
+const OverlayColorChip = styled.div<{ $bgColor: string }>`
+  height: 10px;
+  width: 10px;
+
+  background-color: ${({ $bgColor }) => $bgColor};
+
+  border-radius: 9999px;
+`;
+
+const OverlayText = styled.p`
+  margin: 0;
+
+  color: #2e3339;
+  font-size: 0.6875rem;
+  font-weight: 300;
 `;
 
 const ModeTabs = styled.nav`
