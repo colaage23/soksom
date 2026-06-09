@@ -29,7 +29,7 @@ export const congestionStyle = {
   },
   보통: {
     label: "보통",
-    bgColor: "#f3d843",
+    bgColor: "#eecb00",
     color: "#625019",
     progress: 60,
     description:
