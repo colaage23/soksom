@@ -13,6 +13,8 @@ export interface Spot {
   fee: string;
   recommendedTime: string;
   recommendations: AlternativeSpot[];
+  latitude: number;
+  longitude: number;
 }
 
 export const congestionStyle = {
@@ -44,8 +46,10 @@ export const congestionStyle = {
   },
 } as const;
 
-export type AlternativeSpot = Omit<Spot, "recommendations">;
-
+export type AlternativeSpot = Omit<
+  Spot,
+  "recommendations" | "latitude" | "longitude"
+>;
 export const alternativeSpots: AlternativeSpot[] = [
   {
     id: 101,
@@ -184,6 +188,8 @@ export const mockSpots: Spot[] = [
     fee: "성인-5,000원 청소년-2,500원",
     recommendedTime: "일출 시간 (05:30~07:00)",
     recommendations: [alternativeSpots[6], alternativeSpots[7]],
+    latitude: 33.4589,
+    longitude: 126.9425,
   },
 
   {
@@ -201,6 +207,8 @@ export const mockSpots: Spot[] = [
     fee: "무료",
     recommendedTime: "오전 9시 ~ 11시",
     recommendations: [alternativeSpots[0], alternativeSpots[6]],
+    latitude: 33.3945,
+    longitude: 126.2395,
   },
 
   {
@@ -218,6 +226,8 @@ export const mockSpots: Spot[] = [
     fee: "성인 3,000원",
     recommendedTime: "오전 10시 ~ 오후 3시",
     recommendations: [alternativeSpots[1], alternativeSpots[7]],
+    latitude: 33.4902,
+    longitude: 126.8098,
   },
 
   {
@@ -235,6 +245,8 @@ export const mockSpots: Spot[] = [
     fee: "무료 (체험 별도)",
     recommendedTime: "오후 2시 ~ 5시",
     recommendations: [alternativeSpots[2], alternativeSpots[4]],
+    latitude: 33.2525,
+    longitude: 126.6237,
   },
 
   {
@@ -252,6 +264,8 @@ export const mockSpots: Spot[] = [
     fee: "무료 (국립공원)",
     recommendedTime: "오전 6시 ~ 10시",
     recommendations: [alternativeSpots[7], alternativeSpots[1]],
+    latitude: 33.3927,
+    longitude: 126.4949,
   },
 
   {
@@ -269,6 +283,8 @@ export const mockSpots: Spot[] = [
     fee: "왕복 배편 약 10,000원",
     recommendedTime: "오전 9시 ~ 오후 3시",
     recommendations: [alternativeSpots[2], alternativeSpots[6]],
+    latitude: 33.5007,
+    longitude: 126.9518,
   },
 
   {
@@ -286,6 +302,8 @@ export const mockSpots: Spot[] = [
     fee: "무료",
     recommendedTime: "오후 1시 ~ 4시",
     recommendations: [alternativeSpots[3], alternativeSpots[0]],
+    latitude: 33.306,
+    longitude: 126.2895,
   },
 
   {
@@ -303,6 +321,8 @@ export const mockSpots: Spot[] = [
     fee: "무료",
     recommendedTime: "해질 무렵 (17:00~19:00)",
     recommendations: [alternativeSpots[4], alternativeSpots[2]],
+    latitude: 33.5563,
+    longitude: 126.7958,
   },
 
   {
@@ -320,6 +340,8 @@ export const mockSpots: Spot[] = [
     fee: "무료",
     recommendedTime: "오전 9시 ~ 11시",
     recommendations: [alternativeSpots[1], alternativeSpots[7]],
+    latitude: 33.4223,
+    longitude: 126.628,
   },
 
   {
@@ -337,6 +359,8 @@ export const mockSpots: Spot[] = [
     fee: "입장료 2,000원",
     recommendedTime: "오전 10시 ~ 오후 2시",
     recommendations: [alternativeSpots[0], alternativeSpots[3]],
+    latitude: 33.4553,
+    longitude: 126.7576,
   },
 
   {
@@ -354,6 +378,8 @@ export const mockSpots: Spot[] = [
     fee: "무료",
     recommendedTime: "오후 4시 ~ 6시",
     recommendations: [alternativeSpots[6], alternativeSpots[4]],
+    latitude: 33.4973,
+    longitude: 126.4528,
   },
 
   {
@@ -371,5 +397,7 @@ export const mockSpots: Spot[] = [
     fee: "성인 2,000원",
     recommendedTime: "간조 시간대",
     recommendations: [alternativeSpots[2], alternativeSpots[7]],
+    latitude: 33.2318,
+    longitude: 126.3142,
   },
 ];
