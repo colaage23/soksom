@@ -174,14 +174,12 @@ const CongestionOverlay = styled.div<{
 
   padding: 14px 16px;
 
-  background-color: #faf9f9;
+  background-color: #fffafcf2;
 
   border: 1px solid #2e333919;
   border-radius: 16px;
 
   z-index: 0;
-
-  transition: left 0.15s ease;
 `;
 
 const OverlayTitle = styled.p`
