@@ -3,12 +3,19 @@ import { congestionStyle } from "../mock";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
 import { getMarkerSrc } from "../../../utils/marker";
 import { useSpotStore } from "../../../stores/useSpotStore";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { LocateFixed, Minus, Plus } from "lucide-react";
 
 const KakaoMap = () => {
   const mapRef = useRef<kakao.maps.Map>(null);
   const { selectedSpot, setDetailSpot } = useSpotStore();
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    map.setLevel(selectedSpot ? 4 : 9);
+  }, [selectedSpot]);
 
   const handleLevel = (type: "increase" | "decrease") => {
     const map = mapRef.current;
