@@ -1,30 +1,43 @@
-import { useEffect, useRef } from "react";
 import styled from "styled-components";
-import type { Spot } from "../mock";
+import { congestionStyle, type Spot } from "../mock";
+import { Map, MapMarker } from "react-kakao-maps-sdk";
+import { getMarkerSrc } from "../../../utils/marker";
 
-interface IKakaoMap {
+interface IKakaoMapProps {
   spot: Spot | null;
+  setDetailSpot: React.Dispatch<React.SetStateAction<Spot | null>>;
 }
 
-const KakaoMap = ({ spot }: IKakaoMap) => {
-  const mapRef = useRef(null);
-
-  useEffect(() => {
-    const kakao = window.kakao;
-    const container = mapRef.current; // 지도를 담을 영역의 DOM 참조
-
-    // 지도를 생성할 때 필요한 기본 옵션
-    const options = {
-      center: new kakao.maps.LatLng(33.34714, 126.41986), // 지도의 중심좌표.
-      level: 9, // 지도의 레벨(확대, 축소 정도)
-    };
-
-    new kakao.maps.Map(container, options); // 지도 생성 및 객체 리턴
-  }, []);
-
+const KakaoMap = ({ spot, setDetailSpot }: IKakaoMapProps) => {
   return (
     <MapContainer>
-      <MapSection ref={mapRef} id="kakao-map" />
+      <Map
+        id="kakao-map"
+        center={{
+          // 지도의 중심좌표
+          lat: spot?.latitude ?? 33.34714,
+          lng: spot?.longitude ? spot.longitude - 0.006 : 126.41986,
+        }}
+        style={{
+          // 지도의 크기
+          width: "100%",
+          height: "100%",
+        }}
+        level={spot ? 4 : 9} // 지도의 확대 레벨
+      >
+        {spot && (
+          <MapMarker
+            position={{ lat: spot?.latitude, lng: spot?.longitude }}
+            image={{
+              src: getMarkerSrc(congestionStyle[spot.congestion].bgColor),
+              size: { width: 40, height: 40 },
+              options: { offset: { x: 40, y: 40 } },
+            }}
+            clickable={true}
+            onClick={() => setDetailSpot(spot)}
+          />
+        )}
+      </Map>
     </MapContainer>
   );
 };
@@ -34,11 +47,6 @@ const MapContainer = styled.div`
   inset: 0;
   z-index: 0;
 
-  width: 100%;
-  height: 100%;
-`;
-
-const MapSection = styled.section`
   width: 100%;
   height: 100%;
 `;

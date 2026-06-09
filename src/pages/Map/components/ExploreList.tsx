@@ -75,7 +75,10 @@ const ExploreList = ({
               setSelectedSpot(item);
               setDetailSpot(null);
             }}
-            onArrowClick={() => setDetailSpot(item)}
+            onArrowClick={() => {
+              setDetailSpot(item);
+              setSelectedSpot(item);
+            }}
           />
         ))}
       </SpotList>
