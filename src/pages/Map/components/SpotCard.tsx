@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { congestionStyle, type Spot } from "../mock";
 import { Heart, MoveRight } from "lucide-react";
-import { useState } from "react";
+import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
 
 interface ISpotCardProps {
   spot: Spot;
@@ -16,7 +16,7 @@ const SpotCard = ({
   onClick,
   onArrowClick,
 }: ISpotCardProps) => {
-  const [liked, setLiked] = useState(false);
+  const { likedSpot, toggleLikedSpot } = useLikedSpotStore();
 
   const status = congestionStyle[spot.congestion];
 
@@ -25,13 +25,13 @@ const SpotCard = ({
       <SpotImageWrapper>
         <SpotImage src={spot.firstimage} />
         <IconButton
-          $active={liked}
+          $active={likedSpot.includes(spot.id)}
           onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
             e.stopPropagation();
-            setLiked((prev) => !prev);
+            toggleLikedSpot(spot.id);
           }}
         >
-          <LikeIcon $active={liked} />
+          <LikeIcon $active={likedSpot.includes(spot.id)} />
         </IconButton>
       </SpotImageWrapper>
 

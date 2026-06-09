@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { congestionStyle, type Spot } from "../mock";
+import { congestionStyle } from "../mock";
 import {
   CalendarPlus,
   Clock,
@@ -10,32 +10,39 @@ import {
   Ticket,
 } from "lucide-react";
 import { useState } from "react";
+import { useSpotStore } from "../../../stores/useSpotStore";
+import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
 
-interface ISpotDetailProps {
-  spot: Spot;
-  setSelectedSpot: React.Dispatch<React.SetStateAction<Spot | null>>;
-}
-
-const SpotDetail = ({ spot, setSelectedSpot }: ISpotDetailProps) => {
-  const status = congestionStyle[spot.congestion];
+const SpotDetail = () => {
+  const { detailSpot, setDetailSpot } = useSpotStore();
+  const { likedSpot, toggleLikedSpot } = useLikedSpotStore();
 
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const isLongText = spot.overview.length > 80;
+  if (!detailSpot) return null;
+
+  const status = congestionStyle[detailSpot.congestion];
+  const isLongText = detailSpot.overview.length > 80;
 
   return (
     <SpotDetailContainer>
       <SpotHeaderWrapper>
-        <SpotImage draggable={false} src={spot?.firstimage} />
+        <SpotImage draggable={false} src={detailSpot?.firstimage} />
 
         <SpotActions>
-          <IconButton onClick={() => setSelectedSpot(null)}>
+          <IconButton onClick={() => setDetailSpot(null)}>
             <BackIcon />
           </IconButton>
 
           <RightGroup>
-            <IconButton>
-              <LikeIcon />
+            <IconButton
+              $active={likedSpot.includes(detailSpot.id)}
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                e.stopPropagation();
+                toggleLikedSpot(detailSpot.id);
+              }}
+            >
+              <LikeIcon $active={likedSpot.includes(detailSpot.id)} />
             </IconButton>
             {/* 공유한다고 하면 어떤 형태? */}
             <IconButton>
@@ -45,8 +52,8 @@ const SpotDetail = ({ spot, setSelectedSpot }: ISpotDetailProps) => {
         </SpotActions>
 
         <SpotHeader>
-          <SpotName>{spot?.name}</SpotName>
-          <SpotAddress>{spot?.addr1}</SpotAddress>
+          <SpotName>{detailSpot?.name}</SpotName>
+          <SpotAddress>{detailSpot?.addr1}</SpotAddress>
         </SpotHeader>
       </SpotHeaderWrapper>
 
@@ -57,7 +64,7 @@ const SpotDetail = ({ spot, setSelectedSpot }: ISpotDetailProps) => {
             <CongestionBadge
               style={{
                 backgroundColor:
-                  spot.congestion === "혼잡"
+                  detailSpot.congestion === "혼잡"
                     ? status.bgColor
                     : `${status.bgColor}65`,
                 color: status.color,
@@ -86,7 +93,7 @@ const SpotDetail = ({ spot, setSelectedSpot }: ISpotDetailProps) => {
         <OverviewBox>
           <OverviewTitle>상세 정보</OverviewTitle>
           <OverviewDescription $expanded={isExpanded}>
-            {spot.overview}
+            {detailSpot.overview}
           </OverviewDescription>
           {isLongText && (
             <MoreButton onClick={() => setIsExpanded((prev) => !prev)}>
@@ -101,14 +108,14 @@ const SpotDetail = ({ spot, setSelectedSpot }: ISpotDetailProps) => {
               <ClockIcon />
             </InfoIconBadge>
             <InfoTitle>이용 시간</InfoTitle>
-            <InfoText>{spot.openingHours}</InfoText>
+            <InfoText>{detailSpot.openingHours}</InfoText>
           </InfoBox>
           <InfoBox>
             <InfoIconBadge>
               <TicketIcon />
             </InfoIconBadge>
             <InfoTitle>입장료</InfoTitle>
-            <InfoText>{spot.fee}</InfoText>
+            <InfoText>{detailSpot.fee}</InfoText>
           </InfoBox>
           <InfoBox
             style={{ gridColumn: "1 / -1", backgroundColor: "#e5faf880" }}
@@ -117,14 +124,14 @@ const SpotDetail = ({ spot, setSelectedSpot }: ISpotDetailProps) => {
               <SparklesIcon />
             </InfoIconBadge>
             <InfoTitle>추천 방문 시간</InfoTitle>
-            <InfoText>{spot.recommendedTime}</InfoText>
+            <InfoText>{detailSpot.recommendedTime}</InfoText>
           </InfoBox>
         </InfoContainer>
 
         {/* 대체 관광지 어떻게 불러오지? 우선 api는 없음 */}
         <RecommendationBox>
           <RecommendationTitle>{status.recommendation}</RecommendationTitle>
-          {spot.recommendations.map((item) => (
+          {detailSpot.recommendations.map((item) => (
             <RecommendationCard key={item.id}>
               <RecommendationImage src={item.firstimage} alt={item.name} />
 
@@ -206,25 +213,28 @@ const RightGroup = styled.div`
 const BackIcon = styled(MoveLeft)`
   width: 16px;
   height: 16px;
-  stroke: currentColor;
+  stroke: #1b2024;
   stroke-width: 2;
 `;
 
-const LikeIcon = styled(Heart)`
+const LikeIcon = styled(Heart)<{ $active?: boolean }>`
   width: 16px;
   height: 16px;
-  stroke: currentColor;
+
+  stroke: ${({ $active }) => ($active ? "none" : "#1b2024")};
+  fill: ${({ $active }) => ($active ? "#fdfcf8" : "none")};
+
   stroke-width: 2;
 `;
 
 const ShareIcon = styled(Share2)`
   width: 16px;
   height: 16px;
-  stroke: currentColor;
+  stroke: #1b2024;
   stroke-width: 2;
 `;
 
-const IconButton = styled.button`
+const IconButton = styled.button<{ $active?: boolean }>`
   width: 36px;
   height: 36px;
 
@@ -236,7 +246,7 @@ const IconButton = styled.button`
   border: none;
   border-radius: 30px;
 
-  background-color: rgba(247, 242, 235, 0.75);
+  background-color: ${({ $active }) => ($active ? "#f77036" : "#f7f2ebbf")};
 
   transition: 0.2s all ease;
 
@@ -246,7 +256,7 @@ const IconButton = styled.button`
   }
 
   &:hover ${LikeIcon} {
-    color: #f77036;
+    stroke: ${({ $active }) => ($active ? "none" : "#f77036")};
   }
 `;
 

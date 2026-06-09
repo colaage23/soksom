@@ -1,14 +1,9 @@
 import { Search } from "lucide-react";
 import { useState } from "react";
 import styled from "styled-components";
-import { mockSpots, type Spot } from "../mock";
+import { mockSpots } from "../mock";
 import SpotCard from "./SpotCard";
-
-interface IExploreListProps {
-  selectedSpot: Spot | null;
-  setSelectedSpot: React.Dispatch<React.SetStateAction<Spot | null>>;
-  setDetailSpot: React.Dispatch<React.SetStateAction<Spot | null>>;
-}
+import { useSpotStore } from "../../../stores/useSpotStore";
 
 /*
 관광 타입 or 서비스 분류 어떤 거로 필터링 할지?
@@ -26,11 +21,9 @@ const categories: string[] = [
   "음식점",
 ];
 
-const ExploreList = ({
-  selectedSpot,
-  setSelectedSpot,
-  setDetailSpot,
-}: IExploreListProps) => {
+const ExploreList = () => {
+  const { selectedSpot, setSelectedSpot, setDetailSpot } = useSpotStore();
+
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false);
 
