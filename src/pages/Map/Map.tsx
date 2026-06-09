@@ -5,23 +5,29 @@ import ExploreList from "./components/ExploreList";
 import RouteList from "./components/RouteList";
 import SpotDetail from "./components/SpotDetail";
 import type { Spot } from "./mock";
+import KakaoMap from "./components/KakaoMap";
 
 const Map = () => {
   const [mode, setMode] = useState<"explore" | "route">("explore");
   const [open, setOpen] = useState(true);
+
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
+  const [detailSpot, setDetailSpot] = useState<Spot | null>(null);
 
   const Icon = open ? ChevronLeft : ChevronRight;
 
   return (
     <MapContainer>
+      <KakaoMap spot={selectedSpot} />
+
       <ToggleButton
-        $visible={!!selectedSpot}
+        $visible={!!detailSpot}
         $open={open}
         onClick={() => setOpen((prev) => !prev)}
       >
         <ToggleIcon as={Icon} />
       </ToggleButton>
+
       <ListSection $open={open}>
         <ModeTabs>
           <TabIndicator $mode={mode} />
@@ -46,28 +52,29 @@ const Map = () => {
           <ExploreList
             selectedSpot={selectedSpot}
             setSelectedSpot={setSelectedSpot}
+            setDetailSpot={setDetailSpot}
           />
         ) : (
           <RouteList />
         )}
 
         <SpotDetailSection>
-          {selectedSpot && (
+          {detailSpot && (
             <SpotDetail
-              key={selectedSpot?.id}
-              spot={selectedSpot}
-              setSelectedSpot={setSelectedSpot}
+              key={detailSpot?.id}
+              spot={detailSpot}
+              setSelectedSpot={setDetailSpot}
             />
           )}
         </SpotDetailSection>
       </ListSection>
-
-      <MapSection></MapSection>
     </MapContainer>
   );
 };
 
 const MapContainer = styled.div`
+  position: relative;
+
   width: 100%;
   height: calc(
     100vh - 72px
@@ -231,7 +238,5 @@ const SpotDetailSection = styled.aside`
   display: flex;
   flex-direction: column;
 `;
-
-const MapSection = styled.section``;
 
 export default Map;

@@ -7,9 +7,15 @@ interface ISpotCardProps {
   spot: Spot;
   isActive: boolean;
   onClick: () => void;
+  onArrowClick: () => void;
 }
 
-const SpotCard = ({ spot, isActive, onClick }: ISpotCardProps) => {
+const SpotCard = ({
+  spot,
+  isActive,
+  onClick,
+  onArrowClick,
+}: ISpotCardProps) => {
   const [liked, setLiked] = useState(false);
 
   const status = congestionStyle[spot.congestion];
@@ -61,7 +67,12 @@ const SpotCard = ({ spot, isActive, onClick }: ISpotCardProps) => {
         </CongestionBox>
       </SpotInfoBox>
 
-      <ArrowButton>
+      <ArrowButton
+        onClick={(e) => {
+          e.stopPropagation();
+          onArrowClick();
+        }}
+      >
         <ArrowIcon />
       </ArrowButton>
     </SpotCardContainer>
@@ -114,8 +125,8 @@ const SpotCardContainer = styled.div<{ $isActive: boolean }>`
   }
 
   &:hover ${ArrowButton} {
-    opacity: ${({ $isActive }) => ($isActive ? 0 : 1)};
-    visibility: ${({ $isActive }) => ($isActive ? "hidden" : "visible")};
+    opacity: 1;
+    visibility: visible;
   }
 `;
 

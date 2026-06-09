@@ -7,6 +7,7 @@ import SpotCard from "./SpotCard";
 interface IExploreListProps {
   selectedSpot: Spot | null;
   setSelectedSpot: React.Dispatch<React.SetStateAction<Spot | null>>;
+  setDetailSpot: React.Dispatch<React.SetStateAction<Spot | null>>;
 }
 
 /*
@@ -25,7 +26,11 @@ const categories: string[] = [
   "음식점",
 ];
 
-const ExploreList = ({ selectedSpot, setSelectedSpot }: IExploreListProps) => {
+const ExploreList = ({
+  selectedSpot,
+  setSelectedSpot,
+  setDetailSpot,
+}: IExploreListProps) => {
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -66,7 +71,11 @@ const ExploreList = ({ selectedSpot, setSelectedSpot }: IExploreListProps) => {
             key={item.id}
             spot={item}
             isActive={selectedSpot === item}
-            onClick={() => setSelectedSpot(item)}
+            onClick={() => {
+              setSelectedSpot(item);
+              setDetailSpot(null);
+            }}
+            onArrowClick={() => setDetailSpot(item)}
           />
         ))}
       </SpotList>
