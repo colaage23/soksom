@@ -1,9 +1,9 @@
-import { Search } from "lucide-react";
 import { useState } from "react";
 import styled from "styled-components";
 import { mockSpots } from "../mock";
 import SpotCard from "./SpotCard";
 import { useSpotStore } from "../../../stores/useSpotStore";
+import SearchBar from "./SearchBar";
 
 /*
 관광 타입 or 서비스 분류 어떤 거로 필터링 할지?
@@ -31,12 +31,7 @@ const ExploreList = () => {
 
   return (
     <ExploreListContainer>
-      <MapSearchForm>
-        <MapSearchBox>
-          <SearchIcon />
-          <SearchInput placeholder="관광지, 지역, 태그 검색" type="text" />
-        </MapSearchBox>
-      </MapSearchForm>
+      <SearchBar placeholder={"관광지, 지역, 태그 검색"} />
 
       <CategorySection>
         {visibleCategories.map((category) => (
@@ -102,45 +97,6 @@ const SpotList = styled.ul`
   &::-webkit-scrollbar {
     display: none;
   }
-`;
-
-const MapSearchForm = styled.form`
-  display: flex;
-  justify-content: center;
-
-  padding: 16px;
-`;
-
-const MapSearchBox = styled.div`
-  height: 40px;
-  width: 100%;
-
-  display: flex;
-  align-items: center;
-  gap: 4px;
-
-  padding-inline: 16px;
-
-  border: 1px solid #f5f2eb;
-  border-radius: 50px;
-  background-color: #faf9f2;
-`;
-
-const SearchIcon = styled(Search)`
-  width: 16px;
-  height: 16px;
-  stroke: #999fa6;
-  stroke-width: 2.2;
-`;
-
-const SearchInput = styled.input`
-  width: 100%;
-
-  border: none;
-  outline: none;
-  font-size: 0.875rem;
-
-  background-color: #faf9f2;
 `;
 
 const CategorySection = styled.section`
