@@ -245,6 +245,8 @@ const CurrentLocateButton = styled.button`
 
   background-color: #fdfcf8;
 
+  box-shadow: 0 0px 4px rgba(0, 0, 0, 0.05);
+
   cursor: pointer;
 
   z-index: 10;
