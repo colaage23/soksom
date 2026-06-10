@@ -1,15 +1,21 @@
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import styled from "styled-components";
 
 interface ISearchBarProps {
   placeholder: string;
   value: string;
   onChange: React.ChangeEventHandler<HTMLInputElement>;
+  onClear: () => void;
 }
 
-const SearchBar = ({ placeholder, value, onChange }: ISearchBarProps) => {
+const SearchBar = ({
+  placeholder,
+  value,
+  onChange,
+  onClear,
+}: ISearchBarProps) => {
   return (
-    <MapSearchForm>
+    <MapSearchForm onSubmit={(e) => e.preventDefault()}>
       <MapSearchBox>
         <SearchIcon />
         <SearchInput
@@ -17,7 +23,13 @@ const SearchBar = ({ placeholder, value, onChange }: ISearchBarProps) => {
           placeholder={placeholder}
           value={value}
           onChange={onChange}
+          aria-label="관광지 검색"
         />
+        {value && (
+          <ClearButton onClick={() => onClear()}>
+            <XIcon />
+          </ClearButton>
+        )}
       </MapSearchBox>
     </MapSearchForm>
   );
@@ -43,6 +55,12 @@ const MapSearchBox = styled.div`
   border: 1px solid #f5f2eb;
   border-radius: 50px;
   background-color: #faf9f2;
+
+  transition: border-color 0.15s ease;
+
+  &:focus-within {
+    border-color: #73b4b6;
+  }
 `;
 
 const SearchIcon = styled(Search)`
@@ -60,6 +78,32 @@ const SearchInput = styled.input`
   font-size: 0.875rem;
 
   background-color: #faf9f2;
+`;
+
+const ClearButton = styled.button`
+  height: 20px;
+  width: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 4px;
+
+  border: none;
+  border-radius: 16px;
+
+  background-color: #eae8d9;
+
+  cursor: pointer;
+`;
+
+const XIcon = styled(X)`
+  height: 12px;
+  width: 12px;
+
+  stroke: #c6c5b8;
+  stroke-width: 2.2;
 `;
 
 export default SearchBar;

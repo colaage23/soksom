@@ -63,6 +63,7 @@ const ExploreList = () => {
         placeholder={"관광지, 지역 검색"}
         value={searchKeyword}
         onChange={(e) => setSearchKeyword(e.target.value)}
+        onClear={() => setSearchKeyword("")}
       />
 
       <CategorySection>
