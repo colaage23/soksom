@@ -40,9 +40,6 @@ const KakaoMap = () => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
 
-        console.log("위도:", lat);
-        console.log("경도:", lng);
-
         const map = mapRef.current;
 
         if (map) {
@@ -247,6 +244,7 @@ const CurrentLocateButton = styled.button`
   border-radius: 16px;
 
   background-color: #fdfcf8;
+
   cursor: pointer;
 
   z-index: 10;
