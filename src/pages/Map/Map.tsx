@@ -88,7 +88,7 @@ const ToggleIcon = styled.svg`
 
   stroke-width: 3;
 
-  stroke: #298e8c;
+  stroke: #e5faf8;
 `;
 
 const ToggleButton = styled.button<{ $open: boolean; $visible: boolean }>`
@@ -109,12 +109,12 @@ const ToggleButton = styled.button<{ $open: boolean; $visible: boolean }>`
   justify-content: start;
   align-items: center;
 
-  border: 1px solid #addad7;
+  outline: none;
+  border: 1px solid #27908f;
   border-left: none;
-
   border-radius: 0 20px 20px 0;
 
-  background: #e5faf8;
+  background: #298e8c;
 
   cursor: pointer;
 
@@ -125,12 +125,7 @@ const ToggleButton = styled.button<{ $open: boolean; $visible: boolean }>`
     background 0.2s ease;
 
   &:hover {
-    border-color: #72c9c3;
-    background: #c9f3ed;
-  }
-
-  &:hover ${ToggleIcon} {
-    stroke: #298e8c;
+    background: #2c9b99;
   }
 `;
 
