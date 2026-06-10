@@ -6,7 +6,6 @@ export interface Spot {
   addr1: string;
   category: string;
   congestion: Congestion;
-  isFavorite: boolean;
   firstimage: string;
   overview: string;
   openingHours: string;
@@ -63,7 +62,6 @@ export const alternativeSpots: AlternativeSpot[] = [
     addr1: "제주시 한림읍",
     category: "해변/해안",
     congestion: "여유",
-    isFavorite: false,
     firstimage:
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     overview:
@@ -78,7 +76,6 @@ export const alternativeSpots: AlternativeSpot[] = [
     addr1: "제주시 봉개동",
     category: "숲/힐링",
     congestion: "여유",
-    isFavorite: true,
     firstimage:
       "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
     overview:
@@ -93,7 +90,6 @@ export const alternativeSpots: AlternativeSpot[] = [
     addr1: "서귀포시 성산읍",
     category: "해변/해안",
     congestion: "보통",
-    isFavorite: false,
     firstimage:
       "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&q=80",
     overview:
@@ -108,7 +104,6 @@ export const alternativeSpots: AlternativeSpot[] = [
     addr1: "서귀포시 안덕면",
     category: "공원/정원",
     congestion: "보통",
-    isFavorite: true,
     firstimage:
       "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=800&q=80",
     overview:
@@ -123,7 +118,6 @@ export const alternativeSpots: AlternativeSpot[] = [
     addr1: "제주시 구좌읍",
     category: "해변/해안",
     congestion: "여유",
-    isFavorite: false,
     firstimage:
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     overview: "검은 현무암과 하얀 파도가 대비되는 조용하고 감성적인 해변이다.",
@@ -137,7 +131,6 @@ export const alternativeSpots: AlternativeSpot[] = [
     addr1: "제주시 한림읍",
     category: "공원/정원",
     congestion: "보통",
-    isFavorite: false,
     firstimage:
       "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&q=80",
     overview:
@@ -152,7 +145,6 @@ export const alternativeSpots: AlternativeSpot[] = [
     addr1: "서귀포시 표선면",
     category: "해변/해안",
     congestion: "여유",
-    isFavorite: false,
     firstimage:
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     overview:
@@ -167,7 +159,6 @@ export const alternativeSpots: AlternativeSpot[] = [
     addr1: "제주시 조천읍",
     category: "산/오름",
     congestion: "보통",
-    isFavorite: true,
     firstimage:
       "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&q=80",
     overview:
@@ -183,9 +174,8 @@ export const mockSpots: Spot[] = [
     id: 1,
     name: "성산일출봉",
     addr1: "서귀포시 성산읍",
-    category: "산/오름",
+    category: "관광지",
     congestion: "혼잡",
-    isFavorite: false,
     firstimage:
       "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80",
     overview:
@@ -202,9 +192,8 @@ export const mockSpots: Spot[] = [
     id: 2,
     name: "협재해수욕장",
     addr1: "제주시 한림읍",
-    category: "해변/해안",
+    category: "관광지",
     congestion: "혼잡",
-    isFavorite: false,
     firstimage:
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     overview:
@@ -221,9 +210,8 @@ export const mockSpots: Spot[] = [
     id: 3,
     name: "비자림",
     addr1: "제주시 구좌읍",
-    category: "숲/힐링",
+    category: "관광지",
     congestion: "여유",
-    isFavorite: true,
     firstimage:
       "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
     overview:
@@ -240,9 +228,8 @@ export const mockSpots: Spot[] = [
     id: 4,
     name: "쇠소깍",
     addr1: "서귀포시",
-    category: "해변/해안",
+    category: "관광지",
     congestion: "여유",
-    isFavorite: true,
     firstimage:
       "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&q=80",
     overview:
@@ -259,9 +246,8 @@ export const mockSpots: Spot[] = [
     id: 5,
     name: "한라산 어리목",
     addr1: "서귀포시",
-    category: "산/오름",
+    category: "레포츠",
     congestion: "보통",
-    isFavorite: false,
     firstimage:
       "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&q=80",
     overview:
@@ -278,9 +264,8 @@ export const mockSpots: Spot[] = [
     id: 6,
     name: "우도",
     addr1: "제주시 우도면",
-    category: "해변/해안",
+    category: "관광지",
     congestion: "보통",
-    isFavorite: false,
     firstimage:
       "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&q=80",
     overview:
@@ -297,9 +282,8 @@ export const mockSpots: Spot[] = [
     id: 7,
     name: "오설록 티뮤지엄",
     addr1: "서귀포시 안덕면",
-    category: "카페/먹거리",
+    category: "문화시설",
     congestion: "보통",
-    isFavorite: false,
     firstimage:
       "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80",
     overview:
@@ -316,9 +300,8 @@ export const mockSpots: Spot[] = [
     id: 8,
     name: "월정리해변",
     addr1: "제주시 구좌읍",
-    category: "해변/해안",
+    category: "관광지",
     congestion: "혼잡",
-    isFavorite: false,
     firstimage:
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     overview:
@@ -335,9 +318,8 @@ export const mockSpots: Spot[] = [
     id: 9,
     name: "사려니숲길",
     addr1: "제주시 조천읍",
-    category: "숲/힐링",
+    category: "관광지",
     congestion: "여유",
-    isFavorite: true,
     firstimage:
       "https://images.unsplash.com/photo-1511497584788-876760111969?w=800&q=80",
     overview:
@@ -354,9 +336,8 @@ export const mockSpots: Spot[] = [
     id: 10,
     name: "안돌오름 비밀의숲",
     addr1: "제주시 송당리",
-    category: "숲/힐링",
+    category: "관광지",
     congestion: "여유",
-    isFavorite: true,
     firstimage:
       "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80",
     overview:
@@ -373,9 +354,8 @@ export const mockSpots: Spot[] = [
     id: 11,
     name: "이호테우해변",
     addr1: "제주시 이호동",
-    category: "해변/해안",
+    category: "관광지",
     congestion: "보통",
-    isFavorite: false,
     firstimage:
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     overview:
@@ -392,9 +372,8 @@ export const mockSpots: Spot[] = [
     id: 12,
     name: "용머리해안",
     addr1: "서귀포시 안덕면",
-    category: "해변/해안",
+    category: "관광지",
     congestion: "보통",
-    isFavorite: false,
     firstimage:
       "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&q=80",
     overview:
@@ -405,5 +384,202 @@ export const mockSpots: Spot[] = [
     recommendations: [alternativeSpots[2], alternativeSpots[7]],
     latitude: 33.2318,
     longitude: 126.3142,
+  },
+  {
+    id: 13,
+    name: "제주민속자연사박물관",
+    addr1: "제주시 일도2동",
+    category: "문화시설",
+    congestion: "보통",
+    firstimage:
+      "https://cdn.ijejutoday.com/news/photo/202303/302004_304347_3533.jpg",
+    overview: "제주의 자연환경과 민속문화를 한눈에 살펴볼 수 있는 박물관이다.",
+    openingHours: "09:00 ~ 18:00",
+    fee: "성인 2,000원",
+    recommendedTime: "오전 10시 ~ 오후 1시",
+    recommendations: [alternativeSpots[2], alternativeSpots[3]],
+    latitude: 33.5056,
+    longitude: 126.5312,
+  },
+  {
+    id: 14,
+    name: "제주도립미술관",
+    addr1: "제주시 연동",
+    category: "문화시설",
+    congestion: "여유",
+    firstimage:
+      "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80",
+    overview:
+      "제주 현대미술 작품과 다양한 기획 전시를 감상할 수 있는 공간이다.",
+    openingHours: "09:00 ~ 18:00",
+    fee: "성인 2,000원",
+    recommendedTime: "오후 1시 ~ 4시",
+    recommendations: [alternativeSpots[1], alternativeSpots[4]],
+    latitude: 33.4521,
+    longitude: 126.4898,
+  },
+  {
+    id: 15,
+    name: "제주들불축제",
+    addr1: "제주시 애월읍",
+    category: "행사",
+    congestion: "혼잡",
+    firstimage:
+      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80",
+    overview:
+      "제주의 전통 목축문화를 계승한 대표 봄 축제로, 오름 불놓기 행사가 유명하다.",
+    openingHours: "연 1회 개최",
+    fee: "무료",
+    recommendedTime: "축제 기간 저녁 시간",
+    recommendations: [alternativeSpots[0], alternativeSpots[7]],
+    latitude: 33.3915,
+    longitude: 126.3956,
+  },
+  {
+    id: 16,
+    name: "탐라문화제",
+    addr1: "제주시",
+    category: "행사",
+    congestion: "혼잡",
+    firstimage:
+      "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=800&q=80",
+    overview: "제주의 역사와 전통문화를 체험할 수 있는 제주 대표 문화축제이다.",
+    openingHours: "연 1회 개최",
+    fee: "무료",
+    recommendedTime: "축제 기간",
+    recommendations: [alternativeSpots[5], alternativeSpots[2]],
+    latitude: 33.4996,
+    longitude: 126.5312,
+  },
+  {
+    id: 17,
+    name: "롯데호텔 제주",
+    addr1: "서귀포시 중문관광로",
+    category: "숙박",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80",
+    overview: "중문 관광단지에 위치한 제주 대표 특급 호텔이다.",
+    openingHours: "24시간",
+    fee: "1박 약 300,000원~",
+    recommendedTime: "체크인 15:00 이후",
+    recommendations: [alternativeSpots[3], alternativeSpots[4]],
+    latitude: 33.2485,
+    longitude: 126.4106,
+  },
+  {
+    id: 18,
+    name: "신라호텔 제주",
+    addr1: "서귀포시 중문관광로",
+    category: "숙박",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=80",
+    overview: "제주 자연과 어우러진 럭셔리 리조트형 호텔이다.",
+    openingHours: "24시간",
+    fee: "1박 약 350,000원~",
+    recommendedTime: "체크인 15:00 이후",
+    recommendations: [alternativeSpots[0], alternativeSpots[6]],
+    latitude: 33.2478,
+    longitude: 126.4086,
+  },
+  {
+    id: 19,
+    name: "제주동문시장",
+    addr1: "제주시 이도1동",
+    category: "쇼핑",
+    congestion: "혼잡",
+    firstimage:
+      "https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=800&q=80",
+    overview: "제주 특산물과 먹거리를 즐길 수 있는 제주 대표 전통시장이다.",
+    openingHours: "08:00 ~ 21:00",
+    fee: "무료",
+    recommendedTime: "오후 5시 ~ 8시",
+    recommendations: [alternativeSpots[4], alternativeSpots[6]],
+    latitude: 33.5112,
+    longitude: 126.5264,
+  },
+  {
+    id: 20,
+    name: "제주면세점",
+    addr1: "제주시 연동",
+    category: "쇼핑",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80",
+    overview:
+      "제주 여행객들이 다양한 브랜드 상품을 면세 혜택으로 구매할 수 있는 공간이다.",
+    openingHours: "10:00 ~ 19:00",
+    fee: "무료",
+    recommendedTime: "오전 11시 ~ 오후 2시",
+    recommendations: [alternativeSpots[1], alternativeSpots[3]],
+    latitude: 33.4863,
+    longitude: 126.4882,
+  },
+  {
+    id: 21,
+    name: "우진해장국",
+    addr1: "제주시 삼도2동",
+    category: "음식점",
+    congestion: "혼잡",
+    firstimage:
+      "https://images.unsplash.com/photo-1544025162-d76694265947?w=800&q=80",
+    overview: "제주 고사리육개장으로 유명한 제주 대표 맛집이다.",
+    openingHours: "06:00 ~ 22:00",
+    fee: "1인 약 10,000원",
+    recommendedTime: "오전 7시 ~ 9시",
+    recommendations: [alternativeSpots[0], alternativeSpots[4]],
+    latitude: 33.5111,
+    longitude: 126.5205,
+  },
+  {
+    id: 22,
+    name: "자매국수",
+    addr1: "제주시 일도2동",
+    category: "음식점",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&q=80",
+    overview: "진한 멸치 육수와 고기 고명이 어우러진 제주식 고기국수 맛집이다.",
+    openingHours: "09:00 ~ 18:00",
+    fee: "1인 약 9,000원",
+    recommendedTime: "점심 시간 이전",
+    recommendations: [alternativeSpots[2], alternativeSpots[5]],
+    latitude: 33.5012,
+    longitude: 126.5291,
+  },
+  {
+    id: 23,
+    name: "파르나스 호텔 제주",
+    addr1: "서귀포시 중문관광로 72번길 100",
+    category: "숙박",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80",
+    overview:
+      "중문관광단지에 위치한 5성급 럭셔리 호텔로, 제주 남쪽 바다를 한눈에 담을 수 있는 인피니티 풀과 세련된 객실이 특징이다. 커플 여행부터 가족 여행까지 다양한 여행객에게 사랑받는 제주 대표 프리미엄 숙소이다.",
+    openingHours: "24시간",
+    fee: "1박 약 350,000원~",
+    recommendedTime: "체크인 15:00 이후",
+    recommendations: [alternativeSpots[6], alternativeSpots[3]],
+    latitude: 33.2512,
+    longitude: 126.4042,
+  },
+  {
+    id: 24,
+    name: "그랜드 조선 제주",
+    addr1: "서귀포시 중문관광로 72번길 60",
+    category: "숙박",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&q=80",
+    overview:
+      "중문관광단지에 위치한 5성급 호텔로, 모던한 객실과 다양한 부대시설을 갖춘 프리미엄 리조트이다. 실내외 수영장과 키즈 시설이 잘 마련되어 있어 가족 여행객에게 특히 인기가 높으며, 중문 해변과 주요 관광지 접근성이 뛰어나다.",
+    openingHours: "24시간",
+    fee: "1박 약 300,000원~",
+    recommendedTime: "체크인 15:00 이후",
+    recommendations: [alternativeSpots[3], alternativeSpots[6]],
+    latitude: 33.2544,
+    longitude: 126.4111,
   },
 ];
