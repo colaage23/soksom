@@ -209,6 +209,7 @@ const SubInfoText = styled.div`
 
   color: #6e767c;
   font-size: 0.6875rem;
+  font-weight: 300;
 
   margin: 0 0 4px;
 `;
@@ -217,7 +218,7 @@ const SpotName = styled.h4`
   margin: 0;
   color: #0e1013;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
 `;
 
 const CongestionBox = styled.div`

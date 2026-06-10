@@ -261,7 +261,7 @@ const ModeTabButton = styled.button<{ $isActive: boolean }>`
   color: ${({ $isActive }) => ($isActive ? "#101714" : "#7b827d")};
 
   font-size: 0.875rem;
-  font-weight: ${({ $isActive }) => ($isActive ? 700 : 500)};
+  font-weight: ${({ $isActive }) => ($isActive ? 600 : 500)};
 
   cursor: pointer;
 

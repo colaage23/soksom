@@ -332,7 +332,7 @@ const CongestionTitle = styled.div`
 
   color: #2e3339;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
 `;
 
 const CongestionBadge = styled.div`
@@ -397,7 +397,7 @@ const OverviewTitle = styled.h3`
 
   color: #2e3339;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
 
   line-height: 1rem;
   letter-spacing: 0.05em;
@@ -508,7 +508,7 @@ const InfoText = styled.p`
 
   color: #100c0d;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
 
   word-break: keep-all;
 
@@ -533,7 +533,7 @@ const RecommendationTitle = styled.h3`
 
   color: #2e3339;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
 
   line-height: 1rem;
   letter-spacing: 0.05em;
@@ -569,7 +569,7 @@ const RecommendationName = styled.p`
 
   color: #100c0d;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
 
   line-height: 1.625rem;
 `;
@@ -609,7 +609,7 @@ const AddToPlanButton = styled.button`
 
   color: #fffafc;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
 
   line-height: 1.25rem;
 
