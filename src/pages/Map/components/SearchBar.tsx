@@ -3,14 +3,21 @@ import styled from "styled-components";
 
 interface ISearchBarProps {
   placeholder: string;
+  value: string;
+  onChange: React.ChangeEventHandler<HTMLInputElement>;
 }
 
-const SearchBar = ({ placeholder }: ISearchBarProps) => {
+const SearchBar = ({ placeholder, value, onChange }: ISearchBarProps) => {
   return (
     <MapSearchForm>
       <MapSearchBox>
         <SearchIcon />
-        <SearchInput placeholder={placeholder} type="text" />
+        <SearchInput
+          type="text"
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+        />
       </MapSearchBox>
     </MapSearchForm>
   );

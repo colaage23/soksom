@@ -31,24 +31,39 @@ const ExploreList = () => {
 
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState("");
 
   const visibleCategories = isExpanded ? categories : categories.slice(0, 5);
 
   const filteredSpots = mockSpots.filter((spot) => {
-    if (selectedCategory === "전체") {
-      return true;
-    }
+    // 카테고리
+    const matchesCategory =
+      selectedCategory === "전체"
+        ? true
+        : selectedCategory === "MY"
+          ? likedSpot.some((liked) => liked === spot.id)
+          : spot.category === selectedCategory;
 
-    if (selectedCategory === "MY") {
-      return likedSpot.some((liked) => liked === spot.id);
-    }
+    // 검색
+    const keyword = searchKeyword.trim();
 
-    return spot.category === selectedCategory;
+    const matchesSearch =
+      keyword === ""
+        ? true
+        : spot.name.includes(keyword) ||
+          spot.addr1.includes(keyword) ||
+          spot.category.includes(keyword);
+
+    return matchesCategory && matchesSearch;
   });
 
   return (
     <ExploreListContainer>
-      <SearchBar placeholder={"관광지, 지역, 태그 검색"} />
+      <SearchBar
+        placeholder={"관광지, 지역 검색"}
+        value={searchKeyword}
+        onChange={(e) => setSearchKeyword(e.target.value)}
+      />
 
       <CategorySection>
         {visibleCategories.map((category) => (
