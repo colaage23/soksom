@@ -3,8 +3,9 @@ import type { Spot } from "../pages/Map/mock";
 
 interface ISpotStore {
   selectedSpot: Spot | null;
-  detailSpot: Spot | null;
   setSelectedSpot: (spot: Spot | null) => void;
+
+  detailSpot: Spot | null;
   setDetailSpot: (spot: Spot | null) => void;
 }
 

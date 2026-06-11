@@ -9,7 +9,7 @@ import { useSpotStore } from "../../stores/useSpotStore";
 import { congestionStyle } from "./mock";
 
 const Map = () => {
-  const { detailSpot } = useSpotStore();
+  const { detailSpot, setDetailSpot } = useSpotStore();
 
   const [mode, setMode] = useState<"explore" | "route">("explore");
   const [open, setOpen] = useState(true);
@@ -36,14 +36,20 @@ const Map = () => {
 
           <ModeTabButton
             $isActive={mode === "explore"}
-            onClick={() => setMode("explore")}
+            onClick={() => {
+              setMode("explore");
+              setDetailSpot(null);
+            }}
           >
             <TelescopeIcon />
             탐색 모드
           </ModeTabButton>
           <ModeTabButton
             $isActive={mode === "route"}
-            onClick={() => setMode("route")}
+            onClick={() => {
+              setMode("route");
+              setDetailSpot(null);
+            }}
           >
             <RouteIcon />
             루트 모드
