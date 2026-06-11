@@ -6,3 +6,14 @@ export const getMarkerSrc = (color: string = "#0C9799") => {
 </svg>`;
   return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
 };
+
+export const getNumberMarkerSrc = (number: number) => {
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192.8 237" width="36" height="44">
+      <path fill="#0C9799" d="m96.39,0c53.24,0,96.4,43.16,96.4,96.4,0,56.12-43.13,104.87-71.69,131-13.98,12.79-35.44,12.79-49.41,0C43.13,201.27,0,152.52,0,96.4S43.16,0,96.4,0h0Z"/>
+      <path fill="#17c2c5" d="m96.39,8c48.8,0,88.4,39.6,88.4,88.4,0,51.5-39.6,96.2-65.8,120.2-12.8,11.7-32.5,11.7-45.2,0C47.6,192.6,8,148,8,96.4S47.6,8,96.4,8h0Z"/>
+      <text x="96" y="107" text-anchor="middle" dominant-baseline="middle" font-size="100" font-weight="700" fill="#fff" font-family="Pretendard">${number}</text>
+    </svg>
+  `;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+};

@@ -1,14 +1,18 @@
 import styled from "styled-components";
 import { congestionStyle } from "../mock";
-import { Map, MapMarker } from "react-kakao-maps-sdk";
-import { getMarkerSrc } from "../../../utils/marker";
+import { Map, MapMarker, Polyline } from "react-kakao-maps-sdk";
+import { getMarkerSrc, getNumberMarkerSrc } from "../../../utils/marker";
 import { useSpotStore } from "../../../stores/useSpotStore";
 import { useEffect, useRef } from "react";
 import { LocateFixed, Minus, Plus } from "lucide-react";
+import { useDirectionStore } from "../../../stores/useDirectionStore";
+import { useWayPointStore } from "../../../stores/useWayPointStore";
 
 const KakaoMap = () => {
   const mapRef = useRef<kakao.maps.Map>(null);
   const { selectedSpot, setDetailSpot } = useSpotStore();
+  const { directions } = useDirectionStore();
+  const { wayPoint } = useWayPointStore();
 
   useEffect(() => {
     const map = mapRef.current;
@@ -70,6 +74,15 @@ const KakaoMap = () => {
     );
   };
 
+  const routePath =
+    directions?.routes?.[0]?.sections
+      ?.flatMap((section) => section.roads)
+      ?.flatMap((road) => road.vertexes)
+      ?.reduce((acc: { lat: number; lng: number }[], _, i, arr) => {
+        if (i % 2 === 0) acc.push({ lat: arr[i + 1], lng: arr[i] });
+        return acc;
+      }, []) ?? [];
+
   return (
     <MapContainer>
       <Map
@@ -90,7 +103,7 @@ const KakaoMap = () => {
         zoomable={true}
         ref={mapRef}
       >
-        {selectedSpot && (
+        {!wayPoint && selectedSpot && (
           <MapMarker
             position={{
               lat: selectedSpot?.latitude,
@@ -106,6 +119,64 @@ const KakaoMap = () => {
             clickable={true}
             onClick={() => setDetailSpot(selectedSpot)}
           />
+        )}
+
+        {wayPoint &&
+          wayPoint.map((point, idx) => (
+            <MapMarker
+              key={idx}
+              position={{
+                lat: point.latitude,
+                lng: point.longitude,
+              }}
+              image={{
+                src: getNumberMarkerSrc(idx + 1),
+                size: { width: 40, height: 40 },
+                options: { offset: { x: 40, y: 40 } },
+              }}
+              clickable={true}
+              onClick={() => setDetailSpot(selectedSpot)}
+            />
+          ))}
+
+        {routePath.length > 0 && (
+          <>
+            <Polyline
+              path={routePath}
+              strokeWeight={24}
+              strokeColor="#12d3d7"
+              strokeOpacity={0.5}
+              strokeStyle="solid"
+            />
+            <Polyline
+              path={routePath}
+              strokeWeight={15}
+              strokeColor="#00a7aa"
+              strokeOpacity={1}
+              strokeStyle="solid"
+            />
+            <Polyline
+              path={routePath}
+              strokeWeight={13}
+              strokeColor="#12d3d7"
+              strokeOpacity={1}
+              strokeStyle="solid"
+            />
+            <Polyline
+              path={routePath}
+              strokeWeight={6}
+              strokeColor="#0f979a"
+              strokeOpacity={0.5}
+              strokeStyle="solid"
+            />
+            <Polyline
+              path={routePath}
+              strokeWeight={2}
+              strokeColor="#fff"
+              strokeOpacity={1}
+              strokeStyle="solid"
+            />
+          </>
         )}
       </Map>
       <ZoomButtonContainer>
