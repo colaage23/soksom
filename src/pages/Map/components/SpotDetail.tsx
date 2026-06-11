@@ -2,6 +2,7 @@ import styled from "styled-components";
 import { congestionStyle } from "../mock";
 import {
   CalendarPlus,
+  Check,
   Clock,
   Heart,
   MoveLeft,
@@ -12,10 +13,12 @@ import {
 import { useState } from "react";
 import { useSpotStore } from "../../../stores/useSpotStore";
 import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
+import { useWayPointStore } from "../../../stores/useWayPointStore";
 
 const SpotDetail = () => {
   const { detailSpot, setDetailSpot } = useSpotStore();
   const { likedSpot, toggleLikedSpot } = useLikedSpotStore();
+  const { wayPoint, toggleWayPoint } = useWayPointStore();
 
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -23,6 +26,10 @@ const SpotDetail = () => {
 
   const status = congestionStyle[detailSpot.congestion];
   const isLongText = detailSpot.overview.length > 80;
+
+  const handleAddToPlan = () => {
+    toggleWayPoint(detailSpot);
+  };
 
   return (
     <SpotDetailContainer>
@@ -156,8 +163,16 @@ const SpotDetail = () => {
             </RecommendationCard>
           ))}
         </RecommendationBox>
-        <AddToPlanButton>
-          <CalendarPlusIcon /> 내 일정에 추가
+        <AddToPlanButton onClick={handleAddToPlan}>
+          {wayPoint.includes(detailSpot) ? (
+            <>
+              <CheckIcon /> 일정에 추가되었습니다
+            </>
+          ) : (
+            <>
+              <CalendarPlusIcon /> 내 일정에 추가
+            </>
+          )}
         </AddToPlanButton>
       </SpotContent>
     </SpotDetailContainer>
@@ -583,10 +598,17 @@ const RecommendationInfo = styled.div`
 `;
 
 const CalendarPlusIcon = styled(CalendarPlus)`
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   stroke: currentColor;
   stroke-width: 2;
+`;
+
+const CheckIcon = styled(Check)`
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2.5;
 `;
 
 const AddToPlanButton = styled.button`
@@ -600,13 +622,13 @@ const AddToPlanButton = styled.button`
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 
   outline: none;
   border: none;
   border-radius: 9999px;
 
-  background-color: #298e8c;
+  background-color: #0c9799;
 
   color: #fffafc;
   font-size: 0.875rem;
@@ -615,6 +637,7 @@ const AddToPlanButton = styled.button`
   line-height: 1.25rem;
 
   &:hover {
+    background-color: #0fa0a3;
     cursor: pointer;
   }
 `;
