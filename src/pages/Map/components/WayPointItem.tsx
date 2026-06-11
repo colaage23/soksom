@@ -45,7 +45,6 @@ const WayPointItem = ({ index, spot }: WayPointItemProps) => {
       >
         <WayPointContent
           onClick={() => {
-            setDetailSpot(spot);
             setSelectedSpot(spot);
           }}
         >
@@ -56,7 +55,11 @@ const WayPointItem = ({ index, spot }: WayPointItemProps) => {
           >
             <DragIcon />
           </WayPointDragButton>
-          <InfoBox>
+          <InfoBox
+            onClick={() => {
+              setDetailSpot(spot);
+            }}
+          >
             <WayPointName>{spot.name}</WayPointName>
 
             <WayPointInfoText>
