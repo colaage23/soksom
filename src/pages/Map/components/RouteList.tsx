@@ -1,5 +1,5 @@
 import styled from "styled-components";
-
+import { useEffect } from "react";
 import SearchBar from "./SearchBar";
 import { useSearchKeywordStore } from "../../../stores/useSearchKeywordStorer";
 import { mockSpots } from "../mock";
@@ -8,10 +8,37 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import WayPointItem from "./WayPointItem";
 import { useWayPointStore } from "../../../stores/useWayPointStore";
+import { useDirectionWithFallback } from "../../../hooks/useDirectionWithFallback";
+import { useDirectionStore } from "../../../stores/useDirectionStore";
 
 const RouteList = () => {
   const { searchKeyword, setSearchKeyword } = useSearchKeywordStore();
   const { wayPoint, toggleWayPoint } = useWayPointStore();
+  const { setDirections } = useDirectionStore();
+
+  const { fetchDirectionWithFallback, data } = useDirectionWithFallback();
+
+  useEffect(() => {
+    if (wayPoint.length > 1) {
+      fetchDirectionWithFallback({
+        origin: { x: wayPoint[0].longitude, y: wayPoint[0].latitude },
+        waypoints: wayPoint.slice(1, -1).map((spot) => ({
+          x: spot.longitude,
+          y: spot.latitude,
+        })),
+        destination: {
+          x: wayPoint[wayPoint.length - 1].longitude,
+          y: wayPoint[wayPoint.length - 1].latitude,
+        },
+      });
+    }
+  }, [wayPoint]);
+
+  useEffect(() => {
+    if (data) {
+      setDirections(data);
+    }
+  }, [data]);
 
   const filteredSpots = mockSpots.filter((spot) => {
     const keyword = searchKeyword.trim();
@@ -57,6 +84,8 @@ const RouteList = () => {
           ))}
         </WayPointList>
       </DndProvider>
+
+      {data?.routes[0]?.result_msg}
 
       <RouteListContent>
         <GenerateScheduleButton>
