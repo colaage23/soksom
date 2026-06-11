@@ -6,6 +6,7 @@ import { useSpotStore } from "../../../stores/useSpotStore";
 import SearchBar from "./SearchBar";
 import { Frown, Heart } from "lucide-react";
 import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
+import { useSearchKeywordStore } from "../../../stores/useSearchKeywordStorer";
 
 /*
 관광 타입 or 서비스 분류 어떤 거로 필터링 할지?
@@ -28,10 +29,10 @@ const categories: string[] = [
 const ExploreList = () => {
   const { selectedSpot, setSelectedSpot, setDetailSpot } = useSpotStore();
   const { likedSpot } = useLikedSpotStore();
+  const { searchKeyword, setSearchKeyword } = useSearchKeywordStore();
 
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false);
-  const [searchKeyword, setSearchKeyword] = useState("");
 
   const visibleCategories = isExpanded ? categories : categories.slice(0, 5);
 
