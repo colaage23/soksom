@@ -2,6 +2,7 @@ import logoImage from "../../assets/icons/soksom-logo.svg";
 import { Menu, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import styled from "styled-components";
+import colors from "../../constants/colors";
 
 const navItems = [
   { label: "홈", path: "/" },
@@ -51,14 +52,13 @@ const Header = () => {
 };
 
 const HeaderShell = styled.header`
-  position: sticky;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
   z-index: 20;
   width: 100%;
   background: transparent;
-  border-bottom: 1px solid #e9e9e9;
 `;
 
 const HeaderInner = styled.div`
@@ -67,7 +67,7 @@ const HeaderInner = styled.div`
   align-items: center;
   gap: 24px;
   width: 100%;
-  padding: 8px 30px;
+  padding: 0px 45px;
   box-sizing: border-box;
 
   @media (max-width: 960px) {
@@ -119,18 +119,24 @@ const DesktopNav = styled.nav`
 const BrandText = styled.div`
   display: grid;
   gap: 2px;
+  color: white;
+  h3 {
+    font-size: 1.4rem;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+  }
 `;
 
 const NavItem = styled(Link)<{ $isActive: boolean }>`
-  color: ${({ $isActive }) => ($isActive ? "#24959b" : "#5a635f")};
+  color: ${({ $isActive }) => ($isActive ? colors.main : "white")};
   text-decoration: none;
-  font-size: 0.84rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 500;
   letter-spacing: -0.03em;
   transition: color 0.2s ease;
 
   &:hover {
-    color: #24959b;
+    color: ${colors.main};
   }
 `;
 
@@ -165,7 +171,7 @@ const HamburgerBtn = styled.button`
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: #101714;
+  color: white;
   cursor: pointer;
 
   @media (max-width: 768px) {
@@ -178,7 +184,7 @@ const IconLink = styled.div`
   place-items: center;
   width: 18px;
   height: 18px;
-  color: #101714;
+  color: white;
 `;
 
 const UserIcon = styled(User)`
@@ -203,15 +209,14 @@ const LoginBtn = styled.button`
   height: 36px;
   padding: 0 18px;
   border-radius: 999px;
-  background: #111111;
-  color: #fbf8f1;
-  text-decoration: none;
-  font-size: 0.76rem;
+  background: white;
+  color: black;
+  font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: -0.03em;
+  border: 0;
 
   &:hover {
-    background: #1e1e1e;
+    background: #0c9799;
   }
 `;
 
