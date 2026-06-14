@@ -1,0 +1,585 @@
+export type Congestion = "여유" | "보통" | "혼잡";
+
+export interface Spot {
+  id: number;
+  name: string;
+  addr1: string;
+  category: string;
+  congestion: Congestion;
+  firstimage: string;
+  overview: string;
+  openingHours: string;
+  fee: string;
+  recommendedTime: string;
+  recommendations: AlternativeSpot[];
+  latitude: number;
+  longitude: number;
+}
+
+export const congestionStyle = {
+  여유: {
+    label: "여유",
+    bgColor: "#4CAF50",
+    color: "#12462c",
+    progress: 30,
+    min: 0,
+    max: 39,
+    description:
+      "현재 이 관광지는 여유 상태입니다. 지금 방문하기 좋은 시간입니다.",
+    recommendation: "함께 둘러볼 관광지",
+  },
+  보통: {
+    label: "보통",
+    bgColor: "#eecb00",
+    color: "#625019",
+    progress: 60,
+    min: 40,
+    max: 79,
+    description:
+      "현재 이 관광지는 보통 상태입니다. 지금 방문하기 좋은 시간입니다.",
+    recommendation: "함께 둘러볼 관광지",
+  },
+  혼잡: {
+    label: "혼잡",
+    bgColor: "#F97316",
+    color: "#fdfcf8",
+    progress: 90,
+    min: 80,
+    max: 100,
+    description: "현재 이 관광지는 혼잡 상태입니다. 대체 관광지를 추천드려요.",
+    recommendation: "덜 붐비는 대체 관광지",
+  },
+} as const;
+
+export type AlternativeSpot = Omit<
+  Spot,
+  "recommendations" | "latitude" | "longitude"
+>;
+export const alternativeSpots: AlternativeSpot[] = [
+  {
+    id: 101,
+    name: "금능해변",
+    addr1: "제주시 한림읍",
+    category: "해변/해안",
+    congestion: "여유",
+    firstimage:
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    overview:
+      "협재보다 한적한 분위기의 에메랄드빛 해변으로, 여유로운 산책과 휴식을 즐기기 좋은 숨은 명소이다.",
+    openingHours: "상시 개방",
+    fee: "무료",
+    recommendedTime: "오전 10시 ~ 오후 4시",
+  },
+  {
+    id: 102,
+    name: "절물자연휴양림",
+    addr1: "제주시 봉개동",
+    category: "숲/힐링",
+    congestion: "여유",
+    firstimage:
+      "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
+    overview:
+      "울창한 삼나무 숲과 산책로가 잘 정비된 자연 휴양림으로 힐링 여행지로 인기 있다.",
+    openingHours: "07:00 ~ 17:00",
+    fee: "성인 1,000원",
+    recommendedTime: "오전 9시 ~ 11시",
+  },
+  {
+    id: 103,
+    name: "섭지코지",
+    addr1: "서귀포시 성산읍",
+    category: "해변/해안",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&q=80",
+    overview:
+      "드넓은 바다와 초원이 어우러진 제주 동부 대표 해안 절경 명소이다.",
+    openingHours: "상시 개방",
+    fee: "무료",
+    recommendedTime: "오후 3시 ~ 해질 무렵",
+  },
+  {
+    id: 104,
+    name: "카멜리아힐",
+    addr1: "서귀포시 안덕면",
+    category: "공원/정원",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=800&q=80",
+    overview:
+      "사계절 꽃이 피는 대형 정원으로 사진 촬영과 산책을 즐기기 좋은 테마 공원이다.",
+    openingHours: "08:30 ~ 17:30",
+    fee: "성인 8,000원",
+    recommendedTime: "오전 10시 ~ 오후 3시",
+  },
+  {
+    id: 105,
+    name: "김녕성세기해변",
+    addr1: "제주시 구좌읍",
+    category: "해변/해안",
+    congestion: "여유",
+    firstimage:
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    overview: "검은 현무암과 하얀 파도가 대비되는 조용하고 감성적인 해변이다.",
+    openingHours: "상시 개방",
+    fee: "무료",
+    recommendedTime: "오후 5시 ~ 7시",
+  },
+  {
+    id: 106,
+    name: "한림공원",
+    addr1: "제주시 한림읍",
+    category: "공원/정원",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&q=80",
+    overview:
+      "동굴, 식물원, 정원이 함께 있는 복합 자연 테마파크로 다양한 볼거리를 제공한다.",
+    openingHours: "09:00 ~ 18:00",
+    fee: "성인 12,000원",
+    recommendedTime: "오전 10시 ~ 오후 2시",
+  },
+  {
+    id: 107,
+    name: "표선해수욕장",
+    addr1: "서귀포시 표선면",
+    category: "해변/해안",
+    congestion: "여유",
+    firstimage:
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    overview:
+      "넓고 잔잔한 백사장이 특징인 가족 단위 여행객에게 적합한 해변이다.",
+    openingHours: "상시 개방",
+    fee: "무료",
+    recommendedTime: "오전 9시 ~ 11시",
+  },
+  {
+    id: 108,
+    name: "산굼부리",
+    addr1: "제주시 조천읍",
+    category: "산/오름",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&q=80",
+    overview:
+      "분화구 형태가 잘 보존된 화산 지형으로 자연 경관이 뛰어난 제주 대표 오름이다.",
+    openingHours: "09:00 ~ 18:00",
+    fee: "성인 6,000원",
+    recommendedTime: "오전 10시 ~ 오후 1시",
+  },
+];
+
+export const mockSpots: Spot[] = [
+  {
+    id: 1,
+    name: "성산일출봉",
+    addr1: "서귀포시 성산읍",
+    category: "관광지",
+    congestion: "혼잡",
+    firstimage:
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80",
+    overview:
+      "해발 180m인 성산 일출봉은 약 5,000년 전 제주도 수많은 분화구 중에서는 드물게 바닷속에서 수중폭발한 화산체이다. 용암이 물에 섞일 때 일어나는 폭발로 용암은 고운 화산재로 부서져 분화구 둘레에 원뿔형으로 쌓여 있다. 원래는 화산섬이었지만 신양해수욕장 쪽 땅과 섬 사이에 모래와 자갈이 쌓여 육지와 연결이 된 것이다. 일출봉 정상에는 지름 600m, 바닥면의 높이 해발 90m에 면적이 214,400㎡나 되는 분화구가 자리한다. 예로부터 이곳 성산일출봉 정상에서 바라보는 일출 광경은 영주 10경(제주의 경승지) 중에서 으뜸이라 하였다. 넘실대는 푸른 바다 저편 수평선에서 이글거리며 솟아오르는 일출은 온 바다를 물들이고 보는 이의 마음까지도 붙잡아 놓으며 보는 이로 하여금 저절로 감탄케 한다.",
+    openingHours: "07:00 ~ 19:00",
+    fee: "성인-5,000원 청소년-2,500원",
+    recommendedTime: "일출 시간 (05:30~07:00)",
+    recommendations: [alternativeSpots[6], alternativeSpots[7]],
+    latitude: 33.4581111174,
+    longitude: 126.9415156012,
+  },
+
+  {
+    id: 2,
+    name: "협재해수욕장",
+    addr1: "제주시 한림읍",
+    category: "관광지",
+    congestion: "혼잡",
+    firstimage:
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    overview:
+      "협재해수욕장은 제주시 서쪽의 한림공원에 인접해 있다. 조개껍질 가루가 많이 섞인 백사장과 앞바다에 떠 있는 비양도, 코발트 빛깔의 아름다운 바다와 울창한 소나무 숲이 한데 어우러진 풍광이 매우 아름답다. 수심이 얕고 경사가 완만하여 가족 단위의 해수욕장으로 적합하다. 이 해수욕장의 남서쪽 해안은 금릉해수욕장과 이어져 있는데, 주민들은 두 해변을 합쳐 협재해수욕장이라고도 부른다. 해수욕장 내에는 탈의실, 샤워실, 휴게소, 식수대, 화장실 등 각종 편의시설이 있어 이용하기에도 편리하다. 또 해수욕장 주변에는 짙은 송림이 있어 야영과 산림욕을 즐길 수 있고, 전복과 소라가 많이 잡히기 때문에 싱싱한 해산물을 마음껏 맛볼 수 있다. 멀지 않은 곳에는 한림공원과 협재굴, 명월대, 황룡사, 영각사 등이 있어 해수욕과 함께 주변을 둘러볼 수 있으며 특히 해수욕장 정면에 보이는 비양도의 모습은 맑고 깨끗한 해수와 어울려 아름다운 풍광을 연출하며 이곳에서 바라보는 낙조 또한 아름답다. ◎ 한류의 매력을 만나는 여행 정보 시원한 파도 소리, 에메랄드빛 바다, 백사장 옆 검은 현무암 위에서 반갑게 손을 흔드는 세븐틴이 있다. 세븐틴이 팬인 캐럿에게 보내는 노래 엔 예쁜 사랑이 담겨 있다. 협재해수욕장은 수심이 얕아 수영을 못 하는 사람들도 물놀이하기 좋고, 옆쪽으로 야자수, 소나무 숲, 잔디가 있어 산책하거나 캠핑하기에도 적합하다.",
+    openingHours: "상시 개방",
+    fee: "무료",
+    recommendedTime: "오전 9시 ~ 11시",
+    recommendations: [alternativeSpots[0], alternativeSpots[6]],
+    latitude: 33.393776477,
+    longitude: 126.239441896,
+  },
+
+  {
+    id: 3,
+    name: "비자림",
+    addr1: "제주시 구좌읍",
+    category: "관광지",
+    congestion: "여유",
+    firstimage:
+      "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
+    overview:
+      "수백 년 된 비자나무들이 울창하게 숲을 이루는 자연 휴양림으로, 조용한 산책과 힐링을 즐기기 좋은 제주 대표 숲길이다.",
+    openingHours: "09:00 ~ 18:00",
+    fee: "성인 3,000원",
+    recommendedTime: "오전 10시 ~ 오후 3시",
+    recommendations: [alternativeSpots[1], alternativeSpots[7]],
+    latitude: 33.4862219608152,
+    longitude: 126.807476059357,
+  },
+
+  {
+    id: 4,
+    name: "쇠소깍",
+    addr1: "서귀포시",
+    category: "관광지",
+    congestion: "여유",
+    firstimage:
+      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&q=80",
+    overview:
+      "민물과 바닷물이 만나는 독특한 지형으로 투명한 물빛이 아름다우며, 전통 테우 체험으로 유명한 자연 명소이다.",
+    openingHours: "상시 개방",
+    fee: "무료 (체험 별도)",
+    recommendedTime: "오후 2시 ~ 5시",
+    recommendations: [alternativeSpots[2], alternativeSpots[4]],
+    latitude: 33.254275717,
+    longitude: 126.6224173342,
+  },
+
+  {
+    id: 5,
+    name: "한라산 어리목",
+    addr1: "서귀포시",
+    category: "레포츠",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&q=80",
+    overview:
+      "한라산 국립공원의 대표 탐방로 중 하나로, 사계절 변화하는 자연 경관과 숲길 트레킹을 즐길 수 있는 코스이다.",
+    openingHours: "05:00 ~ 15:00",
+    fee: "무료 (국립공원)",
+    recommendedTime: "오전 6시 ~ 10시",
+    recommendations: [alternativeSpots[7], alternativeSpots[1]],
+    latitude: 33.39168,
+    longitude: 126.49491,
+  },
+
+  {
+    id: 6,
+    name: "우도",
+    addr1: "제주시 우도면",
+    category: "관광지",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&q=80",
+    overview:
+      "제주 동쪽에 위치한 작은 섬으로, 에메랄드 바다와 해안도로 드라이브, 땅콩 아이스크림으로 유명한 관광지이다.",
+    openingHours: "08:00 ~ 18:00 (배편 기준)",
+    fee: "왕복 배편 약 10,000원",
+    recommendedTime: "오전 9시 ~ 오후 3시",
+    recommendations: [alternativeSpots[2], alternativeSpots[6]],
+    latitude: 33.50445,
+    longitude: 126.95584,
+  },
+
+  {
+    id: 7,
+    name: "오설록 티뮤지엄",
+    addr1: "서귀포시 안덕면",
+    category: "문화시설",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80",
+    overview:
+      "제주 녹차 문화를 체험할 수 있는 복합 문화 공간으로, 넓은 녹차밭과 함께 다양한 티 디저트를 즐길 수 있다.",
+    openingHours: "09:00 ~ 18:00",
+    fee: "무료",
+    recommendedTime: "오후 1시 ~ 4시",
+    recommendations: [alternativeSpots[3], alternativeSpots[0]],
+    latitude: 33.30591,
+    longitude: 126.28947,
+  },
+
+  {
+    id: 8,
+    name: "월정리해변",
+    addr1: "제주시 구좌읍",
+    category: "관광지",
+    congestion: "혼잡",
+    firstimage:
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    overview:
+      "카페 거리와 함께 아름다운 해변 풍경을 즐길 수 있는 핫플레이스로, 감성적인 분위기의 제주 대표 해변이다.",
+    openingHours: "상시 개방",
+    fee: "무료",
+    recommendedTime: "해질 무렵 (17:00~19:00)",
+    recommendations: [alternativeSpots[4], alternativeSpots[2]],
+    latitude: 33.55647,
+    longitude: 126.79581,
+  },
+
+  {
+    id: 9,
+    name: "사려니숲길",
+    addr1: "제주시 조천읍",
+    category: "관광지",
+    congestion: "여유",
+    firstimage:
+      "https://images.unsplash.com/photo-1511497584788-876760111969?w=800&q=80",
+    overview:
+      "울창한 삼나무 숲이 길게 이어지는 힐링 산책로로, 피톤치드 가득한 조용한 자연 속 걷기 코스로 유명하다.",
+    openingHours: "08:00 ~ 17:00",
+    fee: "무료",
+    recommendedTime: "오전 9시 ~ 11시",
+    recommendations: [alternativeSpots[1], alternativeSpots[7]],
+    latitude: 33.39897,
+    longitude: 126.62929,
+  },
+
+  {
+    id: 10,
+    name: "안돌오름 비밀의숲",
+    addr1: "제주시 송당리",
+    category: "관광지",
+    congestion: "여유",
+    firstimage:
+      "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80",
+    overview:
+      "SNS에서 유명해진 감성 숲길로, 이국적인 분위기의 나무와 길이 어우러진 사진 촬영 명소이다.",
+    openingHours: "09:00 ~ 18:00",
+    fee: "입장료 2,000원",
+    recommendedTime: "오전 10시 ~ 오후 2시",
+    recommendations: [alternativeSpots[0], alternativeSpots[3]],
+    latitude: 33.45582,
+    longitude: 126.75797,
+  },
+
+  {
+    id: 11,
+    name: "이호테우해변",
+    addr1: "제주시 이호동",
+    category: "관광지",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    overview:
+      "말 모양 등대가 상징적인 해변으로, 도심과 가까워 가볍게 산책하기 좋은 제주 서부 해안 명소이다.",
+    openingHours: "상시 개방",
+    fee: "무료",
+    recommendedTime: "오후 4시 ~ 6시",
+    recommendations: [alternativeSpots[6], alternativeSpots[4]],
+    latitude: 33.49741,
+    longitude: 126.45269,
+  },
+
+  {
+    id: 12,
+    name: "용머리해안",
+    addr1: "서귀포시 안덕면",
+    category: "관광지",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&q=80",
+    overview:
+      "용이 바다로 들어가는 형상을 닮은 해안 절벽으로, 파도 침식으로 만들어진 독특한 지형이 인상적인 장소이다.",
+    openingHours: "09:00 ~ 17:00 (기상 영향 있음)",
+    fee: "성인 2,000원",
+    recommendedTime: "간조 시간대",
+    recommendations: [alternativeSpots[2], alternativeSpots[7]],
+    latitude: 33.23187,
+    longitude: 126.31423,
+  },
+  {
+    id: 13,
+    name: "제주민속자연사박물관",
+    addr1: "제주시 일도2동",
+    category: "문화시설",
+    congestion: "보통",
+    firstimage:
+      "https://cdn.ijejutoday.com/news/photo/202303/302004_304347_3533.jpg",
+    overview: "제주의 자연환경과 민속문화를 한눈에 살펴볼 수 있는 박물관이다.",
+    openingHours: "09:00 ~ 18:00",
+    fee: "성인 2,000원",
+    recommendedTime: "오전 10시 ~ 오후 1시",
+    recommendations: [alternativeSpots[2], alternativeSpots[3]],
+    latitude: 33.50643,
+    longitude: 126.53124,
+  },
+  {
+    id: 14,
+    name: "제주도립미술관",
+    addr1: "제주시 연동",
+    category: "문화시설",
+    congestion: "여유",
+    firstimage:
+      "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80",
+    overview:
+      "제주 현대미술 작품과 다양한 기획 전시를 감상할 수 있는 공간이다.",
+    openingHours: "09:00 ~ 18:00",
+    fee: "성인 2,000원",
+    recommendedTime: "오후 1시 ~ 4시",
+    recommendations: [alternativeSpots[1], alternativeSpots[4]],
+    latitude: 33.45218,
+    longitude: 126.48991,
+  },
+  {
+    id: 15,
+    name: "제주들불축제",
+    addr1: "제주시 애월읍",
+    category: "행사",
+    congestion: "혼잡",
+    firstimage:
+      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80",
+    overview:
+      "제주의 전통 목축문화를 계승한 대표 봄 축제로, 오름 불놓기 행사가 유명하다.",
+    openingHours: "연 1회 개최",
+    fee: "무료",
+    recommendedTime: "축제 기간 저녁 시간",
+    recommendations: [alternativeSpots[0], alternativeSpots[7]],
+    latitude: 33.36695,
+    longitude: 126.35739,
+  },
+  {
+    id: 16,
+    name: "탐라문화제",
+    addr1: "제주시",
+    category: "행사",
+    congestion: "혼잡",
+    firstimage:
+      "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=800&q=80",
+    overview: "제주의 역사와 전통문화를 체험할 수 있는 제주 대표 문화축제이다.",
+    openingHours: "연 1회 개최",
+    fee: "무료",
+    recommendedTime: "축제 기간",
+    recommendations: [alternativeSpots[5], alternativeSpots[2]],
+    latitude: 33.50011,
+    longitude: 126.51758,
+  },
+  {
+    id: 17,
+    name: "롯데호텔 제주",
+    addr1: "서귀포시 중문관광로",
+    category: "숙박",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80",
+    overview: "중문 관광단지에 위치한 제주 대표 특급 호텔이다.",
+    openingHours: "24시간",
+    fee: "1박 약 300,000원~",
+    recommendedTime: "체크인 15:00 이후",
+    recommendations: [alternativeSpots[3], alternativeSpots[4]],
+    latitude: 33.24816,
+    longitude: 126.41055,
+  },
+  {
+    id: 18,
+    name: "신라호텔 제주",
+    addr1: "서귀포시 중문관광로",
+    category: "숙박",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=80",
+    overview: "제주 자연과 어우러진 럭셔리 리조트형 호텔이다.",
+    openingHours: "24시간",
+    fee: "1박 약 350,000원~",
+    recommendedTime: "체크인 15:00 이후",
+    recommendations: [alternativeSpots[0], alternativeSpots[6]],
+    latitude: 33.24717,
+    longitude: 126.40816,
+  },
+  {
+    id: 19,
+    name: "제주동문시장",
+    addr1: "제주시 이도1동",
+    category: "쇼핑",
+    congestion: "혼잡",
+    firstimage:
+      "https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=800&q=80",
+    overview: "제주 특산물과 먹거리를 즐길 수 있는 제주 대표 전통시장이다.",
+    openingHours: "08:00 ~ 21:00",
+    fee: "무료",
+    recommendedTime: "오후 5시 ~ 8시",
+    recommendations: [alternativeSpots[4], alternativeSpots[6]],
+    latitude: 33.5115,
+    longitude: 126.52629,
+  },
+  {
+    id: 20,
+    name: "제주면세점",
+    addr1: "제주시 연동",
+    category: "쇼핑",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80",
+    overview:
+      "제주 여행객들이 다양한 브랜드 상품을 면세 혜택으로 구매할 수 있는 공간이다.",
+    openingHours: "10:00 ~ 19:00",
+    fee: "무료",
+    recommendedTime: "오전 11시 ~ 오후 2시",
+    recommendations: [alternativeSpots[1], alternativeSpots[3]],
+    latitude: 33.48758,
+    longitude: 126.49083,
+  },
+  {
+    id: 21,
+    name: "우진해장국",
+    addr1: "제주시 삼도2동",
+    category: "음식점",
+    congestion: "혼잡",
+    firstimage:
+      "https://images.unsplash.com/photo-1544025162-d76694265947?w=800&q=80",
+    overview: "제주 고사리육개장으로 유명한 제주 대표 맛집이다.",
+    openingHours: "06:00 ~ 22:00",
+    fee: "1인 약 10,000원",
+    recommendedTime: "오전 7시 ~ 9시",
+    recommendations: [alternativeSpots[0], alternativeSpots[4]],
+    latitude: 33.51156,
+    longitude: 126.52005,
+  },
+  {
+    id: 22,
+    name: "자매국수",
+    addr1: "제주시 일도2동",
+    category: "음식점",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&q=80",
+    overview: "진한 멸치 육수와 고기 고명이 어우러진 제주식 고기국수 맛집이다.",
+    openingHours: "09:00 ~ 18:00",
+    fee: "1인 약 9,000원",
+    recommendedTime: "점심 시간 이전",
+    recommendations: [alternativeSpots[2], alternativeSpots[5]],
+    latitude: 33.49373,
+    longitude: 126.49256,
+  },
+  {
+    id: 23,
+    name: "파르나스 호텔 제주",
+    addr1: "서귀포시 중문관광로 72번길 100",
+    category: "숙박",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80",
+    overview:
+      "중문관광단지에 위치한 5성급 럭셔리 호텔로, 제주 남쪽 바다를 한눈에 담을 수 있는 인피니티 풀과 세련된 객실이 특징이다. 커플 여행부터 가족 여행까지 다양한 여행객에게 사랑받는 제주 대표 프리미엄 숙소이다.",
+    openingHours: "24시간",
+    fee: "1박 약 350,000원~",
+    recommendedTime: "체크인 15:00 이후",
+    recommendations: [alternativeSpots[6], alternativeSpots[3]],
+    latitude: 33.25117,
+    longitude: 126.40435,
+  },
+  {
+    id: 24,
+    name: "그랜드 조선 제주",
+    addr1: "서귀포시 중문관광로 72번길 60",
+    category: "숙박",
+    congestion: "보통",
+    firstimage:
+      "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&q=80",
+    overview:
+      "중문관광단지에 위치한 5성급 호텔로, 모던한 객실과 다양한 부대시설을 갖춘 프리미엄 리조트이다. 실내외 수영장과 키즈 시설이 잘 마련되어 있어 가족 여행객에게 특히 인기가 높으며, 중문 해변과 주요 관광지 접근성이 뛰어나다.",
+    openingHours: "24시간",
+    fee: "1박 약 300,000원~",
+    recommendedTime: "체크인 15:00 이후",
+    recommendations: [alternativeSpots[3], alternativeSpots[6]],
+    latitude: 33.25295,
+    longitude: 126.41212,
+  },
+];
