@@ -61,7 +61,7 @@ const ExploreList = () => {
   return (
     <ExploreListContainer>
       <SearchBar
-        placeholder={"관광지, 지역 검색"}
+        placeholder={"관광지 검색"}
         value={searchKeyword}
         onChange={(e) => setSearchKeyword(e.target.value)}
         onClear={() => setSearchKeyword("")}
