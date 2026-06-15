@@ -12,18 +12,30 @@ type HamburgerProps = {
 const Hamburger = ({ isOpen, onClose }: HamburgerProps) => {
   const { pathname } = useLocation();
 
+  const handleClose = () => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    onClose();
+  };
+
   return (
-    <MenuRoot $isOpen={isOpen} aria-hidden={!isOpen}>
+    <MenuRoot $isOpen={isOpen}>
       <Backdrop
         type="button"
         $isOpen={isOpen}
         aria-label="메뉴 닫기"
-        onClick={onClose}
+        onClick={handleClose}
       />
       <Panel id="mobile-menu" $isOpen={isOpen} aria-label="모바일 메뉴">
         <PanelHeader>
           <PanelTitle>메뉴</PanelTitle>
-          <CloseButton type="button" onClick={onClose} aria-label="메뉴 닫기">
+          <CloseButton
+            type="button"
+            onClick={handleClose}
+            aria-label="메뉴 닫기"
+          >
             <CloseIcon />
           </CloseButton>
         </PanelHeader>
@@ -34,7 +46,7 @@ const Hamburger = ({ isOpen, onClose }: HamburgerProps) => {
               key={item.path}
               to={item.path}
               $isActive={pathname === item.path}
-              onClick={onClose}
+              onClick={handleClose}
             >
               {item.label}
             </NavLink>
