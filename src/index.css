@@ -15,4 +15,5 @@ body {
 *::before,
 *::after {
   box-sizing: border-box;
+  font-family: Pretendard, sans-serif;
 }

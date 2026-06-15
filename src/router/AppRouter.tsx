@@ -2,12 +2,14 @@
 import { Routes, Route } from "react-router-dom";
 import AppLayout from "../components/layout/AppLayout";
 import Home from "../pages/Home/Home";
+import Map from "../pages/Map/Map";
 
 function AppRouter() {
   return (
     <Routes>
       <Route path="/" element={<AppLayout />}>
         <Route index element={<Home />} />
+        <Route path="map" element={<Map />} />
       </Route>
     </Routes>
   );
