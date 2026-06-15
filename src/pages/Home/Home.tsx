@@ -148,7 +148,7 @@ const Headline = styled.h1`
   margin: 0;
   font-size: 4.5rem;
   line-height: 1.1;
-
+  font-family: Gowun Batang;
   @media (max-width: 768px) {
     font-size: clamp(2.6rem, 12vw, 4.1rem);
   }

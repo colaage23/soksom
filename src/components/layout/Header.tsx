@@ -1,64 +1,102 @@
 import logoImage from "../../assets/icons/soksom-logo.svg";
+import { useEffect, useState } from "react";
 import { Menu, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../constants/colors";
-
-const navItems = [
-  { label: "홈", path: "/" },
-  { label: "탐색", path: "/map" },
-  { label: "이용 가이드", path: "/guide" },
-];
+import Hamburger from "./Hamburger";
+import { navItems } from "../../constants/navItems";
 
 const Header = () => {
   const { pathname } = useLocation();
+  const isHomePage = pathname === "/";
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const updateScrollState = () => {
+      setIsScrolled(window.scrollY > 12);
+    };
+
+    updateScrollState();
+    window.addEventListener("scroll", updateScrollState, { passive: true });
+
+    return () => window.removeEventListener("scroll", updateScrollState);
+  }, [pathname]);
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = isMenuOpen ? "hidden" : "";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMenuOpen]);
+
+  const isSolid = !isHomePage || isScrolled;
 
   return (
-    <HeaderShell>
-      <HeaderInner>
-        <BrandBlock>
-          <BrandImage src={logoImage} alt="속솜" />
-          <BrandText>
-            <h3>속솜</h3>
-          </BrandText>
-        </BrandBlock>
+    <>
+      <HeaderShell $isSolid={isSolid}>
+        <HeaderInner>
+          <BrandBlock>
+            <BrandImage src={logoImage} alt="속솜" />
+            <BrandText $isSolid={isSolid}>
+              <h3>속솜</h3>
+            </BrandText>
+          </BrandBlock>
 
-        <DesktopNav aria-label="주요 메뉴">
-          {navItems.map((item) => (
-            <NavItem
-              key={item.path}
-              to={item.path}
-              $isActive={pathname === item.path}
+          <DesktopNav aria-label="주요 메뉴">
+            {navItems.map((item) => (
+              <NavItem
+                key={item.path}
+                to={item.path}
+                $isActive={pathname === item.path}
+                $isSolid={isSolid}
+              >
+                {item.label}
+              </NavItem>
+            ))}
+          </DesktopNav>
+
+          <Actions>
+            <DesktopActions>
+              <UserIcon $isSolid={isSolid} />
+              <LoginBtn $isSolid={isSolid}>로그인</LoginBtn>
+            </DesktopActions>
+            <HamburgerBtn
+              onClick={() => setIsMenuOpen(true)}
+              aria-label="메뉴 열기"
             >
-              {item.label}
-            </NavItem>
-          ))}
-        </DesktopNav>
-
-        <Actions>
-          <DesktopActions>
-            <IconLink>
-              <UserIcon />
-            </IconLink>
-            <LoginBtn>로그인</LoginBtn>
-          </DesktopActions>
-          <HamburgerBtn>
-            <MenuIcon />
-          </HamburgerBtn>
-        </Actions>
-      </HeaderInner>
-    </HeaderShell>
+              <MenuIcon />
+            </HamburgerBtn>
+          </Actions>
+        </HeaderInner>
+      </HeaderShell>
+      <Hamburger isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+    </>
   );
 };
 
-const HeaderShell = styled.header`
-  position: absolute;
+const HeaderShell = styled.header<{ $isSolid: boolean }>`
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 20;
   width: 100%;
-  background: transparent;
+  background: ${({ $isSolid }) =>
+    $isSolid ? "rgba(255, 255, 255, 0.96)" : "transparent"};
+  box-shadow: ${({ $isSolid }) =>
+    $isSolid ? "0 10px 30px rgba(15, 23, 42, 0.08)" : "none"};
+  backdrop-filter: ${({ $isSolid }) => ($isSolid ? "blur(12px)" : "none")};
+  transition:
+    background-color 0.24s ease,
+    box-shadow 0.24s ease,
+    backdrop-filter 0.24s ease;
 `;
 
 const HeaderInner = styled.div`
@@ -67,6 +105,7 @@ const HeaderInner = styled.div`
   align-items: center;
   gap: 24px;
   width: 100%;
+  min-height: 72px;
   padding: 0px 45px;
   box-sizing: border-box;
 
@@ -95,10 +134,6 @@ const BrandImage = styled.img`
   display: block;
   width: 35px;
   height: auto;
-
-  @media (max-width: 768px) {
-    width: 74px;
-  }
 `;
 
 const DesktopNav = styled.nav`
@@ -116,19 +151,25 @@ const DesktopNav = styled.nav`
   }
 `;
 
-const BrandText = styled.div`
+const BrandText = styled.div<{ $isSolid: boolean }>`
   display: grid;
   gap: 2px;
-  color: white;
+  color: ${({ $isSolid }) => ($isSolid ? "#111827" : "white")};
+
   h3 {
     font-size: 1.4rem;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: -0.03em;
+    font-family: Gowun Batang;
   }
 `;
 
-const NavItem = styled(Link)<{ $isActive: boolean }>`
-  color: ${({ $isActive }) => ($isActive ? colors.main : "white")};
+const NavItem = styled(Link)<{ $isActive: boolean; $isSolid: boolean }>`
+  color: ${({ $isActive, $isSolid }) => {
+    if ($isActive) return colors.main;
+
+    return $isSolid ? "#374151" : "white";
+  }};
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
@@ -171,7 +212,7 @@ const HamburgerBtn = styled.button`
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: white;
+  color: #111827;
   cursor: pointer;
 
   @media (max-width: 768px) {
@@ -179,19 +220,12 @@ const HamburgerBtn = styled.button`
   }
 `;
 
-const IconLink = styled.div`
-  display: grid;
-  place-items: center;
-  width: 18px;
-  height: 18px;
-  color: white;
-`;
-
-const UserIcon = styled(User)`
-  width: 18px;
-  height: 18px;
+const UserIcon = styled(User)<{ $isSolid: boolean }>`
+  width: 20px;
+  height: 20px;
   stroke: currentColor;
   stroke-width: 2.2;
+  color: ${({ $isSolid }) => ($isSolid ? "#111827" : "white")};
 `;
 
 const MenuIcon = styled(Menu)`
@@ -201,7 +235,7 @@ const MenuIcon = styled(Menu)`
   stroke-width: 2.2;
 `;
 
-const LoginBtn = styled.button`
+const LoginBtn = styled.button<{ $isSolid: boolean }>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -209,14 +243,18 @@ const LoginBtn = styled.button`
   height: 36px;
   padding: 0 18px;
   border-radius: 999px;
-  background: white;
-  color: black;
+  background: ${({ $isSolid }) => ($isSolid ? colors.main : "white")};
+  color: ${({ $isSolid }) => ($isSolid ? "white" : "black")};
   font-size: 0.8rem;
   font-weight: 700;
   border: 0;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 
   &:hover {
     background: #0c9799;
+    color: white;
   }
 `;
 
