@@ -1,5 +1,6 @@
 import { MapPin, Search, Sparkles } from "lucide-react";
 import styled from "styled-components";
+import HomeMap from "./components/HomeMap";
 
 const searchTags = [
   "성산일출봉",
@@ -58,6 +59,7 @@ const Home = () => {
           <ScrollHint>SCROLL</ScrollHint>
         </Content>
       </HeroSection>
+      <HomeMap />
     </PageShell>
   );
 };
