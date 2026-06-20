@@ -1,12 +1,12 @@
 import { useState } from "react";
 import styled from "styled-components";
-import { mockSpots } from "../mock";
 import SpotCard from "./SpotCard";
 import { useSpotStore } from "../../../stores/useSpotStore";
 import SearchBar from "./SearchBar";
 import { Frown, Heart } from "lucide-react";
 import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
 import { useSearchKeywordStore } from "../../../stores/useSearchKeywordStorer";
+import { useGetSpotsByKeyword } from "../../../hooks/spot/useGetSpotsByKeyword";
 
 /*
 관광 타입 or 서비스 분류 어떤 거로 필터링 할지?
@@ -31,32 +31,18 @@ const ExploreList = () => {
   const { likedSpot } = useLikedSpotStore();
   const { searchKeyword, setSearchKeyword } = useSearchKeywordStore();
 
+  const {
+    data: spots,
+    isLoading,
+    isError,
+  } = useGetSpotsByKeyword({ keyword: searchKeyword, pageNo: 1 });
+
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false);
 
   const visibleCategories = isExpanded ? categories : categories.slice(0, 5);
 
-  const filteredSpots = mockSpots.filter((spot) => {
-    // 카테고리
-    const matchesCategory =
-      selectedCategory === "전체"
-        ? true
-        : selectedCategory === "MY"
-          ? likedSpot.some((liked) => liked === spot.id)
-          : spot.category === selectedCategory;
-
-    // 검색
-    const keyword = searchKeyword.trim();
-
-    const matchesSearch =
-      keyword === ""
-        ? true
-        : spot.name.includes(keyword) ||
-          spot.addr1.includes(keyword) ||
-          spot.category.includes(keyword);
-
-    return matchesCategory && matchesSearch;
-  });
+  const filteredSpots = spots ?? [];
 
   return (
     <ExploreListContainer>
@@ -96,7 +82,9 @@ const ExploreList = () => {
       </CategorySection>
 
       <SpotList>
-        {filteredSpots.length === 0 ? (
+        {isLoading && <p>로딩중...</p>}
+        {isError && <p>에러가 발생했습니다.</p>}
+        {filteredSpots?.length === 0 ? (
           <EmptyState>
             <EmptyChip>
               <EmptyIcon />
@@ -114,9 +102,9 @@ const ExploreList = () => {
             </EmptyDescription>
           </EmptyState>
         ) : (
-          filteredSpots.map((item) => (
+          filteredSpots?.map((item) => (
             <SpotCard
-              key={item.id}
+              key={item.contentid}
               spot={item}
               isActive={selectedSpot === item}
               onClick={() => {

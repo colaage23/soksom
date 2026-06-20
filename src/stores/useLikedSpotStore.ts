@@ -1,8 +1,8 @@
 import { create } from "zustand";
 
 interface ISpotLike {
-  likedSpot: number[];
-  toggleLikedSpot: (id: number) => void;
+  likedSpot: string[];
+  toggleLikedSpot: (id: string) => void;
 }
 
 export const useLikedSpotStore = create<ISpotLike>((set) => ({
