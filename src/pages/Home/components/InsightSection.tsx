@@ -3,6 +3,11 @@ import { ArrowUpRight } from "lucide-react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import colors from "../../../constants/colors";
+import {
+  homeSectionDescription,
+  homeSectionEyebrow,
+  homeSectionTitle,
+} from "../styles/homeSectionStyles.ts";
 
 const filterTabs = ["지금", "내일 오전"] as const;
 
@@ -109,7 +114,7 @@ const InsightSection = () => {
 export default InsightSection;
 
 const Section = styled.section`
-  padding: 56px 24px;
+  padding: 180px 24px;
   background: linear-gradient(180deg, #f6f2e9 0%, #f7f3eb 48%, #f3eee3 100%);
 
   @media (max-width: 768px) {
@@ -242,10 +247,8 @@ const LiveRow = styled.div`
 `;
 
 const LiveBadge = styled.span`
-  color: ${colors.main};
-  font-size: 0.84rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
+  ${homeSectionEyebrow};
+  margin-bottom: 0;
 `;
 
 const LiveStatus = styled.span`
@@ -265,11 +268,8 @@ const StatusPulse = styled.span`
 `;
 
 const InsightTitle = styled.h2`
-  margin: 0;
+  ${homeSectionTitle};
   color: #191611;
-  font-family: Gowun Batang;
-  font-size: clamp(2rem, 3.4vw, 3.6rem);
-  line-height: 1.1;
 `;
 
 const AccentText = styled.span`
@@ -278,10 +278,9 @@ const AccentText = styled.span`
 `;
 
 const InsightDescription = styled.p`
-  margin: 16px 0 28px;
+  ${homeSectionDescription};
+  margin-bottom: 28px;
   color: #627076;
-  font-size: 1rem;
-  line-height: 1.7;
 `;
 
 const FilterTabs = styled.div`

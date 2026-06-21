@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import { MapPin, Search, Sparkles } from "lucide-react";
 import colors from "../../../constants/colors";
+import { homeSectionInner } from "../styles/homeSectionStyles.ts";
 
 const HeroSectionComp = ({ searchTags }: { searchTags: string[] }) => {
   return (
@@ -32,7 +33,11 @@ const HeroSectionComp = ({ searchTags }: { searchTags: string[] }) => {
         <SearchPanel>
           <SearchField>
             <Search size={20} />
-            <span>가고 싶은 제주 관광지를 검색해보세요</span>
+            <SearchInput
+              type="text"
+              placeholder="가고 싶은 제주 관광지를 검색해보세요"
+              aria-label="제주 관광지 검색"
+            />
           </SearchField>
           <SearchButton>탐색하기</SearchButton>
         </SearchPanel>
@@ -80,14 +85,16 @@ const BackgroundImage = styled.div`
 `;
 
 const Content = styled.div`
+  ${homeSectionInner};
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  width: 100%;
   min-height: 100vh;
-  max-width: 1180px;
-  margin: 0 auto;
+  padding: 0 24px;
+  box-sizing: border-box;
   color: #f7f2e8;
 
   @media (max-width: 1024px) {
@@ -132,12 +139,9 @@ const InfoBadge = styled.div<{ $accent?: boolean }>`
 
 const Headline = styled.h1`
   margin: 0;
-  font-size: 4.5rem;
-  line-height: 1.1;
   font-family: Gowun Batang;
-  @media (max-width: 768px) {
-    font-size: clamp(2.6rem, 12vw, 4.1rem);
-  }
+  font-size: clamp(2.6rem, 6vw, 4.5rem);
+  line-height: 1.08;
 
   @media (max-width: 480px) {
     font-size: 2.35rem;
@@ -145,20 +149,19 @@ const Headline = styled.h1`
 `;
 
 const SubCopy = styled.p`
-  margin: 22px 0 34px;
+  margin: 18px 0 30px;
+  font-size: 1.05rem;
+  line-height: 1.7;
   color: rgba(247, 242, 232, 0.9);
-  font-size: 1.12rem;
-  line-height: 1.6;
 
   @media (max-width: 768px) {
     margin: 18px 0 26px;
-    font-size: 1rem;
+    font-size: 0.98rem;
   }
 
   @media (max-width: 480px) {
     margin: 16px 0 22px;
     font-size: 0.92rem;
-    line-height: 1.5;
   }
 `;
 
@@ -196,26 +199,34 @@ const SearchField = styled.div`
   color: #7a7e77;
   font-size: 1.02rem;
 
-  span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
   @media (max-width: 768px) {
     padding: 4px 8px;
     font-size: 0.95rem;
-
-    span {
-      white-space: normal;
-      line-height: 1.4;
-    }
   }
 
   @media (max-width: 480px) {
     gap: 10px;
     padding: 2px 6px;
     font-size: 0.88rem;
+  }
+`;
+
+const SearchInput = styled.input`
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: #2a2f2b;
+  font: inherit;
+  outline: none;
+
+  &::placeholder {
+    color: #7a7e77;
+    opacity: 1;
+  }
+
+  @media (max-width: 768px) {
+    line-height: 1.4;
   }
 `;
 

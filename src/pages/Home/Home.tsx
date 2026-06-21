@@ -2,6 +2,7 @@ import styled from "styled-components";
 import WeatherSection from "./components/WeatherSection";
 import InsightSection from "./components/InsightSection";
 import HeroSectionComp from "./components/HeroSection";
+import HotPlaceSection from "./components/HotPlaceSection";
 
 const searchTags = [
   "성산일출봉",
@@ -18,6 +19,7 @@ const Home = () => {
       <HeroSectionComp searchTags={searchTags} />
       <InsightSection />
       <WeatherSection />
+      <HotPlaceSection />
     </PageShell>
   );
 };

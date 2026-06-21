@@ -9,6 +9,12 @@ import {
 } from "lucide-react";
 import styled from "styled-components";
 import colors from "../../../constants/colors";
+import {
+  homeSectionDescription,
+  homeSectionEyebrow,
+  homeSectionInner,
+  homeSectionTitle,
+} from "../styles/homeSectionStyles.ts";
 
 const forecastItems = [
   { day: "오늘", icon: SunMedium, temp: "24°", rain: "10%" },
@@ -69,6 +75,10 @@ const WeatherSection = () => {
             <br />
             관심 장소 바로 출발.
           </Title>
+          <HeaderDescription>
+            오늘 제주 하늘과 함께, 지금 바로 들르기 좋은 장소를 같은 흐름으로
+            묶어 보여드려요.
+          </HeaderDescription>
           <MoreLink>
             관심 관광지 전체 보기
             <ArrowUpRight size={16} />
@@ -154,7 +164,7 @@ const WeatherSection = () => {
 export default WeatherSection;
 
 const Section = styled.section`
-  padding: 70px 24px 110px;
+  padding: 180px 24px;
   background: linear-gradient(180deg, #f3eee3 0%, #f6f2e9 100%);
 
   @media (max-width: 768px) {
@@ -163,8 +173,7 @@ const Section = styled.section`
 `;
 
 const Inner = styled.div`
-  max-width: 1300px;
-  margin: 0 auto;
+  ${homeSectionInner};
 `;
 
 const Header = styled.div`
@@ -179,20 +188,16 @@ const Header = styled.div`
 `;
 
 const Eyebrow = styled.span`
-  display: block;
-  margin-bottom: 14px;
-  color: ${colors.main};
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.18em;
+  ${homeSectionEyebrow};
 `;
 
 const Title = styled.h2`
-  margin: 0;
-  color: #15120f;
-  font-family: Gowun Batang;
-  font-size: clamp(2.2rem, 5vw, 3.5rem);
-  line-height: 1.06;
+  ${homeSectionTitle};
+`;
+
+const HeaderDescription = styled.p`
+  ${homeSectionDescription};
+  max-width: 680px;
 `;
 
 const MoreLink = styled.a`
