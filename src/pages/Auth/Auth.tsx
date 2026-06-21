@@ -3,6 +3,7 @@ import authBackground from "../../assets/background/soksom_auth_background.png";
 import styled from "styled-components";
 import LoginForm from "./components/LoginForm";
 import RegisterForm from "./components/RegisterForm";
+import SoksomLogo from "../../../public/logo.svg";
 
 const Auth = () => {
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -15,105 +16,7 @@ const Auth = () => {
 
       <AuthBox>
         <AuthTitle>
-          <svg
-            width="37"
-            height="32"
-            viewBox="0 0 37 32"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <ellipse
-              cx="18.353"
-              cy="10.3529"
-              rx="12.7059"
-              ry="10.3529"
-              fill="url(#paint0_linear_368_63)"
-            />
-            <ellipse
-              cx="9.41177"
-              cy="16.4706"
-              rx="9.41177"
-              ry="10.8235"
-              fill="url(#paint1_linear_368_63)"
-            />
-            <ellipse
-              cx="28"
-              cy="16.5"
-              rx="9"
-              ry="10.5"
-              fill="url(#paint2_linear_368_63)"
-            />
-            <circle
-              cx="18.353"
-              cy="15.5294"
-              r="5.17647"
-              fill="url(#paint3_radial_368_63)"
-            />
-            <ellipse
-              cx="18.353"
-              cy="25.8824"
-              rx="11.7647"
-              ry="6.11765"
-              fill="url(#paint4_linear_368_63)"
-            />
-            <defs>
-              <linearGradient
-                id="paint0_linear_368_63"
-                x1="18.353"
-                y1="0"
-                x2="18.353"
-                y2="20.7059"
-                gradientUnits="userSpaceOnUse"
-              >
-                <stop stop-color="#CA3A23" />
-                <stop offset="0.51" stop-color="#992311" />
-              </linearGradient>
-              <linearGradient
-                id="paint1_linear_368_63"
-                x1="7.29068e-08"
-                y1="16.9412"
-                x2="18.8235"
-                y2="16.9412"
-                gradientUnits="userSpaceOnUse"
-              >
-                <stop stop-color="#AB1E0D" />
-                <stop offset="1" stop-color="#85170A" />
-              </linearGradient>
-              <linearGradient
-                id="paint2_linear_368_63"
-                x1="37"
-                y1="17"
-                x2="19"
-                y2="17"
-                gradientUnits="userSpaceOnUse"
-              >
-                <stop stop-color="#A62312" />
-                <stop offset="1" stop-color="#7F1305" />
-              </linearGradient>
-              <radialGradient
-                id="paint3_radial_368_63"
-                cx="0"
-                cy="0"
-                r="1"
-                gradientUnits="userSpaceOnUse"
-                gradientTransform="translate(18.353 15.5294) rotate(90) scale(5.17647)"
-              >
-                <stop stop-color="#CF9235" />
-                <stop offset="1" stop-color="#EBB25B" />
-              </radialGradient>
-              <linearGradient
-                id="paint4_linear_368_63"
-                x1="18.353"
-                y1="19.7647"
-                x2="18.353"
-                y2="32"
-                gradientUnits="userSpaceOnUse"
-              >
-                <stop stop-color="#E45540" />
-                <stop offset="1" stop-color="#9D2A19" />
-              </linearGradient>
-            </defs>
-          </svg>
+          <BrandImage src={SoksomLogo} alt="logo" />
           속솜
         </AuthTitle>
         <ModeTabs>
@@ -177,7 +80,11 @@ const AuthBox = styled.div`
   align-items: center;
   padding: 64px 16px;
 `;
-
+const BrandImage = styled.img`
+  display: block;
+  width: 32px;
+  height: auto;
+`;
 const AuthTitle = styled.h2`
   display: flex;
   justify-content: center;

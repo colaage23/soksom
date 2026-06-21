@@ -1,17 +1,19 @@
-import logoImage from "../../assets/icons/soksom-logo.svg";
 import { useEffect, useState } from "react";
 import { Menu, User } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../constants/colors";
 import Hamburger from "./Hamburger";
 import { navItems } from "../../constants/navItems";
+import SoksomLogo from "../../../public/logo.svg";
 
 const Header = () => {
   const { pathname } = useLocation();
   const isHomePage = pathname === "/";
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const updateScrollState = () => {
@@ -42,8 +44,8 @@ const Header = () => {
     <>
       <HeaderShell $isSolid={isSolid}>
         <HeaderInner>
-          <BrandBlock>
-            <BrandImage src={logoImage} alt="속솜" />
+          <BrandBlock onClick={() => navigate("/")}>
+            <BrandImage src={SoksomLogo} alt="속솜" />
             <BrandText $isSolid={isSolid}>
               <h3>속솜</h3>
             </BrandText>
@@ -65,7 +67,9 @@ const Header = () => {
           <Actions>
             <DesktopActions>
               <UserIcon $isSolid={isSolid} />
-              <LoginBtn $isSolid={isSolid}>로그인</LoginBtn>
+              <LoginBtn $isSolid={isSolid} onClick={() => navigate("/auth")}>
+                로그인
+              </LoginBtn>
             </DesktopActions>
             <HamburgerBtn
               onClick={() => setIsMenuOpen(true)}
@@ -110,13 +114,11 @@ const HeaderInner = styled.div`
   box-sizing: border-box;
 
   @media (max-width: 960px) {
-    height: 72px;
     padding: 0 20px;
   }
 
   @media (max-width: 768px) {
     grid-template-columns: auto 1fr auto;
-    height: 62px;
     gap: 12px;
     padding: 0 16px;
   }
@@ -128,11 +130,13 @@ const BrandBlock = styled.div`
   min-width: fit-content;
   text-decoration: none;
   gap: 5px;
+
+  cursor: pointer;
 `;
 
 const BrandImage = styled.img`
   display: block;
-  width: 35px;
+  width: 32px;
   height: auto;
 `;
 
@@ -251,6 +255,8 @@ const LoginBtn = styled.button<{ $isSolid: boolean }>`
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
+
+  cursor: pointer;
 
   &:hover {
     background: #0c9799;
