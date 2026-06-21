@@ -85,7 +85,7 @@ const SubmitButton = styled.button`
 
   outline: none;
   border: none;
-  border-radius: 14px;
+  border-radius: 12px;
 
   color: #fffafc;
   font-size: 0.875rem;
