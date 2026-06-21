@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import colors from "../../../constants/colors";
 import {
@@ -8,16 +8,61 @@ import {
   homeSectionEyebrow,
   homeSectionTitle,
 } from "../styles/homeSectionStyles.ts";
+import { CustomOverlayMap, Map } from "react-kakao-maps-sdk";
+import { congestionStyle } from "../../Map/mock.ts";
+import { getMarkerSrc } from "../../../utils/marker.ts";
 
 const filterTabs = ["지금", "내일 오전"] as const;
 
 const insights = [
-  { name: "성산일출봉", value: 92, status: "혼잡", tone: "busy" },
-  { name: "한라산 어리목", value: 54, status: "보통", tone: "normal" },
-  { name: "협재해수욕장", value: 88, status: "혼잡", tone: "busy" },
-  { name: "비자림", value: 32, status: "여유", tone: "calm" },
-  { name: "쇠소깍", value: 28, status: "여유", tone: "calm" },
-  { name: "월정리해변", value: 57, status: "보통", tone: "normal" },
+  {
+    name: "성산일출봉",
+    value: 92,
+    status: "혼잡",
+    tone: "busy",
+    latitude: 33.4589,
+    longitude: 126.9425,
+  },
+  {
+    name: "한라산 어리목",
+    value: 54,
+    status: "보통",
+    tone: "normal",
+    latitude: 33.3928,
+    longitude: 126.4949,
+  },
+  {
+    name: "협재해수욕장",
+    value: 88,
+    status: "혼잡",
+    tone: "busy",
+    latitude: 33.3945,
+    longitude: 126.2395,
+  },
+  {
+    name: "비자림",
+    value: 32,
+    status: "여유",
+    tone: "calm",
+    latitude: 33.4913,
+    longitude: 126.8098,
+  },
+  {
+    name: "쇠소깍",
+    value: 28,
+    status: "여유",
+    tone: "calm",
+    latitude: 33.252,
+    longitude: 126.6226,
+  },
+  {
+    name: "월정리해변",
+    value: 57,
+    status: "보통",
+    tone: "normal",
+    latitude: 33.5563,
+    longitude: 126.7958,
+  },
 ] as const;
 
 type FilterTabLabel = (typeof filterTabs)[number];
@@ -25,11 +70,85 @@ type FilterTabLabel = (typeof filterTabs)[number];
 const InsightSection = () => {
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState<FilterTabLabel>("지금");
+  const mapRef = useRef<kakao.maps.Map>(null);
+
+  useEffect(() => {
+    let resizeObserver: ResizeObserver | null = null;
+    let cleanupResize: (() => void) | null = null;
+
+    const setup = () => {
+      const map = mapRef.current;
+      if (!map) {
+        // 아직 map이 안 잡혔으면 다음 프레임에 재시도
+        requestAnimationFrame(setup);
+        return;
+      }
+
+      const center = map.getCenter();
+      const relayout = () => {
+        map.relayout();
+        map.setCenter(center);
+      };
+
+      const container = document.getElementById("home-kakao-map");
+      if (container) {
+        resizeObserver = new ResizeObserver(relayout);
+        resizeObserver.observe(container);
+      }
+
+      window.addEventListener("resize", relayout);
+      cleanupResize = () => window.removeEventListener("resize", relayout);
+    };
+
+    setup();
+
+    return () => {
+      resizeObserver?.disconnect();
+      cleanupResize?.();
+    };
+  }, []);
 
   return (
     <Section>
       <InsightFrame>
         <MapPanel>
+          <Map
+            id="home-kakao-map"
+            center={{ lat: 33.34214, lng: 126.571986 }}
+            style={{ width: "100%", height: "100%" }}
+            level={10}
+            draggable={false}
+            zoomable={false}
+            scrollwheel={false}
+            disableDoubleClick={true}
+            disableDoubleClickZoom={true}
+            ref={mapRef}
+          >
+            {insights.map((spot, index) => (
+              <CustomOverlayMap
+                key={spot.name}
+                position={{
+                  lat: spot.latitude,
+                  lng: spot.longitude,
+                }}
+                yAnchor={1}
+              >
+                <MarkerFloatWrapper
+                  style={{ animationDelay: `${index * 0.3}s` }}
+                >
+                  <MarkerLabel $bgColor={congestionStyle[spot.status].bgColor}>
+                    {spot.name} · {spot.value}%
+                  </MarkerLabel>
+                  <MarkerPin
+                    src={getMarkerSrc(
+                      `${congestionStyle[spot.status].bgColor}`,
+                    )}
+                    $bgColor={congestionStyle[spot.status].bgColor}
+                  />
+                </MarkerFloatWrapper>
+              </CustomOverlayMap>
+            ))}
+          </Map>
           {/* 수정 필요 */}
           <Legend>
             <LegendTitle>혼잡도</LegendTitle>
@@ -172,6 +291,8 @@ const Legend = styled.div`
   border-radius: 18px;
   background: rgba(255, 250, 242, 0.92);
   box-shadow: 0 16px 28px rgba(92, 74, 43, 0.08);
+
+  z-index: 9999;
 
   @media (max-width: 768px) {
     left: 14px;
@@ -416,4 +537,43 @@ const DetailButton = styled.button`
     width: 100%;
     margin-top: 28px;
   }
+`;
+
+const float = keyframes`
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+`;
+
+const MarkerFloatWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+
+  animation: ${float} 2.4s ease-in-out infinite;
+`;
+
+const MarkerPin = styled.img<{ $bgColor: string }>`
+  width: 24px;
+  height: 24px;
+
+  border: 3px solid ${({ $bgColor }) => `${$bgColor}80`};
+  border-radius: 50%;
+
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.1);
+`;
+
+const MarkerLabel = styled.div<{ $bgColor: string }>`
+  padding: 4px 8px;
+  background-color: ${({ $bgColor }) => `${$bgColor}`};
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 `;
