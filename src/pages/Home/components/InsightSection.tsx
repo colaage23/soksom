@@ -53,7 +53,7 @@ const InsightSection = () => {
         <InsightContent>
           <LiveRow>
             {/* 수정 필요 */}
-            <LiveBadge>LIVE · 06.03 16:00</LiveBadge>
+            <LiveBadge></LiveBadge>
             <LiveStatus>
               <StatusPulse />
               실시간 업데이트
@@ -66,9 +66,7 @@ const InsightSection = () => {
             <AccentText>붐비는지</AccentText> 한눈에.
           </InsightTitle>
 
-          <InsightDescription>
-            한국관광공사 OpenAPI와 자체 예측 모델로 분 단위 혼잡도를 보여드려요.
-          </InsightDescription>
+          <InsightDescription></InsightDescription>
 
           <FilterTabs>
             {filterTabs.map((tab) => (
