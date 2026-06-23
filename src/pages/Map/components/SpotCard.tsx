@@ -2,10 +2,11 @@ import styled from "styled-components";
 // import { congestionStyle, type Spot } from "../mock";
 import { Heart, MoveRight } from "lucide-react";
 import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
-import type { ISpotResponse } from "../../../types/spot";
+import type { ISearchSpotResponse } from "../../../types/spot";
+import FallBackImage from "../../../assets/fallback.png";
 
 interface ISpotCardProps {
-  spot: ISpotResponse;
+  spot: ISearchSpotResponse;
   isActive: boolean;
   onClick: () => void;
   onArrowClick: () => void;
@@ -24,7 +25,7 @@ const SpotCard = ({
   return (
     <SpotCardContainer $isActive={isActive} onClick={onClick}>
       <SpotImageWrapper>
-        <SpotImage src={spot.firstimage} />
+        <SpotImage src={spot.firstimage || FallBackImage} alt={spot.title} />
         <IconButton
           $active={likedSpot.includes(spot.contentid)}
           onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
@@ -38,9 +39,9 @@ const SpotCard = ({
 
       <SpotInfoBox>
         <SubInfoText>
-          <span>{spot.addr1}</span>
+          <span>{spot.addr1.split(" ").slice(1, 3).join(" ")}</span>
           <span style={{ color: "#c0c5ca" }}>·</span>
-          {/* <span>{spot.category}</span> */}
+          <span>{spot.lclsSystm2Nm}</span>
         </SubInfoText>
 
         <SpotName>{spot.title}</SpotName>
