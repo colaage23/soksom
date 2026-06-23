@@ -19,6 +19,7 @@
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^19.2.6",
+    "react-intersection-observer": "^10.0.3",
     "react-kakao-maps-sdk": "^1.2.1",
     "react-router-dom": "^7.16.0",
     "styled-components": "^6.4.2",
