@@ -14,6 +14,11 @@ const KakaoMap = () => {
   const { directions } = useDirectionStore();
   const { wayPoint } = useWayPointStore();
 
+  const lat = selectedSpot ? parseFloat(selectedSpot.mapy) : 33.34714;
+  const lng = selectedSpot ? parseFloat(selectedSpot.mapx) : 126.41986;
+
+  console.log(selectedSpot);
+
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -89,10 +94,8 @@ const KakaoMap = () => {
         id="kakao-map"
         center={{
           // 지도의 중심좌표
-          lat: selectedSpot?.latitude ?? 33.34714,
-          lng: selectedSpot?.longitude
-            ? selectedSpot.longitude - 0.006
-            : 126.41986,
+          lat: lat,
+          lng: selectedSpot?.mapy ? lng - 0.006 : lng,
         }}
         style={{
           // 지도의 크기
@@ -103,16 +106,14 @@ const KakaoMap = () => {
         zoomable={true}
         ref={mapRef}
       >
-        {!wayPoint && selectedSpot && (
+        {(!wayPoint || wayPoint.length === 0) && selectedSpot && (
           <MapMarker
             position={{
-              lat: selectedSpot?.latitude,
-              lng: selectedSpot?.longitude,
+              lat: lat,
+              lng: lng,
             }}
             image={{
-              src: getMarkerSrc(
-                congestionStyle[selectedSpot.congestion].bgColor,
-              ),
+              src: getMarkerSrc("#000000"),
               size: { width: 40, height: 40 },
               options: { offset: { x: 40, y: 40 } },
             }}

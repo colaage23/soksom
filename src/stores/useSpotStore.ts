@@ -1,12 +1,12 @@
 import { create } from "zustand";
-import type { ISpotResponse } from "../types/spot";
+import type { ISearchSpotResponse } from "../types/spot";
 
 interface ISpotStore {
-  selectedSpot: ISpotResponse | null;
-  setSelectedSpot: (spot: ISpotResponse | null) => void;
+  selectedSpot: ISearchSpotResponse | null;
+  setSelectedSpot: (spot: ISearchSpotResponse | null) => void;
 
-  detailSpot: ISpotResponse | null;
-  setDetailSpot: (spot: ISpotResponse | null) => void;
+  detailSpot: ISearchSpotResponse | null;
+  setDetailSpot: (spot: ISearchSpotResponse | null) => void;
 }
 
 export const useSpotStore = create<ISpotStore>((set) => ({

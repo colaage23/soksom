@@ -62,8 +62,8 @@ const Map = () => {
       </ListSection>
       <CongestionOverlay $open={open} $hasDetail={!!detailSpot}>
         <OverlayTitle>관광지</OverlayTitle>
-        {congestion.map((item) => (
-          <OverlayContent>
+        {congestion.map((item, idx) => (
+          <OverlayContent key={idx}>
             <OverlayColorChip $bgColor={item.bgColor} />
             <OverlayText>
               {item.label} ({item.min}~{item.max}%)

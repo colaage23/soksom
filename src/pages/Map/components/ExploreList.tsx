@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import SpotCard from "./SpotCard";
 import { useSpotStore } from "../../../stores/useSpotStore";
@@ -7,42 +7,86 @@ import { Frown, Heart } from "lucide-react";
 import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
 import { useSearchKeywordStore } from "../../../stores/useSearchKeywordStorer";
 import { useGetSpotsByKeyword } from "../../../hooks/spot/useGetSpotsByKeyword";
+import { useGetSpotsByLocation } from "../../../hooks/spot/useGetSpotsByLocation";
+import { useInView } from "react-intersection-observer";
 
-/*
-관광 타입 or 서비스 분류 어떤 거로 필터링 할지?
-+ 여행 코스를 포함 시킬 것인지?
-=> 따로 소개해도 좋을 것 같기도?
-*/
-const categories: string[] = [
-  "전체",
-  "MY",
-  "테스트",
-  "관광지",
-  "문화시설",
-  "행사",
-  "레포츠",
-  "숙박",
-  "쇼핑",
-  "음식점",
-];
+const CATEGORY_TYPE_MAP: Record<string, string | null> = {
+  전체: null,
+  MY: null,
+  관광지: "12",
+  문화시설: "14",
+  행사: "15",
+  레포츠: "28",
+  숙박: "32",
+  쇼핑: "38",
+  음식점: "39",
+};
 
 const ExploreList = () => {
   const { selectedSpot, setSelectedSpot, setDetailSpot } = useSpotStore();
   const { likedSpot } = useLikedSpotStore();
   const { searchKeyword, setSearchKeyword } = useSearchKeywordStore();
 
+  const { ref, inView } = useInView();
+
   const {
-    data: spots,
+    data: keywordData,
+    isLoading: keywordLoading,
+    isError: keywordError,
+    fetchNextPage: fetchNextKeyword,
+    hasNextPage: hasNextKeyword,
+    isFetchingNextPage: isFetchingNextKeyword,
+  } = useGetSpotsByKeyword({ keyword: searchKeyword });
+
+  const {
+    data: locationData,
     isLoading,
     isError,
-  } = useGetSpotsByKeyword({ keyword: searchKeyword, pageNo: 1 });
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetSpotsByLocation({
+    mapX: "126.492778",
+    mapY: "33.511111",
+    radius: "20000",
+  });
+
+  useEffect(() => {
+    if (!inView) return;
+
+    if (searchKeyword && hasNextKeyword && !isFetchingNextKeyword) {
+      fetchNextKeyword();
+    } else if (!searchKeyword && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [
+    inView,
+    searchKeyword,
+    hasNextKeyword,
+    hasNextPage,
+    isFetchingNextKeyword,
+    isFetchingNextPage,
+  ]);
+
+  const spotsByKeyword = keywordData?.pages.flatMap((page) => page) ?? [];
+  const spots = locationData?.pages.flatMap((page) => page) ?? [];
+
+  const isCurrentLoading = searchKeyword ? keywordLoading : isLoading;
+  const isCurrentError = searchKeyword ? keywordError : isError;
 
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const categories = Object.keys(CATEGORY_TYPE_MAP); // 또는 그냥 기존 배열 재사용
   const visibleCategories = isExpanded ? categories : categories.slice(0, 5);
 
-  const filteredSpots = spots ?? [];
+  const displaySpots = searchKeyword ? (spotsByKeyword ?? []) : (spots ?? []);
+  const filteredSpots = (() => {
+    if (selectedCategory === "MY") return likedSpot;
+    const typeId = CATEGORY_TYPE_MAP[selectedCategory];
+    if (!typeId) return displaySpots;
+    return displaySpots.filter((spot) => spot.contenttypeid === typeId);
+  })();
 
   return (
     <ExploreListContainer>
@@ -82,8 +126,8 @@ const ExploreList = () => {
       </CategorySection>
 
       <SpotList>
-        {isLoading && <p>로딩중...</p>}
-        {isError && <p>에러가 발생했습니다.</p>}
+        {isCurrentLoading && <p>로딩중...</p>}
+        {isCurrentError && <p>에러가 발생했습니다.</p>}
         {filteredSpots?.length === 0 ? (
           <EmptyState>
             <EmptyChip>
@@ -102,21 +146,24 @@ const ExploreList = () => {
             </EmptyDescription>
           </EmptyState>
         ) : (
-          filteredSpots?.map((item) => (
-            <SpotCard
-              key={item.contentid}
-              spot={item}
-              isActive={selectedSpot === item}
-              onClick={() => {
-                setSelectedSpot(item);
-                setDetailSpot(null);
-              }}
-              onArrowClick={() => {
-                setDetailSpot(item);
-                setSelectedSpot(item);
-              }}
-            />
-          ))
+          <>
+            {filteredSpots?.map((item, idx) => (
+              <SpotCard
+                key={idx}
+                spot={item}
+                isActive={selectedSpot === item}
+                onClick={() => {
+                  setSelectedSpot(item);
+                  setDetailSpot(null);
+                }}
+                onArrowClick={() => {
+                  setDetailSpot(item);
+                  setSelectedSpot(item);
+                }}
+              />
+            ))}
+            <li ref={ref} style={{ height: 1 }} />
+          </>
         )}
       </SpotList>
     </ExploreListContainer>
