@@ -1,0 +1,41 @@
+name: ci
+run-name: ${{ github.actor }} - ${{ github.event_name }} on ${{ github.ref_name }}
+
+on: # develop브랜치에 push나 pr 올릴 때마다 실행
+  pull_request:
+    branches:
+      - develop
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest # 우분투 최신 환경에서 실행
+
+    steps:
+      - name: Checkut code # 레포지토리 코드를 checkout액션을 사용하여 runner로 가져옴
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js # Node.js 환경 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: .nvmrc
+          cache: "npm" # 캐싱
+
+      - name: Install dependencies # 의존성 설치
+        run: npm ci
+
+      - name: Lint # Lint 실행
+        run: npm run lint
+
+      - name: Type Check # 타입 체크
+        run: npm run typecheck
+
+      - name: Build # Lint/typecheck 통과 후에도 build 터지는 경우가 있어 추가
+        run: npm run build
+        # 추후 환경 변수 설정
+        # env:
+        #   VITE_APP_KAKAO_MAP_API_KEY: ${{ secrets.VITE_APP_KAKAO_MAP_API_KEY }}
+        #   VITE_APP_KAKAO_REST_API_KEY: ${{ secrets.VITE_APP_KAKAO_REST_API_KEY }}
