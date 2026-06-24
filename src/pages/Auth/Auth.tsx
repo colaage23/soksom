@@ -1,12 +1,12 @@
-import { useState } from "react";
 import authBackground from "../../assets/background/soksom_auth_background.png";
 import styled from "styled-components";
 import LoginForm from "./components/LoginForm";
-import RegisterForm from "./components/RegisterForm";
 import SoksomLogo from "../../../public/logo.svg";
+import SignupForm from "./components/SignupForm";
+import { useAuthStore } from "../../stores/auth/authStore";
 
 const Auth = () => {
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const { mode, setMode } = useAuthStore();
 
   return (
     <AuthContainer>
@@ -31,15 +31,15 @@ const Auth = () => {
             로그인
           </ModeTabButton>
           <ModeTabButton
-            $isActive={mode === "register"}
+            $isActive={mode === "signup"}
             onClick={() => {
-              setMode("register");
+              setMode("signup");
             }}
           >
             회원가입
           </ModeTabButton>
         </ModeTabs>
-        {mode === "login" ? <LoginForm /> : <RegisterForm />}
+        {mode === "login" ? <LoginForm /> : <SignupForm />}
       </AuthBox>
     </AuthContainer>
   );
@@ -108,7 +108,7 @@ const ModeTabs = styled.nav`
   border-radius: 14px;
   background: #f5f2eb;
 `;
-const TabIndicator = styled.div<{ $mode: "login" | "register" }>`
+const TabIndicator = styled.div<{ $mode: "login" | "signup" }>`
   position: absolute;
 
   top: 4px;
@@ -121,7 +121,7 @@ const TabIndicator = styled.div<{ $mode: "login" | "register" }>`
   background: white;
 
   transform: ${({ $mode }) =>
-    $mode === "register" ? "translateX(100%)" : "translateX(0)"};
+    $mode === "signup" ? "translateX(100%)" : "translateX(0)"};
 
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 

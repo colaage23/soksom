@@ -1,44 +1,103 @@
-import { Lock, Mail } from "lucide-react";
+import { Lock, Mail, Eye, EyeClosed } from "lucide-react";
 import styled from "styled-components";
 import KakaoSymbol from "../../../assets/symbol/kakao.png";
 import GoogleSymbol from "../../../assets/symbol/google.png";
 import NaverSymbol from "../../../assets/symbol/naver.png";
+import { useState, type FormEvent } from "react";
+import { useLogin } from "../../../hooks/auth/useAuth";
+import { useNavigate } from "react-router-dom";
 
-const Socials = [
-  {
-    name: "카카오톡",
-    bgColor: "#FEE500",
-    color: "#000000",
-    icon: <img width={16} src={KakaoSymbol} alt="카카오 로그인 심볼" />,
-  },
-  {
-    name: "Google",
-    bgColor: "#F2F2F2",
-    color: "#181a1e",
-    icon: <img width={16} src={GoogleSymbol} alt="구글 로그인 심볼" />,
-  },
-  {
-    name: "네이버",
-    bgColor: "#03A94D",
-    color: "#fff",
-    icon: <img width={16} src={NaverSymbol} alt="네이버 로그인 심볼" />,
-  },
-];
+const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
 const LoginForm = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const navigate = useNavigate();
+
+  const [errors, setErrors] = useState({
+    email: "",
+    password: "",
+  });
+
+  const { mutate: loginMutate, isPending } = useLogin();
+
+  const validate = () => {
+    const newErrors = {
+      email: "",
+      password: "",
+    };
+
+    if (!EMAIL_REGEX.test(email))
+      newErrors.email = "유효하지 않는 이메일 형식입니다";
+    if (password.length < 10) newErrors.password = "10자 이상 입력해주세요";
+
+    return newErrors;
+  };
+
+  const handleLogin = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const newErrors = validate();
+    setErrors(newErrors);
+
+    const hasError = Object.values(newErrors).some((error) => error !== "");
+
+    if (hasError) return;
+
+    loginMutate(
+      {
+        email,
+        password,
+      },
+      {
+        onSuccess: () => {
+          navigate("/");
+          alert("로그인이 완료되었습니다.");
+        },
+        onError: () => {
+          alert("로그인에 실패했습니다.");
+        },
+      },
+    );
+  };
+
   return (
-    <LoginFormContainer>
-      <SubmitLabel>이메일</SubmitLabel>
+    <LoginFormContainer onSubmit={handleLogin}>
+      <SubmitLabel>
+        이메일 {errors.email && <ErrorText>{errors.email}</ErrorText>}
+      </SubmitLabel>
       <SubmitBox>
         <MailIcon />
-        <SubmitInput placeholder="이메일을 입력하세요" />
+        <SubmitInput
+          placeholder="이메일을 입력하세요"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
       </SubmitBox>
-      <SubmitLabel>비밀번호</SubmitLabel>
+      <SubmitLabel>
+        비밀번호 {errors.password && <ErrorText>{errors.password}</ErrorText>}
+      </SubmitLabel>
       <SubmitBox>
         <LockIcon />
-        <SubmitInput placeholder="비밀번호를 입력하세요" />
+        <SubmitInput
+          type={showPassword ? "text" : "password"}
+          placeholder="비밀번호를 입력하세요"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <EyeButton
+          type="button"
+          onClick={() => setShowPassword((prev) => !prev)}
+        >
+          {showPassword ? <EyeIcon /> : <EyeClosedIcon />}
+        </EyeButton>
       </SubmitBox>
-      <SubmitButton>로그인</SubmitButton>
+      <SubmitButton type="submit" disabled={isPending}>
+        {isPending ? "처리 중..." : "로그인"}
+      </SubmitButton>
       <AuthOptions>
         <RememberMe>
           <Checkbox />
@@ -66,14 +125,44 @@ const LoginForm = () => {
   );
 };
 
+const Socials = [
+  {
+    name: "카카오톡",
+    bgColor: "#FEE500",
+    color: "#000000",
+    icon: <img width={16} src={KakaoSymbol} alt="카카오 로그인 심볼" />,
+  },
+  {
+    name: "Google",
+    bgColor: "#F2F2F2",
+    color: "#181a1e",
+    icon: <img width={16} src={GoogleSymbol} alt="구글 로그인 심볼" />,
+  },
+  {
+    name: "네이버",
+    bgColor: "#03A94D",
+    color: "#fff",
+    icon: <img width={16} src={NaverSymbol} alt="네이버 로그인 심볼" />,
+  },
+];
+
+const ErrorText = styled.p`
+  margin: 0 0 0 auto;
+
+  color: #ef4444;
+  font-size: 0.75rem;
+  white-space: nowrap;
+`;
+
 const SubmitLabel = styled.label`
+  width: 100%;
+  display: flex;
+  justify-content: start;
+  align-items: center;
+
   margin: 0 0 6px;
   color: #2e3339;
   font-size: 0.878rem;
-
-  span {
-    color: #f77036;
-  }
 `;
 const SubmitButton = styled.button`
   width: 100%;
@@ -252,6 +341,27 @@ const SocialLoginButton = styled.button<{ $bgColor: string; $color: string }>`
   &:hover {
     filter: brightness(0.95);
   }
+`;
+const EyeButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+`;
+const EyeIcon = styled(Eye)`
+  width: 16px;
+  height: 16px;
+  stroke: #6c727a;
+  stroke-width: 2;
+`;
+const EyeClosedIcon = styled(EyeClosed)`
+  width: 16px;
+  height: 16px;
+  stroke: #6c727a;
+  stroke-width: 2;
 `;
 
 export default LoginForm;
