@@ -178,14 +178,14 @@ const SignupForm = () => {
         <CheckboxLabel>
           <strong>[필수]</strong> 이용약관에 동의합니다
         </CheckboxLabel>
-        <ViewLink>보기</ViewLink>
+        <ViewLink type="button">보기</ViewLink>
       </AgreementBox>
       <AgreementBox>
         <Checkbox />
         <CheckboxLabel>
           <strong>[필수]</strong> 개인정보 수집 및 이용에 동의합니다
         </CheckboxLabel>
-        <ViewLink>보기</ViewLink>
+        <ViewLink type="button">보기</ViewLink>
       </AgreementBox>
 
       <SubmitButton type="submit" disabled={isPending}>
