@@ -3,31 +3,38 @@ import styled from "styled-components";
 import SpotCard from "./SpotCard";
 import { useSpotStore } from "../../../stores/useSpotStore";
 import SearchBar from "./SearchBar";
-import { Frown, Heart } from "lucide-react";
+import { Frown, Heart, Loader2 } from "lucide-react";
 import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
 import { useSearchKeywordStore } from "../../../stores/useSearchKeywordStorer";
 import { useGetSpotsByKeyword } from "../../../hooks/spot/useGetSpotsByKeyword";
 import { useGetSpotsByLocation } from "../../../hooks/spot/useGetSpotsByLocation";
 import { useInView } from "react-intersection-observer";
+import SkeletonCard from "./SkeletonCard";
 
 const CATEGORY_TYPE_MAP: Record<string, string | null> = {
   전체: null,
   MY: null,
   관광지: "12",
+  음식점: "39",
+  숙박: "32",
+  쇼핑: "38",
   문화시설: "14",
   행사: "15",
   레포츠: "28",
-  숙박: "32",
-  쇼핑: "38",
-  음식점: "39",
 };
 
 const ExploreList = () => {
+  const [scrollContainer, setScrollContainer] =
+    useState<HTMLUListElement | null>(null);
+
   const { selectedSpot, setSelectedSpot, setDetailSpot } = useSpotStore();
   const { likedSpot } = useLikedSpotStore();
   const { searchKeyword, setSearchKeyword } = useSearchKeywordStore();
 
-  const { ref, inView } = useInView();
+  const { ref, inView } = useInView({ root: scrollContainer });
+
+  const [selectedCategory, setSelectedCategory] = useState("전체");
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const {
     data: keywordData,
@@ -52,7 +59,7 @@ const ExploreList = () => {
   });
 
   useEffect(() => {
-    if (!inView) return;
+    if (!inView || selectedCategory === "MY") return;
 
     if (searchKeyword && hasNextKeyword && !isFetchingNextKeyword) {
       fetchNextKeyword();
@@ -66,6 +73,9 @@ const ExploreList = () => {
     hasNextPage,
     isFetchingNextKeyword,
     isFetchingNextPage,
+    fetchNextKeyword,
+    fetchNextPage,
+    selectedCategory,
   ]);
 
   const spotsByKeyword = keywordData?.pages.flatMap((page) => page) ?? [];
@@ -74,15 +84,13 @@ const ExploreList = () => {
   const isCurrentLoading = searchKeyword ? keywordLoading : isLoading;
   const isCurrentError = searchKeyword ? keywordError : isError;
 
-  const [selectedCategory, setSelectedCategory] = useState("전체");
-  const [isExpanded, setIsExpanded] = useState(false);
-
   const categories = Object.keys(CATEGORY_TYPE_MAP); // 또는 그냥 기존 배열 재사용
   const visibleCategories = isExpanded ? categories : categories.slice(0, 5);
 
   const displaySpots = searchKeyword ? (spotsByKeyword ?? []) : (spots ?? []);
   const filteredSpots = (() => {
-    if (selectedCategory === "MY") return likedSpot;
+    if (selectedCategory === "MY")
+      return displaySpots.filter((spot) => likedSpot.includes(spot.contentid));
     const typeId = CATEGORY_TYPE_MAP[selectedCategory];
     if (!typeId) return displaySpots;
     return displaySpots.filter((spot) => spot.contenttypeid === typeId);
@@ -125,8 +133,10 @@ const ExploreList = () => {
         )}
       </CategorySection>
 
-      <SpotList>
-        {isCurrentLoading && <p>로딩중...</p>}
+      <SpotList ref={setScrollContainer}>
+        {isCurrentLoading
+          ? Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)
+          : null}{" "}
         {isCurrentError && <p>에러가 발생했습니다.</p>}
         {filteredSpots?.length === 0 ? (
           <EmptyState>
@@ -162,6 +172,13 @@ const ExploreList = () => {
                 }}
               />
             ))}
+            {(isFetchingNextPage || isFetchingNextKeyword) &&
+              selectedCategory !== "MY" && (
+                <LoadingSpinner>
+                  <Loader2 size={20} />
+                </LoadingSpinner>
+              )}
+
             <li ref={ref} style={{ height: 1 }} />
           </>
         )}
@@ -184,6 +201,10 @@ const ExploreListContainer = styled.section`
 const SpotList = styled.ul`
   flex: 1;
   min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 
   overflow-y: auto;
 
@@ -252,7 +273,7 @@ const CategorySection = styled.section`
   align-items: center;
   gap: 6px;
 
-  padding-inline: 16px;
+  padding: 0 16px 16px 16px;
 
   flex-wrap: wrap;
 `;
@@ -303,6 +324,24 @@ const LikeCountChip = styled.div`
 
   color: #100c0d;
   font-size: 0.65rem;
+`;
+
+const LoadingSpinner = styled.li`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px 0;
+  color: #0c9799;
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  svg {
+    animation: spin 0.8s linear infinite;
+  }
 `;
 
 export default ExploreList;

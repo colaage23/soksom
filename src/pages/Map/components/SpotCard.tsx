@@ -112,7 +112,7 @@ const SpotCardContainer = styled.div<{ $isActive: boolean }>`
   gap: 16px;
 
   padding: 12px;
-  margin: 16px 16px 0;
+  margin: 0px 16px 0;
 
   border: 1px solid ${({ $isActive }) => ($isActive ? "#72c9c3" : "#f5f2eb")};
   border-radius: 1rem;
