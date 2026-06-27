@@ -179,10 +179,6 @@ const Mypage = () => {
               <AvatarCircle>김</AvatarCircle>
               <ProfileName>김여행</ProfileName>
               <ProfileEmail>travel@email.com</ProfileEmail>
-              <BadgeRow>
-                <SoftBadge>자연 탐험가</SoftBadge>
-                <SoftBadge>고요 수집가</SoftBadge>
-              </BadgeRow>
             </ProfileCard>
             <SidebarListSlot
               ref={sidebarListSlotRef}
@@ -252,10 +248,7 @@ const Mypage = () => {
 
                 <HighlightCard>
                   <HighlightNumber>14곳</HighlightNumber>
-                  <HighlightText>이번 달 발견한 조용한 장소</HighlightText>
-                  <HighlightBar>
-                    <HighlightFill />
-                  </HighlightBar>
+                  <HighlightText>이번 달 찾아본 여행지</HighlightText>
                 </HighlightCard>
               </RecentGrid>
             </SectionBlock>
