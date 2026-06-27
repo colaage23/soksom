@@ -4,6 +4,7 @@ import AppLayout from "../components/layout/AppLayout";
 import Home from "../pages/Home/Home";
 import Map from "../pages/Map/Map";
 import Auth from "../pages/Auth/Auth";
+import Mypage from "../pages/MyPage/Mypage";
 
 function AppRouter() {
   return (
@@ -12,6 +13,7 @@ function AppRouter() {
         <Route index element={<Home />} />
         <Route path="map" element={<Map />} />
         <Route path="auth" element={<Auth />} />
+        <Route path="mypage" element={<Mypage />} />
       </Route>
     </Routes>
   );
