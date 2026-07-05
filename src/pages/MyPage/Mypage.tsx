@@ -1,7 +1,6 @@
 import {
   CalendarDays,
   ChevronRight,
-  Compass,
   Heart,
   LogOut,
   MapPinned,
@@ -9,8 +8,11 @@ import {
   Waves,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../constants/colors";
+import { favoritePlaces } from "./favoritePlacesData";
+import { recentPlaces } from "./recentPlacesData";
 
 const SIDEBAR_LIST_TOP = 96;
 
@@ -22,45 +24,6 @@ const sidebarSections = [
   { id: "trips", label: "여행 일정", icon: CalendarDays },
   //   { id: "taste", label: "여행 선호도 분석", icon: Sparkles },
 ] as const;
-
-const recentPlaces = [
-  {
-    title: "비밀의 숲 오름",
-    subtitle: "어제 방문",
-    status: "여유",
-    icon: Trees,
-  },
-  {
-    title: "한적한 월정리 해변",
-    subtitle: "3일 전 방문",
-    status: "보통",
-    icon: Waves,
-  },
-];
-
-const favoritePlaces = [
-  {
-    name: "신창풍차해안도로",
-    description: "제주시 한경면",
-    tags: ["#해안도로", "#일몰명소"],
-    level: "여유로움",
-    icon: Waves,
-  },
-  {
-    name: "천년의 숲 비자림",
-    description: "제주시 구좌읍",
-    tags: ["#숲길", "#힐링"],
-    level: "보통",
-    icon: Trees,
-  },
-  {
-    name: "따라비오름",
-    description: "서귀포시 표선면",
-    tags: ["#오름", "#사진명소"],
-    level: "여유로움",
-    icon: Compass,
-  },
-];
 
 const itinerarySteps = [
   "09:00 치유의 숲",
@@ -103,6 +66,8 @@ const pastTrips = [
 ];
 
 const Mypage = () => {
+  const navigate = useNavigate();
+  const previewRecentPlaces = recentPlaces.slice(0, 2);
   const [selectedSection, setSelectedSection] =
     useState<(typeof sidebarSections)[number]["id"]>("recent");
   const [selectedTripFilter, setSelectedTripFilter] =
@@ -218,14 +183,17 @@ const Mypage = () => {
             <SectionBlock id="mypage-recent">
               <SectionHeader>
                 <SectionTitle>최근 방문한 장소</SectionTitle>
-                <SectionLink type="button">
+                <SectionLink
+                  type="button"
+                  onClick={() => navigate("/mypage/recent-places")}
+                >
                   전체보기
                   <ChevronRight size={16} />
                 </SectionLink>
               </SectionHeader>
 
               <RecentGrid>
-                {recentPlaces.map((place) => {
+                {previewRecentPlaces.map((place) => {
                   const Icon = place.icon;
 
                   return (
@@ -256,7 +224,10 @@ const Mypage = () => {
             <SectionBlock id="mypage-favorites">
               <SectionHeader>
                 <SectionTitle>즐겨찾기</SectionTitle>
-                <SectionLink type="button">
+                <SectionLink
+                  type="button"
+                  onClick={() => navigate("/mypage/favorites")}
+                >
                   전체보기
                   <ChevronRight size={16} />
                 </SectionLink>
@@ -467,25 +438,6 @@ const ProfileEmail = styled.p`
   margin: -2px 0 0;
   color: #90a099;
   font-size: 0.95rem;
-`;
-
-const BadgeRow = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-`;
-
-const SoftBadge = styled.span`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(36, 149, 155, 0.1);
-  color: #3e756f;
-  font-size: 0.8rem;
-  font-weight: 700;
 `;
 
 const DashboardGrid = styled.div`
@@ -706,20 +658,6 @@ const HighlightText = styled.p`
   color: rgba(255, 255, 255, 0.84);
   font-size: 0.96rem;
   font-weight: 600;
-`;
-
-const HighlightBar = styled.div`
-  width: 100%;
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.22);
-`;
-
-const HighlightFill = styled.div`
-  width: 74%;
-  height: 100%;
-  border-radius: inherit;
-  background: rgba(255, 255, 255, 0.88);
 `;
 
 const FavoriteGrid = styled.div`
