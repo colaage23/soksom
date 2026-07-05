@@ -1,23 +1,23 @@
-import { favoritePlaces } from "./favoritePlacesData";
+import { favoritePlaces } from "./data/favoritePlacesData";
 import PlaceCollectionPage, {
   type CollectionPageItem,
-} from "./PlaceCollectionPage";
+} from "./components/PlaceCollectionPage";
 
 const FavoritePlaces = () => {
   const calmCount = favoritePlaces.filter(
-    (place) => place.level === "여유로움",
+    (place) => place.status === "여유로움",
   ).length;
   const items: CollectionPageItem[] = favoritePlaces.map((place) => ({
-    title: place.name,
-    subtitle: place.savedDate,
-    region: place.description,
+    title: place.title,
+    date: place.date,
+    region: place.region,
     summary: place.summary,
-    badge: place.level,
-    badgeVariant: place.level === "여유로움" ? "calm" : "warm",
+    badge: place.status,
+    badgeVariant: place.status === "여유로움" ? "calm" : "warm",
     isFavorite: true,
     tags: place.tags,
-    primaryMeta: place.savedDate,
-    secondaryMeta: place.recommendedTime,
+    primaryMeta: place.date,
+    secondaryMeta: place.duration,
     icon: place.icon,
   }));
 

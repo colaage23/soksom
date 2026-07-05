@@ -1,7 +1,8 @@
-import { recentPlaces } from "./recentPlacesData";
+import { recentPlaces } from "./data/recentPlacesData";
+import { formatVisitDateLabel } from "./utils/placeDateLabel";
 import PlaceCollectionPage, {
   type CollectionPageItem,
-} from "./PlaceCollectionPage";
+} from "./components/PlaceCollectionPage";
 
 const RecentPlaces = () => {
   const calmCount = recentPlaces.filter(
@@ -13,15 +14,15 @@ const RecentPlaces = () => {
   ];
   const items: CollectionPageItem[] = recentPlaces.map((place) => ({
     title: place.title,
-    subtitle: place.subtitle,
+    date: place.date,
     region: place.region,
     summary: place.summary,
     badge: place.status,
     badgeVariant: place.status === "여유" ? "calm" : "warm",
     isFavorite: false,
     tags: place.tags,
-    primaryMeta: place.visitDate,
-    secondaryMeta: place.stayTime,
+    primaryMeta: place.date,
+    secondaryMeta: place.duration,
     icon: place.icon,
   }));
 
@@ -32,6 +33,7 @@ const RecentPlaces = () => {
       backLabel="마이페이지로 돌아가기"
       stats={stats}
       items={items}
+      formatDateLabel={formatVisitDateLabel}
     />
   );
 };

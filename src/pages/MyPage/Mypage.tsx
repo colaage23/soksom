@@ -11,8 +11,9 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../constants/colors";
-import { favoritePlaces } from "./favoritePlacesData";
-import { recentPlaces } from "./recentPlacesData";
+import { favoritePlaces } from "./data/favoritePlacesData";
+import { recentPlaces } from "./data/recentPlacesData";
+import { formatVisitDateLabel } from "./utils/placeDateLabel";
 
 const SIDEBAR_LIST_TOP = 96;
 
@@ -203,7 +204,9 @@ const Mypage = () => {
                       </MiniCardVisual>
                       <MiniCardText>
                         <MiniCardTitle>{place.title}</MiniCardTitle>
-                        <MiniCardMeta>{place.subtitle}</MiniCardMeta>
+                        <MiniCardMeta>
+                          {formatVisitDateLabel(place.date)}
+                        </MiniCardMeta>
                         <StatusPill
                           $variant={place.status === "여유" ? "calm" : "warm"}
                         >
@@ -238,21 +241,21 @@ const Mypage = () => {
                   const Icon = place.icon;
 
                   return (
-                    <FavoriteCard key={place.name}>
+                    <FavoriteCard key={place.title}>
                       <FavoriteVisual $index={index}>
                         <LevelBadge
                           $variant={
-                            place.level === "여유로움" ? "calm" : "warm"
+                            place.status === "여유로움" ? "calm" : "warm"
                           }
                         >
-                          {place.level}
+                          {place.status}
                         </LevelBadge>
                         <Heart size={18} fill="#111" color="#111" />
                       </FavoriteVisual>
                       <FavoriteBody>
                         <Icon size={30} />
-                        <FavoriteTitle>{place.name}</FavoriteTitle>
-                        <FavoriteMeta>{place.description}</FavoriteMeta>
+                        <FavoriteTitle>{place.title}</FavoriteTitle>
+                        <FavoriteMeta>{place.region}</FavoriteMeta>
                         <FavoriteTags>{place.tags.join(" ")}</FavoriteTags>
                       </FavoriteBody>
                     </FavoriteCard>

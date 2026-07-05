@@ -1,18 +1,11 @@
-import {
-  ArrowLeft,
-  CalendarDays,
-  Clock3,
-  Heart,
-  MapPinned,
-  MoveRight,
-} from "lucide-react";
+import { ArrowLeft, Heart, MapPinned, MoveRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import colors from "../../constants/colors";
+import colors from "../../../constants/colors";
 
 export type CollectionPageItem = {
   title: string;
-  subtitle: string;
+  date: string;
   region: string;
   summary: string;
   badge: string;
@@ -35,6 +28,7 @@ type PlaceCollectionPageProps = {
   backLabel: string;
   stats: CollectionStat[];
   items: CollectionPageItem[];
+  formatDateLabel?: (dateText: string) => string;
 };
 
 const PlaceCollectionPage = ({
@@ -43,6 +37,7 @@ const PlaceCollectionPage = ({
   backLabel,
   stats,
   items,
+  formatDateLabel,
 }: PlaceCollectionPageProps) => {
   const navigate = useNavigate();
 
@@ -91,6 +86,11 @@ const PlaceCollectionPage = ({
                   <PlaceHeader>
                     <PlaceHeaderTop>
                       <PlaceTitleGroup>
+                        <PlaceMetaText>
+                          {formatDateLabel
+                            ? formatDateLabel(item.date)
+                            : item.date}
+                        </PlaceMetaText>
                         <PlaceTitle>{item.title}</PlaceTitle>
                         <PlaceRegion>{item.region}</PlaceRegion>
                       </PlaceTitleGroup>
@@ -109,20 +109,11 @@ const PlaceCollectionPage = ({
                         />
                       </FavoriteButton>
                     </PlaceHeaderTop>
-                    <PlaceMetaText>{item.subtitle}</PlaceMetaText>
                   </PlaceHeader>
 
                   <PlaceSummary>{item.summary}</PlaceSummary>
 
                   <MetaList>
-                    <MetaItem>
-                      <CalendarDays size={16} />
-                      <span>{item.primaryMeta}</span>
-                    </MetaItem>
-                    <MetaItem>
-                      <Clock3 size={16} />
-                      <span>{item.secondaryMeta}</span>
-                    </MetaItem>
                     <MetaItem>
                       <MapPinned size={16} />
                       <span>{item.region}</span>
