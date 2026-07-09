@@ -29,7 +29,7 @@ const SpotCardContainer = styled.div`
   gap: 16px;
 
   padding: 12px;
-  margin: 16px 16px 0;
+  margin: 0 16px 0 16px;
 
   border: 1px solid #f5f2eb;
   border-radius: 1rem;

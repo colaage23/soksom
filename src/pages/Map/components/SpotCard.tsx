@@ -20,6 +20,8 @@ const SpotCard = ({
 }: ISpotCardProps) => {
   const { likedSpot, toggleLikedSpot } = useLikedSpotStore();
 
+  if (!spot) return null;
+
   // const status = congestionStyle[spot.congestion];
 
   return (
@@ -39,7 +41,7 @@ const SpotCard = ({
 
       <SpotInfoBox>
         <SubInfoText>
-          <span>{spot.addr1.split(" ").slice(1, 3).join(" ")}</span>
+          <span>{spot.addr1?.split(" ").slice(1, 3).join(" ")}</span>
           <span style={{ color: "#c0c5ca" }}>·</span>
           <span>{spot.lclsSystm2Nm}</span>
         </SubInfoText>

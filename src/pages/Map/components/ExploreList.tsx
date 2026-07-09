@@ -93,7 +93,7 @@ const ExploreList = () => {
       return displaySpots.filter((spot) => likedSpot.includes(spot.contentid));
     const typeId = CATEGORY_TYPE_MAP[selectedCategory];
     if (!typeId) return displaySpots;
-    return displaySpots.filter((spot) => spot.contenttypeid === typeId);
+    return displaySpots.filter((spot) => spot?.contenttypeid === typeId);
   })();
 
   return (
@@ -135,10 +135,10 @@ const ExploreList = () => {
 
       <SpotList ref={setScrollContainer}>
         {isCurrentLoading
-          ? Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)
+          ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
           : null}{" "}
         {isCurrentError && <p>에러가 발생했습니다.</p>}
-        {filteredSpots?.length === 0 ? (
+        {!isCurrentLoading && filteredSpots?.length === 0 ? (
           <EmptyState>
             <EmptyChip>
               <EmptyIcon />
@@ -204,7 +204,7 @@ const SpotList = styled.ul`
 
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
 
   overflow-y: auto;
 
