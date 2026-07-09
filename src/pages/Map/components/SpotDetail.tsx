@@ -65,7 +65,7 @@ const SpotDetail = () => {
 
   // 숙박(contenttypeid: 32)은 info[] 안에 infoname/infotext가 아니라
   // roomtitle 등 객실 전용 필드가 내려오므로 별도 카드로 렌더링
-  const isRoomInfo = spotDetail?.info?.some((item: any) => !!item.roomtitle);
+  const isRoomInfo = spotDetail?.info?.some((item) => !!item.roomtitle);
 
   const handleAddToPlan = () => {
     if (selectedSpot) toggleWayPoint(selectedSpot);
@@ -250,7 +250,7 @@ const SpotDetail = () => {
         {spotDetail.info?.length > 0 && isRoomInfo && (
           <RoomListBox>
             <OverviewTitle>객실 정보</OverviewTitle>
-            {spotDetail.info.map((room: any, idx: number) => (
+            {spotDetail.info.map((room, idx) => (
               <RoomCard key={`${room.contentid}-${idx}`}>
                 {room.roomimg1 && (
                   <RoomImage
