@@ -18,6 +18,24 @@ import { useSpotStore } from "../../../stores/useSpotStore";
 import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
 import { useWayPointStore } from "../../../stores/useWayPointStore";
 import { useGetSpotDetail } from "../../../hooks/spot/useGetSpotDetail";
+import type { ISpotDetailInfo } from "../../../types/spot";
+
+const ROOM_AMENITIES: { key: keyof ISpotDetailInfo; label: string }[] = [
+  { key: "roomaircondition", label: "에어컨" },
+  { key: "roomtv", label: "TV" },
+  { key: "roominternet", label: "인터넷" },
+  { key: "roombat", label: "욕조" }, // ⚠️ types/spot.ts엔 roombath가 아니라 roombat으로 정의돼 있어서 맞춰줌
+  { key: "roombathfacility", label: "욕실용품" },
+  { key: "roomhairdryer", label: "헤어드라이어" },
+  { key: "roomrefrigerator", label: "냉장고" },
+  { key: "roomcook", label: "취사시설" },
+  { key: "roomcable", label: "케이블TV" },
+  { key: "roomtable", label: "테이블" },
+  { key: "roomsofa", label: "소파" },
+  { key: "roompc", label: "PC" },
+  { key: "roomhometheater", label: "홈시어터" },
+  { key: "roomtoiletries", label: "세면도구" },
+];
 
 const SpotDetail = () => {
   const { setDetailSpot, selectedSpot } = useSpotStore();
@@ -280,26 +298,11 @@ const SpotDetail = () => {
                   )}
 
                   <RoomAmenityList>
-                    {[
-                      { key: "roomaircondition", label: "에어컨" },
-                      { key: "roomtv", label: "TV" },
-                      { key: "roominternet", label: "인터넷" },
-                      { key: "roombath", label: "욕조" },
-                      { key: "roombathfacility", label: "욕실용품" },
-                      { key: "roomhairdryer", label: "헤어드라이어" },
-                      { key: "roomrefrigerator", label: "냉장고" },
-                      { key: "roomcook", label: "취사시설" },
-                      { key: "roomcable", label: "케이블TV" },
-                      { key: "roomtable", label: "테이블" },
-                      { key: "roomsofa", label: "소파" },
-                      { key: "roompc", label: "PC" },
-                      { key: "roomhometheater", label: "홈시어터" },
-                      { key: "roomtoiletries", label: "세면도구" },
-                    ]
-                      .filter(({ key }) => room[key] === "Y")
-                      .map(({ key, label }) => (
+                    {ROOM_AMENITIES.filter(({ key }) => room[key] === "Y").map(
+                      ({ key, label }) => (
                         <AmenityChip key={key}>{label}</AmenityChip>
-                      ))}
+                      ),
+                    )}
                   </RoomAmenityList>
 
                   {(room.roomoffseasonminfee1 ||
