@@ -3,6 +3,8 @@ import type {
   ISearchByKeywordRequest,
   ISearchByLocationRequest,
   ISearchSpotResponse,
+  ISpotDetailRequest,
+  ISpotDetailResponse,
 } from "../../types/spot";
 
 export const getSpotsByKeyword = async ({
@@ -36,10 +38,26 @@ export const getSpotsByLocation = async ({
         params: { pageNo, mapX, mapY, radius },
       },
     );
-    console.log("pageNo:", pageNo, "data:", response.data.data);
     return response.data.data;
   } catch (error) {
     console.error("Fetch Spot by Location Error: ", error);
     throw new Error("Fail to fetch Spot by Location.", { cause: error });
+  }
+};
+
+export const getSpotDetail = async ({
+  contentId,
+  contentTypeId,
+}: ISpotDetailRequest): Promise<ISpotDetailResponse> => {
+  try {
+    const response = await axios.get<{ data: ISpotDetailResponse }>(
+      "/api/detail",
+      { params: { contentId, contentTypeId } },
+    );
+
+    return response.data.data;
+  } catch (error) {
+    console.error("Fetch Spot Detail Error: ", error);
+    throw new Error("Fail to fetch Spot Detail.", { cause: error });
   }
 };
