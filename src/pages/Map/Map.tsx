@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Route, Telescope } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ListIcon,
+  MapIcon,
+  Route,
+  Telescope,
+} from "lucide-react";
 import styled from "styled-components";
 import ExploreList from "./components/ExploreList";
 import RouteList from "./components/RouteList";
@@ -13,6 +20,7 @@ const Map = () => {
 
   const [mode, setMode] = useState<"explore" | "route">("explore");
   const [open, setOpen] = useState(true);
+  const [mobileView, setMobileView] = useState<"map" | "list">("list");
 
   const Icon = open ? ChevronLeft : ChevronRight;
 
@@ -20,7 +28,7 @@ const Map = () => {
 
   return (
     <MapContainer>
-      <KakaoMap />
+      <KakaoMap mode={mode} />
 
       <ToggleButton
         $visible={!!detailSpot}
@@ -30,7 +38,7 @@ const Map = () => {
         <ToggleIcon as={Icon} />
       </ToggleButton>
 
-      <ListSection $open={open}>
+      <ListSection $open={open} $mobileView={mobileView}>
         <ModeTabs>
           <TabIndicator $mode={mode} />
 
@@ -60,7 +68,11 @@ const Map = () => {
 
         <SpotDetailSection>{detailSpot && <SpotDetail />}</SpotDetailSection>
       </ListSection>
-      <CongestionOverlay $open={open} $hasDetail={!!detailSpot}>
+      <CongestionOverlay
+        $open={open}
+        $hasDetail={!!detailSpot}
+        $mobileView={mobileView}
+      >
         <OverlayTitle>관광지</OverlayTitle>
         {congestion.map((item, idx) => (
           <OverlayContent key={idx}>
@@ -71,6 +83,14 @@ const Map = () => {
           </OverlayContent>
         ))}
       </CongestionOverlay>
+
+      <FloatingViewButton
+        onClick={() =>
+          setMobileView((prev) => (prev === "map" ? "list" : "map"))
+        }
+      >
+        {mobileView === "map" ? <ListIcon size={20} /> : <MapIcon size={20} />}
+      </FloatingViewButton>
     </MapContainer>
   );
 };
@@ -133,9 +153,16 @@ const ToggleButton = styled.button<{ $open: boolean; $visible: boolean }>`
   &:hover {
     background: #2c9b99;
   }
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
-const ListSection = styled.aside<{ $open: boolean }>`
+const ListSection = styled.aside<{
+  $open: boolean;
+  $mobileView: "map" | "list";
+}>`
   position: relative;
 
   width: 420px;
@@ -151,11 +178,24 @@ const ListSection = styled.aside<{ $open: boolean }>`
   border-right: 1px solid #f5f2eb;
 
   transform: ${({ $open }) => ($open ? "translateX(0)" : "translateX(-100%)")};
+
+  @media (max-width: 768px) {
+    position: fixed;
+    top: 72px;
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 72px);
+    z-index: 20;
+
+    transform: ${({ $mobileView }) =>
+      $mobileView === "list" ? "translateX(0)" : "translateX(-100%)"};
+  }
 `;
 
 const CongestionOverlay = styled.div<{
   $open: boolean;
   $hasDetail: boolean;
+  $mobileView: "map" | "list";
 }>`
   position: absolute;
 
@@ -181,6 +221,13 @@ const CongestionOverlay = styled.div<{
   border-radius: 16px;
 
   z-index: 0;
+
+  @media (max-width: 768px) {
+    left: 16px;
+    bottom: 16px;
+
+    display: ${({ $mobileView }) => ($mobileView === "list" ? "none" : "flex")};
+  }
 `;
 
 const OverlayTitle = styled.p`
@@ -297,6 +344,35 @@ const SpotDetailSection = styled.aside`
 
   display: flex;
   flex-direction: column;
+`;
+
+const FloatingViewButton = styled.button`
+  display: none;
+
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+
+  width: 52px;
+  height: 52px;
+
+  justify-content: center;
+  align-items: center;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #298e8c;
+  color: #fdfcf8;
+
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+  cursor: pointer;
+  z-index: 30;
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
 `;
 
 export default Map;
