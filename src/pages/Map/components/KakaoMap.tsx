@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import { congestionStyle } from "../mock";
 import { Map, MapMarker, Polyline } from "react-kakao-maps-sdk";
 import { getMarkerSrc, getNumberMarkerSrc } from "../../../utils/marker";
 import { useSpotStore } from "../../../stores/useSpotStore";
@@ -8,16 +7,22 @@ import { LocateFixed, Minus, Plus } from "lucide-react";
 import { useDirectionStore } from "../../../stores/useDirectionStore";
 import { useWayPointStore } from "../../../stores/useWayPointStore";
 
-const KakaoMap = () => {
+interface IKakaoMapProps {
+  mode: "explore" | "route";
+}
+
+const KakaoMap = ({ mode }: IKakaoMapProps) => {
   const mapRef = useRef<kakao.maps.Map>(null);
   const { selectedSpot, setDetailSpot } = useSpotStore();
   const { directions } = useDirectionStore();
-  const { wayPoint } = useWayPointStore();
+  const { wayPoint, expandedDay } = useWayPointStore();
+
+  // wayPoint는 일차별 배열이라 지금 펼쳐져 있는 일차의 관광지만 지도에 마커로 찍도록
+  const currentDaySpots =
+    expandedDay !== null ? (wayPoint[expandedDay] ?? []) : [];
 
   const lat = selectedSpot ? parseFloat(selectedSpot.mapy) : 33.34714;
   const lng = selectedSpot ? parseFloat(selectedSpot.mapx) : 126.41986;
-
-  console.log(selectedSpot);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -106,7 +111,7 @@ const KakaoMap = () => {
         zoomable={true}
         ref={mapRef}
       >
-        {(!wayPoint || wayPoint.length === 0) && selectedSpot && (
+        {(!currentDaySpots || currentDaySpots.length === 0) && selectedSpot && (
           <MapMarker
             position={{
               lat: lat,
@@ -122,25 +127,24 @@ const KakaoMap = () => {
           />
         )}
 
-        {wayPoint &&
-          wayPoint.map((point, idx) => (
-            <MapMarker
-              key={idx}
-              position={{
-                lat: point.latitude,
-                lng: point.longitude,
-              }}
-              image={{
-                src: getNumberMarkerSrc(idx + 1),
-                size: { width: 40, height: 40 },
-                options: { offset: { x: 40, y: 40 } },
-              }}
-              clickable={true}
-              onClick={() => setDetailSpot(selectedSpot)}
-            />
-          ))}
+        {currentDaySpots.map((point, idx) => (
+          <MapMarker
+            key={point.contentid}
+            position={{
+              lat: Number(point.mapy),
+              lng: Number(point.mapx),
+            }}
+            image={{
+              src: getNumberMarkerSrc(idx + 1),
+              size: { width: 40, height: 40 },
+              options: { offset: { x: 40, y: 40 } },
+            }}
+            clickable={true}
+            onClick={() => setDetailSpot(point)}
+          />
+        ))}
 
-        {routePath.length > 0 && (
+        {mode === "route" && routePath.length > 0 && (
           <>
             <Polyline
               path={routePath}

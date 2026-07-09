@@ -1,38 +1,64 @@
 import styled from "styled-components";
-import { useEffect } from "react";
-import SearchBar from "./SearchBar";
-import { useSearchKeywordStore } from "../../../stores/useSearchKeywordStorer";
-import { mockSpots } from "../mock";
+import { useEffect, useMemo } from "react";
 import { Wand } from "lucide-react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import WayPointItem from "./WayPointItem";
+import PoolWayPointList from "./PoolWayPointList";
+import DayCard from "./DayCard";
+import RouteSummaryCard from "./RouteSummaryCard";
+import { type RouteSection } from "./RouteLegConnector";
 import { useWayPointStore } from "../../../stores/useWayPointStore";
 import { useDirectionWithFallback } from "../../../hooks/useDirectionWithFallback";
 import { useDirectionStore } from "../../../stores/useDirectionStore";
+import TripInfoCard from "./TripInfoCard";
+
+// 카카오모빌리티 응답에서 우리가 실제로 쓰는 부분만 느슨하게 타입 지정
+interface KakaoDirectionRoute {
+  result_msg?: string;
+  summary?: { distance?: number; duration?: number };
+  sections?: { distance?: number; duration?: number }[];
+}
 
 const RouteList = () => {
-  const { searchKeyword, setSearchKeyword } = useSearchKeywordStore();
-  const { wayPoint, toggleWayPoint } = useWayPointStore();
+  const { pool, wayPoint, dayCount, expandedDay, setExpandedDay } =
+    useWayPointStore();
   const { setDirections } = useDirectionStore();
 
   const { fetchDirectionWithFallback, data } = useDirectionWithFallback();
 
+  const expandedDaySpots = useMemo(
+    () => (expandedDay !== null ? (wayPoint[expandedDay] ?? []) : []),
+    [expandedDay, wayPoint],
+  );
+
+  // expandedDaySpots(배열 자체)가 아니라 실제 내용(id 목록)이 바뀔 때만 재요청되도록
+  const expandedDaySpotIds = useMemo(
+    () => expandedDaySpots.map((spot) => spot.contentid).join(","),
+    [expandedDaySpots],
+  );
+
   useEffect(() => {
-    if (wayPoint.length > 1) {
+    if (expandedDaySpots.length > 1) {
       fetchDirectionWithFallback({
-        origin: { x: wayPoint[0].longitude, y: wayPoint[0].latitude },
-        waypoints: wayPoint.slice(1, -1).map((spot) => ({
-          x: spot.longitude,
-          y: spot.latitude,
+        origin: {
+          x: Number(expandedDaySpots[0].mapx),
+          y: Number(expandedDaySpots[0].mapy),
+        },
+        waypoints: expandedDaySpots.slice(1, -1).map((spot) => ({
+          x: Number(spot.mapx),
+          y: Number(spot.mapy),
         })),
         destination: {
-          x: wayPoint[wayPoint.length - 1].longitude,
-          y: wayPoint[wayPoint.length - 1].latitude,
+          x: Number(expandedDaySpots[expandedDaySpots.length - 1].mapx),
+          y: Number(expandedDaySpots[expandedDaySpots.length - 1].mapy),
         },
       });
+    } else {
+      // 경유지가 2개 미만이 되면 이전 경로 기록을 지워서 지도/카드에 안 남게 함
+      setDirections(null);
     }
-  }, [wayPoint]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expandedDaySpotIds]);
 
   useEffect(() => {
     if (data) {
@@ -40,57 +66,64 @@ const RouteList = () => {
     }
   }, [data]);
 
-  const filteredSpots = mockSpots.filter((spot) => {
-    const keyword = searchKeyword.trim();
+  const route = data?.routes?.[0] as KakaoDirectionRoute | undefined;
 
-    const matchesSearch =
-      keyword === ""
-        ? true
-        : spot.name.includes(keyword) ||
-          spot.addr1.includes(keyword) ||
-          spot.category.includes(keyword);
+  // routes[0].sections[]를 구간별 거리/시간으로 변환.
+  // sections[i]는 spots[i] -> spots[i+1] 구간에 대응한다고 가정
+  const currentRouteSections: RouteSection[] | undefined = useMemo(() => {
+    if (!route?.sections) return undefined;
 
-    return matchesSearch;
-  });
+    return route.sections
+      .filter(
+        (s): s is { distance: number; duration: number } =>
+          typeof s.distance === "number" && typeof s.duration === "number",
+      )
+      .map((s) => ({ distance: s.distance, duration: s.duration }));
+  }, [route]);
 
   return (
     <RouteListContainer>
-      <SearchBar
-        placeholder="장소 검색 후 추가"
-        value={searchKeyword}
-        onChange={(e) => setSearchKeyword(e.target.value)}
-        onClear={() => setSearchKeyword("")}
-      />
+      <RouteListScroll>
+        <TripInfoWrapper>
+          <TripInfoCard />
+        </TripInfoWrapper>
 
-      {searchKeyword.length > 0 && (
-        <ResultBox>
-          {filteredSpots.map((spot) => (
-            <ResultItem
-              onClick={() => {
-                toggleWayPoint(spot);
-                setSearchKeyword("");
-              }}
-            >
-              {spot.name}
-            </ResultItem>
-          ))}
-        </ResultBox>
-      )}
+        <DndProvider backend={HTML5Backend}>
+          <PoolWayPointList spots={pool} />
 
-      <DndProvider backend={HTML5Backend}>
-        <WayPointList>
-          {wayPoint.map((spot, idx) => (
-            <WayPointItem index={idx} spot={spot} />
-          ))}
-        </WayPointList>
-      </DndProvider>
+          <DayListSection>
+            {Array.from({ length: dayCount }).map((_, dayIdx) => {
+              const isExpanded = expandedDay === dayIdx;
+              const daySpots = wayPoint[dayIdx] ?? [];
+              const showRouteSummary = isExpanded && daySpots.length > 1;
 
-      {data?.routes[0]?.result_msg}
+              return (
+                <DayCard
+                  key={dayIdx}
+                  dayIdx={dayIdx}
+                  spots={daySpots}
+                  isExpanded={isExpanded}
+                  onToggle={() => setExpandedDay(dayIdx)}
+                  routeSections={isExpanded ? currentRouteSections : undefined}
+                >
+                  {showRouteSummary && (
+                    <RouteSummaryCard
+                      distance={route?.summary?.distance}
+                      duration={route?.summary?.duration}
+                      resultMsg={route?.result_msg}
+                    />
+                  )}
+                </DayCard>
+              );
+            })}
+          </DayListSection>
+        </DndProvider>
+      </RouteListScroll>
 
       <RouteListContent>
         <GenerateScheduleButton>
           <WandIcon />
-          AI 일정 생성하기
+          일정 생성하기
         </GenerateScheduleButton>
       </RouteListContent>
     </RouteListContainer>
@@ -108,27 +141,13 @@ const RouteListContainer = styled.section`
   background-color: #fdfcf8;
 `;
 
-const ResultBox = styled.ul`
-  height: fit-content;
-  max-height: 160px;
-  width: 315px;
-
-  position: absolute;
-
-  top: 120.5px;
-  left: 48px;
+const RouteListScroll = styled.div`
+  flex: 1;
+  min-height: 0;
 
   display: flex;
   flex-direction: column;
-  justify-content: start;
-
-  margin: 0;
-  padding: 0;
-
-  background-color: #fdfcf8;
-
-  border: 1px solid #edebe5;
-  border-top: none;
+  gap: 16px;
 
   overflow-y: auto;
 
@@ -137,35 +156,29 @@ const ResultBox = styled.ul`
   }
 `;
 
-const ResultItem = styled.li`
-  padding: 4px 8px;
-
-  font-size: 0.875rem;
-
-  list-style: none;
-
-  &:hover {
-    background-color: #f2f1ec;
-    cursor: pointer;
-  }
+const TripInfoWrapper = styled.div`
+  flex-shrink: 0;
 `;
 
-const WayPointList = styled.div`
+const DayListSection = styled.div`
   width: 100%;
+  flex-shrink: 0;
 
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
+  gap: 10px;
 
   padding: 0 16px;
 `;
 
 const RouteListContent = styled.div`
   width: 100%;
+  flex-shrink: 0;
 
-  padding: 0 16px;
+  padding: 12px 16px;
+
+  border-top: 1px solid #f5f2eb;
+  background-color: #fdfcf8;
 `;
 
 const GenerateScheduleButton = styled.button`
