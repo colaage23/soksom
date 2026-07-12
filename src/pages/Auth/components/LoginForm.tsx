@@ -6,12 +6,14 @@ import NaverSymbol from "../../../assets/symbol/naver.png";
 import { useState, type FormEvent } from "react";
 import { useLogin } from "../../../hooks/auth/useAuth";
 import { useNavigate } from "react-router-dom";
+import FindPasswordModal from "../../../components/modal/FindPasswordModal";
 
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isFindPasswordModalOpen, setIsFindPasswordModalOpen] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -65,63 +67,75 @@ const LoginForm = () => {
   };
 
   return (
-    <LoginFormContainer onSubmit={handleLogin}>
-      <SubmitLabel>
-        이메일 {errors.email && <ErrorText>{errors.email}</ErrorText>}
-      </SubmitLabel>
-      <SubmitBox>
-        <MailIcon />
-        <SubmitInput
-          placeholder="이메일을 입력하세요"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </SubmitBox>
-      <SubmitLabel>
-        비밀번호 {errors.password && <ErrorText>{errors.password}</ErrorText>}
-      </SubmitLabel>
-      <SubmitBox>
-        <LockIcon />
-        <SubmitInput
-          type={showPassword ? "text" : "password"}
-          placeholder="비밀번호를 입력하세요"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <EyeButton
-          type="button"
-          onClick={() => setShowPassword((prev) => !prev)}
-        >
-          {showPassword ? <EyeIcon /> : <EyeClosedIcon />}
-        </EyeButton>
-      </SubmitBox>
-      <SubmitButton type="submit" disabled={isPending}>
-        {isPending ? "처리 중..." : "로그인"}
-      </SubmitButton>
-      <AuthOptions>
-        <RememberMe>
-          <Checkbox />
-          <CheckboxLabel>로그인 상태 유지</CheckboxLabel>
-        </RememberMe>
-        <ForgotPassword>비밀번호 찾기</ForgotPassword>
-      </AuthOptions>
-      <DividerBox>
-        <Divider />
-        <span>또는</span>
-        <Divider />
-      </DividerBox>
-      <SocialButtonBox>
-        {Socials.map((social, index) => (
-          <SocialLoginButton
-            key={index}
-            $bgColor={social.bgColor}
-            $color={social.color}
+    <>
+      <LoginFormContainer onSubmit={handleLogin}>
+        <SubmitLabel>
+          이메일 {errors.email && <ErrorText>{errors.email}</ErrorText>}
+        </SubmitLabel>
+        <SubmitBox>
+          <MailIcon />
+          <SubmitInput
+            placeholder="이메일을 입력하세요"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </SubmitBox>
+        <SubmitLabel>
+          비밀번호 {errors.password && <ErrorText>{errors.password}</ErrorText>}
+        </SubmitLabel>
+        <SubmitBox>
+          <LockIcon />
+          <SubmitInput
+            type={showPassword ? "text" : "password"}
+            placeholder="비밀번호를 입력하세요"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <EyeButton
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
           >
-            {social.icon} <span>{social.name}</span>로 로그인
-          </SocialLoginButton>
-        ))}
-      </SocialButtonBox>
-    </LoginFormContainer>
+            {showPassword ? <EyeIcon /> : <EyeClosedIcon />}
+          </EyeButton>
+        </SubmitBox>
+        <SubmitButton type="submit" disabled={isPending}>
+          {isPending ? "처리 중..." : "로그인"}
+        </SubmitButton>
+        <AuthOptions>
+          <RememberMe>
+            <Checkbox />
+            <CheckboxLabel>로그인 상태 유지</CheckboxLabel>
+          </RememberMe>
+          <ForgotPassword
+            type="button"
+            onClick={() => setIsFindPasswordModalOpen(true)}
+          >
+            비밀번호 찾기
+          </ForgotPassword>
+        </AuthOptions>
+        <DividerBox>
+          <Divider />
+          <span>또는</span>
+          <Divider />
+        </DividerBox>
+        <SocialButtonBox>
+          {Socials.map((social, index) => (
+            <SocialLoginButton
+              key={index}
+              $bgColor={social.bgColor}
+              $color={social.color}
+            >
+              {social.icon} <span>{social.name}</span>로 로그인
+            </SocialLoginButton>
+          ))}
+        </SocialButtonBox>
+      </LoginFormContainer>
+
+      <FindPasswordModal
+        isOpen={isFindPasswordModalOpen}
+        onClose={() => setIsFindPasswordModalOpen(false)}
+      />
+    </>
   );
 };
 
@@ -266,7 +280,12 @@ const CheckboxLabel = styled.span`
   font-size: 0.875rem;
   font-weight: 300;
 `;
-const ForgotPassword = styled.a`
+const ForgotPassword = styled.button`
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
   color: #474e55;
   font-size: 0.875rem;
   font-weight: 300;
