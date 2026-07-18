@@ -1,8 +1,143 @@
-import { Lock, Mail } from "lucide-react";
+import { Lock, Mail, Eye, EyeClosed } from "lucide-react";
 import styled from "styled-components";
 import KakaoSymbol from "../../../assets/symbol/kakao.png";
 import GoogleSymbol from "../../../assets/symbol/google.png";
 import NaverSymbol from "../../../assets/symbol/naver.png";
+import { useState, type FormEvent } from "react";
+import { useLogin } from "../../../hooks/auth/useAuth";
+import { useNavigate } from "react-router-dom";
+import FindPasswordModal from "../../../components/modal/FindPasswordModal";
+
+const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+const LoginForm = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isFindPasswordModalOpen, setIsFindPasswordModalOpen] = useState(false);
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const navigate = useNavigate();
+
+  const [errors, setErrors] = useState({
+    email: "",
+    password: "",
+  });
+
+  const { mutate: loginMutate, isPending } = useLogin();
+
+  const validate = () => {
+    const newErrors = {
+      email: "",
+      password: "",
+    };
+
+    if (!EMAIL_REGEX.test(email))
+      newErrors.email = "유효하지 않는 이메일 형식입니다";
+    if (password.length < 10) newErrors.password = "10자 이상 입력해주세요";
+
+    return newErrors;
+  };
+
+  const handleLogin = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const newErrors = validate();
+    setErrors(newErrors);
+
+    const hasError = Object.values(newErrors).some((error) => error !== "");
+
+    if (hasError) return;
+
+    loginMutate(
+      {
+        email,
+        password,
+      },
+      {
+        onSuccess: () => {
+          navigate("/");
+          alert("로그인이 완료되었습니다.");
+        },
+        onError: () => {
+          alert("로그인에 실패했습니다.");
+        },
+      },
+    );
+  };
+
+  return (
+    <>
+      <LoginFormContainer onSubmit={handleLogin}>
+        <SubmitLabel>
+          이메일 {errors.email && <ErrorText>{errors.email}</ErrorText>}
+        </SubmitLabel>
+        <SubmitBox>
+          <MailIcon />
+          <SubmitInput
+            placeholder="이메일을 입력하세요"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </SubmitBox>
+        <SubmitLabel>
+          비밀번호 {errors.password && <ErrorText>{errors.password}</ErrorText>}
+        </SubmitLabel>
+        <SubmitBox>
+          <LockIcon />
+          <SubmitInput
+            type={showPassword ? "text" : "password"}
+            placeholder="비밀번호를 입력하세요"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <EyeButton
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+          >
+            {showPassword ? <EyeIcon /> : <EyeClosedIcon />}
+          </EyeButton>
+        </SubmitBox>
+        <SubmitButton type="submit" disabled={isPending}>
+          {isPending ? "처리 중..." : "로그인"}
+        </SubmitButton>
+        <AuthOptions>
+          <RememberMe>
+            <Checkbox />
+            <CheckboxLabel>로그인 상태 유지</CheckboxLabel>
+          </RememberMe>
+          <ForgotPassword
+            type="button"
+            onClick={() => setIsFindPasswordModalOpen(true)}
+          >
+            비밀번호 찾기
+          </ForgotPassword>
+        </AuthOptions>
+        <DividerBox>
+          <Divider />
+          <span>또는</span>
+          <Divider />
+        </DividerBox>
+        <SocialButtonBox>
+          {Socials.map((social, index) => (
+            <SocialLoginButton
+              key={index}
+              $bgColor={social.bgColor}
+              $color={social.color}
+            >
+              {social.icon} <span>{social.name}</span>로 로그인
+            </SocialLoginButton>
+          ))}
+        </SocialButtonBox>
+      </LoginFormContainer>
+
+      <FindPasswordModal
+        isOpen={isFindPasswordModalOpen}
+        onClose={() => setIsFindPasswordModalOpen(false)}
+      />
+    </>
+  );
+};
 
 const Socials = [
   {
@@ -25,55 +160,23 @@ const Socials = [
   },
 ];
 
-const LoginForm = () => {
-  return (
-    <LoginFormContainer>
-      <SubmitLabel>이메일</SubmitLabel>
-      <SubmitBox>
-        <MailIcon />
-        <SubmitInput placeholder="이메일을 입력하세요" />
-      </SubmitBox>
-      <SubmitLabel>비밀번호</SubmitLabel>
-      <SubmitBox>
-        <LockIcon />
-        <SubmitInput placeholder="비밀번호를 입력하세요" />
-      </SubmitBox>
-      <SubmitButton>로그인</SubmitButton>
-      <AuthOptions>
-        <RememberMe>
-          <Checkbox />
-          <CheckboxLabel>로그인 상태 유지</CheckboxLabel>
-        </RememberMe>
-        <ForgotPassword>비밀번호 찾기</ForgotPassword>
-      </AuthOptions>
-      <DividerBox>
-        <Divider />
-        <span>또는</span>
-        <Divider />
-      </DividerBox>
-      <SocialButtonBox>
-        {Socials.map((social, index) => (
-          <SocialLoginButton
-            key={index}
-            $bgColor={social.bgColor}
-            $color={social.color}
-          >
-            {social.icon} <span>{social.name}</span>로 로그인
-          </SocialLoginButton>
-        ))}
-      </SocialButtonBox>
-    </LoginFormContainer>
-  );
-};
+const ErrorText = styled.p`
+  margin: 0 0 0 auto;
+
+  color: #ef4444;
+  font-size: 0.75rem;
+  white-space: nowrap;
+`;
 
 const SubmitLabel = styled.label`
+  width: 100%;
+  display: flex;
+  justify-content: start;
+  align-items: center;
+
   margin: 0 0 6px;
   color: #2e3339;
   font-size: 0.878rem;
-
-  span {
-    color: #f77036;
-  }
 `;
 const SubmitButton = styled.button`
   width: 100%;
@@ -177,7 +280,12 @@ const CheckboxLabel = styled.span`
   font-size: 0.875rem;
   font-weight: 300;
 `;
-const ForgotPassword = styled.a`
+const ForgotPassword = styled.button`
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
   color: #474e55;
   font-size: 0.875rem;
   font-weight: 300;
@@ -252,6 +360,27 @@ const SocialLoginButton = styled.button<{ $bgColor: string; $color: string }>`
   &:hover {
     filter: brightness(0.95);
   }
+`;
+const EyeButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+`;
+const EyeIcon = styled(Eye)`
+  width: 16px;
+  height: 16px;
+  stroke: #6c727a;
+  stroke-width: 2;
+`;
+const EyeClosedIcon = styled(EyeClosed)`
+  width: 16px;
+  height: 16px;
+  stroke: #6c727a;
+  stroke-width: 2;
 `;
 
 export default LoginForm;
