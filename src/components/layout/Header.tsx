@@ -67,7 +67,10 @@ const Header = () => {
 
           <Actions>
             <DesktopActions>
-              <UserIcon $isSolid={isSolid} />
+              <UserIcon
+                $isSolid={isSolid}
+                onClick={() => navigate("/mypage")}
+              />
               <LoginBtn $isSolid={isSolid} onClick={() => navigate("/auth")}>
                 로그인
               </LoginBtn>

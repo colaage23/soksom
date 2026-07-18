@@ -206,7 +206,7 @@ const HotPlaceSection = () => {
                         <Leaf size={15} />
                       ) : (
                         <Flame size={15} />
-                      )}{" "}
+                      )}
                       <span style={{ color: "black" }}>{place.tag}</span>
                     </TagPill>
                     <CrowdBadge>{place.occupancy}</CrowdBadge>
@@ -361,6 +361,7 @@ const CardGrid = styled.div`
 const PlaceCard = styled.article<{ $featured?: boolean; $tone: PlaceTone }>`
   display: flex;
   flex-direction: column;
+  height: 470px;
   overflow: hidden;
   border: 1px solid rgba(124, 111, 84, 0.08);
   border-radius: 34px;
@@ -372,20 +373,21 @@ const PlaceCard = styled.article<{ $featured?: boolean; $tone: PlaceTone }>`
   `}
 
   @media (max-width: 768px) {
+    height: 420px;
     border-radius: 28px;
   }
 `;
 
 const PlaceImage = styled.div<{ $image: string; $featured?: boolean }>`
   position: relative;
-  min-height: ${({ $featured }) => ($featured ? "300px" : "250px")};
+  height: 250px;
   padding: 18px;
   background:
     linear-gradient(rgba(25, 21, 17, 0.08), rgba(25, 21, 17, 0.08)),
     url(${({ $image }) => $image}) center center / cover no-repeat;
 
   @media (max-width: 768px) {
-    min-height: ${({ $featured }) => ($featured ? "240px" : "220px")};
+    height: 220px;
     padding: 14px;
   }
 `;
@@ -423,6 +425,7 @@ const CrowdBadge = styled.span`
 
 const PlaceBody = styled.div<{ $featured?: boolean }>`
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 10px;
   padding: 24px 22px 20px;
