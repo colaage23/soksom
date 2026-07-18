@@ -1,62 +1,100 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
-import { mockSpots } from "../mock";
 import SpotCard from "./SpotCard";
 import { useSpotStore } from "../../../stores/useSpotStore";
 import SearchBar from "./SearchBar";
-import { Frown, Heart } from "lucide-react";
+import { Frown, Heart, Loader2 } from "lucide-react";
 import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
 import { useSearchKeywordStore } from "../../../stores/useSearchKeywordStorer";
+import { useGetSpotsByKeyword } from "../../../hooks/spot/useGetSpotsByKeyword";
+import { useGetSpotsByLocation } from "../../../hooks/spot/useGetSpotsByLocation";
+import { useInView } from "react-intersection-observer";
+import SkeletonCard from "./SkeletonCard";
 
-/*
-관광 타입 or 서비스 분류 어떤 거로 필터링 할지?
-+ 여행 코스를 포함 시킬 것인지?
-=> 따로 소개해도 좋을 것 같기도?
-*/
-const categories: string[] = [
-  "전체",
-  "MY",
-  "테스트",
-  "관광지",
-  "문화시설",
-  "행사",
-  "레포츠",
-  "숙박",
-  "쇼핑",
-  "음식점",
-];
+const CATEGORY_TYPE_MAP: Record<string, string | null> = {
+  전체: null,
+  MY: null,
+  관광지: "12",
+  음식점: "39",
+  숙박: "32",
+  쇼핑: "38",
+  문화시설: "14",
+  행사: "15",
+  레포츠: "28",
+};
 
 const ExploreList = () => {
+  const [scrollContainer, setScrollContainer] =
+    useState<HTMLUListElement | null>(null);
+
   const { selectedSpot, setSelectedSpot, setDetailSpot } = useSpotStore();
   const { likedSpot } = useLikedSpotStore();
   const { searchKeyword, setSearchKeyword } = useSearchKeywordStore();
 
+  const { ref, inView } = useInView({ root: scrollContainer });
+
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const {
+    data: keywordData,
+    isLoading: keywordLoading,
+    isError: keywordError,
+    fetchNextPage: fetchNextKeyword,
+    hasNextPage: hasNextKeyword,
+    isFetchingNextPage: isFetchingNextKeyword,
+  } = useGetSpotsByKeyword({ keyword: searchKeyword });
+
+  const {
+    data: locationData,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetSpotsByLocation({
+    mapX: "126.492778",
+    mapY: "33.511111",
+    radius: "20000",
+  });
+
+  useEffect(() => {
+    if (!inView || selectedCategory === "MY") return;
+
+    if (searchKeyword && hasNextKeyword && !isFetchingNextKeyword) {
+      fetchNextKeyword();
+    } else if (!searchKeyword && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [
+    inView,
+    searchKeyword,
+    hasNextKeyword,
+    hasNextPage,
+    isFetchingNextKeyword,
+    isFetchingNextPage,
+    fetchNextKeyword,
+    fetchNextPage,
+    selectedCategory,
+  ]);
+
+  const spotsByKeyword = keywordData?.pages.flatMap((page) => page) ?? [];
+  const spots = locationData?.pages.flatMap((page) => page) ?? [];
+
+  const isCurrentLoading = searchKeyword ? keywordLoading : isLoading;
+  const isCurrentError = searchKeyword ? keywordError : isError;
+
+  const categories = Object.keys(CATEGORY_TYPE_MAP); // 또는 그냥 기존 배열 재사용
   const visibleCategories = isExpanded ? categories : categories.slice(0, 5);
 
-  const filteredSpots = mockSpots.filter((spot) => {
-    // 카테고리
-    const matchesCategory =
-      selectedCategory === "전체"
-        ? true
-        : selectedCategory === "MY"
-          ? likedSpot.some((liked) => liked === spot.id)
-          : spot.category === selectedCategory;
-
-    // 검색
-    const keyword = searchKeyword.trim();
-
-    const matchesSearch =
-      keyword === ""
-        ? true
-        : spot.name.includes(keyword) ||
-          spot.addr1.includes(keyword) ||
-          spot.category.includes(keyword);
-
-    return matchesCategory && matchesSearch;
-  });
+  const displaySpots = searchKeyword ? (spotsByKeyword ?? []) : (spots ?? []);
+  const filteredSpots = (() => {
+    if (selectedCategory === "MY")
+      return displaySpots.filter((spot) => likedSpot.includes(spot.contentid));
+    const typeId = CATEGORY_TYPE_MAP[selectedCategory];
+    if (!typeId) return displaySpots;
+    return displaySpots.filter((spot) => spot?.contenttypeid === typeId);
+  })();
 
   return (
     <ExploreListContainer>
@@ -95,8 +133,12 @@ const ExploreList = () => {
         )}
       </CategorySection>
 
-      <SpotList>
-        {filteredSpots.length === 0 ? (
+      <SpotList ref={setScrollContainer}>
+        {isCurrentLoading
+          ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
+          : null}{" "}
+        {isCurrentError && <p>에러가 발생했습니다.</p>}
+        {!isCurrentLoading && filteredSpots?.length === 0 ? (
           <EmptyState>
             <EmptyChip>
               <EmptyIcon />
@@ -114,21 +156,31 @@ const ExploreList = () => {
             </EmptyDescription>
           </EmptyState>
         ) : (
-          filteredSpots.map((item) => (
-            <SpotCard
-              key={item.id}
-              spot={item}
-              isActive={selectedSpot === item}
-              onClick={() => {
-                setSelectedSpot(item);
-                setDetailSpot(null);
-              }}
-              onArrowClick={() => {
-                setDetailSpot(item);
-                setSelectedSpot(item);
-              }}
-            />
-          ))
+          <>
+            {filteredSpots?.map((item, idx) => (
+              <SpotCard
+                key={idx}
+                spot={item}
+                isActive={selectedSpot === item}
+                onClick={() => {
+                  setSelectedSpot(item);
+                  setDetailSpot(null);
+                }}
+                onArrowClick={() => {
+                  setDetailSpot(item);
+                  setSelectedSpot(item);
+                }}
+              />
+            ))}
+            {(isFetchingNextPage || isFetchingNextKeyword) &&
+              selectedCategory !== "MY" && (
+                <LoadingSpinner>
+                  <Loader2 size={20} />
+                </LoadingSpinner>
+              )}
+
+            <li ref={ref} style={{ height: 1 }} />
+          </>
         )}
       </SpotList>
     </ExploreListContainer>
@@ -149,6 +201,10 @@ const ExploreListContainer = styled.section`
 const SpotList = styled.ul`
   flex: 1;
   min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 
   overflow-y: auto;
 
@@ -217,7 +273,7 @@ const CategorySection = styled.section`
   align-items: center;
   gap: 6px;
 
-  padding-inline: 16px;
+  padding: 0 16px 16px 16px;
 
   flex-wrap: wrap;
 `;
@@ -268,6 +324,24 @@ const LikeCountChip = styled.div`
 
   color: #100c0d;
   font-size: 0.65rem;
+`;
+
+const LoadingSpinner = styled.li`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px 0;
+  color: #0c9799;
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  svg {
+    animation: spin 0.8s linear infinite;
+  }
 `;
 
 export default ExploreList;
