@@ -103,7 +103,10 @@ const ExploreList = () => {
         placeholder={"관광지 검색"}
         value={keywordInput}
         onChange={(e) => setKeywordInput(e.target.value)}
-        onClear={() => setKeywordInput("")}
+        onClear={() => {
+          setKeywordInput("");
+          setSearchKeyword("");
+        }}
         onSearch={() => setSearchKeyword(keywordInput)}
       />
 
