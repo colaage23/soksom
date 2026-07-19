@@ -6,6 +6,7 @@ interface ISearchBarProps {
   value: string;
   onChange: React.ChangeEventHandler<HTMLInputElement>;
   onClear: () => void;
+  onSearch: () => void;
 }
 
 const SearchBar = ({
@@ -13,9 +14,15 @@ const SearchBar = ({
   value,
   onChange,
   onClear,
+  onSearch,
 }: ISearchBarProps) => {
   return (
-    <MapSearchForm onSubmit={(e) => e.preventDefault()}>
+    <MapSearchForm
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSearch();
+      }}
+    >
       <MapSearchBox>
         <SearchIcon />
         <SearchInput
@@ -80,7 +87,7 @@ const SearchInput = styled.input`
   background-color: #faf9f2;
 `;
 
-const ClearButton = styled.button`
+const ClearButton = styled.button.attrs({ type: "button" })`
   height: 20px;
   width: 20px;
 
