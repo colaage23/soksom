@@ -33,6 +33,7 @@ const ExploreList = () => {
 
   const { ref, inView } = useInView({ root: scrollContainer });
 
+  const [keywordInput, setKeywordInput] = useState(searchKeyword);
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -100,9 +101,10 @@ const ExploreList = () => {
     <ExploreListContainer>
       <SearchBar
         placeholder={"관광지 검색"}
-        value={searchKeyword}
-        onChange={(e) => setSearchKeyword(e.target.value)}
-        onClear={() => setSearchKeyword("")}
+        value={keywordInput}
+        onChange={(e) => setKeywordInput(e.target.value)}
+        onClear={() => setKeywordInput("")}
+        onSearch={() => setSearchKeyword(keywordInput)}
       />
 
       <CategorySection>
