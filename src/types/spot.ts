@@ -126,6 +126,6 @@ export interface ISpotDetailResponse {
 }
 
 export interface ISpotDetailRequest {
-  contentId: string;
-  contentTypeId?: string;
+  contentid: string;
+  contenttypeid?: string;
 }
