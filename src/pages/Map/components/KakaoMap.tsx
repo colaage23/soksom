@@ -2,20 +2,37 @@ import styled from "styled-components";
 import { Map, MapMarker, Polyline } from "react-kakao-maps-sdk";
 import { getMarkerSrc, getNumberMarkerSrc } from "../../../utils/marker";
 import { useSpotStore } from "../../../stores/useSpotStore";
-import { useEffect, useRef } from "react";
-import { LocateFixed, Minus, Plus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Minus, Plus, RotateCw } from "lucide-react";
 import { useDirectionStore } from "../../../stores/useDirectionStore";
 import { useWayPointStore } from "../../../stores/useWayPointStore";
 
 interface IKakaoMapProps {
   mode: "explore" | "route";
+  open: boolean;
+  hasDetail: boolean;
 }
 
-const KakaoMap = ({ mode }: IKakaoMapProps) => {
+const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
   const mapRef = useRef<kakao.maps.Map>(null);
-  const { selectedSpot, setDetailSpot } = useSpotStore();
+  const { selectedSpot, setDetailSpot, setSearchCenter } = useSpotStore();
   const { directions } = useDirectionStore();
   const { wayPoint, expandedDay } = useWayPointStore();
+
+  const [showSearchHereButton, setShowSearchHereButton] = useState(false);
+
+  const handleUserMapMove = () => {
+    setShowSearchHereButton(true);
+  };
+
+  const handleSearchHere = () => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const center = map.getCenter();
+    setSearchCenter({ mapX: center.getLng() - 0.006, mapY: center.getLat() });
+    setShowSearchHereButton(false);
+  };
 
   // wayPoint는 일차별 배열이라 지금 펼쳐져 있는 일차의 관광지만 지도에 마커로 찍도록
   const currentDaySpots =
@@ -42,48 +59,6 @@ const KakaoMap = ({ mode }: IKakaoMapProps) => {
     }
   };
 
-  const handleCurrentLocation = () => {
-    // 추후 alert말고 커스텀 모달이나 토스트 메세지 추가하면 예쁠 듯.
-    if (!navigator.geolocation) {
-      alert("현재 위치를 지원하지 않는 브라우저입니다.");
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-
-        const map = mapRef.current;
-
-        if (map) {
-          map.setCenter(new kakao.maps.LatLng(lat, lng));
-          map.setLevel(3);
-        }
-      },
-      (error) => {
-        console.error(error);
-
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            alert("위치 권한이 거부되었습니다.");
-            break;
-          case error.POSITION_UNAVAILABLE:
-            alert("위치 정보를 사용할 수 없습니다.");
-            break;
-          case error.TIMEOUT:
-            alert("위치 요청 시간이 초과되었습니다.");
-            break;
-        }
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0,
-      },
-    );
-  };
-
   const routePath =
     directions?.routes?.[0]?.sections
       ?.flatMap((section) => section.roads)
@@ -97,19 +72,13 @@ const KakaoMap = ({ mode }: IKakaoMapProps) => {
     <MapContainer>
       <Map
         id="kakao-map"
-        center={{
-          // 지도의 중심좌표
-          lat: lat,
-          lng: selectedSpot?.mapy ? lng - 0.006 : lng,
-        }}
-        style={{
-          // 지도의 크기
-          width: "100%",
-          height: "100%",
-        }}
-        level={selectedSpot ? 4 : 9} // 지도의 확대 레벨
+        center={{ lat, lng: selectedSpot?.mapy ? lng - 0.006 : lng }}
+        style={{ width: "100%", height: "100%" }}
+        level={selectedSpot ? 4 : 9}
         zoomable={true}
         ref={mapRef}
+        onDragEnd={handleUserMapMove}
+        onZoomChanged={handleUserMapMove}
       >
         {(!currentDaySpots || currentDaySpots.length === 0) && selectedSpot && (
           <MapMarker
@@ -184,6 +153,16 @@ const KakaoMap = ({ mode }: IKakaoMapProps) => {
           </>
         )}
       </Map>
+      {showSearchHereButton && (
+        <SearchHereButton
+          onClick={handleSearchHere}
+          $open={open}
+          $hasDetail={hasDetail}
+        >
+          <RefreshIcon />현 지도에서 검색
+        </SearchHereButton>
+      )}
+
       <ZoomButtonContainer>
         <ZoomInButton onClick={() => handleLevel("decrease")}>
           <ZoomInIcon />
@@ -193,10 +172,6 @@ const KakaoMap = ({ mode }: IKakaoMapProps) => {
           <ZoomOutIcon />
         </ZoomOutButton>
       </ZoomButtonContainer>
-
-      <CurrentLocateButton onClick={() => handleCurrentLocation()}>
-        <CurrentLocateIcon />
-      </CurrentLocateButton>
     </MapContainer>
   );
 };
@@ -291,45 +266,62 @@ const ZoomOutButton = styled.button`
   }
 `;
 
-const CurrentLocateIcon = styled(LocateFixed)`
-  width: 16px;
-  height: 16px;
-
-  stroke: #1b2024;
-  fill: #fdfcf8;
-
-  stroke-width: 2;
-`;
-
-const CurrentLocateButton = styled.button`
+const SearchHereButton = styled.button<{
+  $open: boolean;
+  $hasDetail: boolean;
+}>`
   position: absolute;
-  top: 112px;
-  right: 16px;
+  top: 24px;
+  left: ${({ $open, $hasDetail }) => {
+    if (!$open) return "50%";
+    return $hasDetail ? "calc(50% + 420px)" : "calc(50% + 210px)";
+  }};
+  transform: translateX(-50%);
 
   display: flex;
-  justify-content: center;
   align-items: center;
+  gap: 6px;
 
-  width: 40px;
-  height: 40px;
-
-  padding: 8px 12px;
+  height: 36px;
+  padding: 0 16px;
 
   border: none;
-  border-top: 1px solid #f1eee6;
-  border-radius: 16px;
+  border-radius: 9999px;
 
-  background-color: #fdfcf8;
+  background-color: #0c9799;
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
 
-  box-shadow: 0 0px 4px rgba(0, 0, 0, 0.05);
-
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   cursor: pointer;
 
   z-index: 10;
 
-  &:hover {
-    background-color: #f7f5ef;
+  transition:
+    background-color 0.15s ease,
+    transform 0.1s ease;
+
+  @media (max-width: 768px) {
+    left: 50%;
   }
+
+  &:hover {
+    background-color: #0a8385;
+  }
+
+  &:active {
+    transform: translateX(-50%) scale(0.97);
+  }
+`;
+
+const RefreshIcon = styled(RotateCw)`
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  stroke: #fff;
+  stroke-width: 2.5;
 `;
 
 export default KakaoMap;

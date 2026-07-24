@@ -7,6 +7,9 @@ interface ISpotStore {
 
   detailSpot: ISearchSpotResponse | null;
   setDetailSpot: (spot: ISearchSpotResponse | null) => void;
+
+  searchCenter: { mapX: number; mapY: number } | null;
+  setSearchCenter: (center: { mapX: number; mapY: number }) => void;
 }
 
 export const useSpotStore = create<ISpotStore>((set) => ({
@@ -15,4 +18,7 @@ export const useSpotStore = create<ISpotStore>((set) => ({
 
   detailSpot: null,
   setDetailSpot: (spot) => set({ detailSpot: spot }),
+
+  searchCenter: null,
+  setSearchCenter: (center) => set({ searchCenter: center }),
 }));
