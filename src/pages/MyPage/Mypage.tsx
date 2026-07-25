@@ -183,7 +183,7 @@ const Mypage = () => {
           <ContentColumn>
             <SectionBlock id="mypage-recent">
               <SectionHeader>
-                <SectionTitle>최근 방문한 장소</SectionTitle>
+                <SectionTitle>최근 찾아본 장소</SectionTitle>
                 <SectionLink
                   type="button"
                   onClick={() => navigate("/mypage/recent-places")}

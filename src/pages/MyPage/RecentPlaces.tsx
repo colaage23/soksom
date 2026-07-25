@@ -29,7 +29,7 @@ const RecentPlaces = () => {
   return (
     <PlaceCollectionPage
       eyebrow="RECENT PLACES"
-      title="최근 방문한 장소"
+      title="최근 찾아본 장소"
       backLabel="마이페이지로 돌아가기"
       stats={stats}
       items={items}
