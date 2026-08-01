@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 import SpotCard from "./SpotCard";
 import { useSpotStore } from "../../../stores/useSpotStore";
@@ -24,17 +25,57 @@ const CATEGORY_TYPE_MAP: Record<string, string | null> = {
 };
 
 const ExploreList = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [scrollContainer, setScrollContainer] =
     useState<HTMLUListElement | null>(null);
 
-  const { selectedSpot, setSelectedSpot, setDetailSpot } = useSpotStore();
+  const { selectedSpot, setSelectedSpot, setDetailSpot, searchCenter } =
+    useSpotStore();
   const { likedSpot } = useLikedSpotStore();
-  const { searchKeyword, setSearchKeyword } = useSearchKeywordStore();
+  const { searchKeyword, setSearchKeyword, addRecentSearch } =
+    useSearchKeywordStore();
+  const keywordFromUrl = searchParams.get("keyword") ?? "";
+  const [inputKeyword, setInputKeyword] = useState(keywordFromUrl);
 
   const { ref, inView } = useInView({ root: scrollContainer });
 
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const syncKeyword = (nextKeyword: string) => {
+    const normalizedKeyword = nextKeyword.trim();
+
+    if (normalizedKeyword !== searchKeyword) {
+      setSearchKeyword(normalizedKeyword);
+    }
+
+    setSearchParams(
+      (prev) => {
+        const nextParams = new URLSearchParams(prev);
+
+        if (normalizedKeyword) {
+          nextParams.set("keyword", normalizedKeyword);
+        } else {
+          nextParams.delete("keyword");
+        }
+
+        return nextParams;
+      },
+      { replace: true },
+    );
+
+    if (normalizedKeyword) {
+      addRecentSearch(normalizedKeyword);
+    }
+  };
+
+  useEffect(() => {
+    setInputKeyword(keywordFromUrl);
+
+    if (searchKeyword === keywordFromUrl) return;
+
+    setSearchKeyword(keywordFromUrl);
+  }, [keywordFromUrl, searchKeyword, setSearchKeyword]);
 
   const {
     data: keywordData,
@@ -53,8 +94,8 @@ const ExploreList = () => {
     hasNextPage,
     isFetchingNextPage,
   } = useGetSpotsByLocation({
-    mapX: "126.492778",
-    mapY: "33.511111",
+    mapX: searchCenter?.mapX.toString() ?? "126.492778",
+    mapY: searchCenter?.mapY.toString() ?? "33.511111",
     radius: "20000",
   });
 
@@ -78,8 +119,10 @@ const ExploreList = () => {
     selectedCategory,
   ]);
 
-  const spotsByKeyword = keywordData?.pages.flatMap((page) => page) ?? [];
-  const spots = locationData?.pages.flatMap((page) => page) ?? [];
+  const spotsByKeyword =
+    keywordData?.pages.flatMap((page) => page).filter(Boolean) ?? [];
+  const spots =
+    locationData?.pages.flatMap((page) => page).filter(Boolean) ?? [];
 
   const isCurrentLoading = searchKeyword ? keywordLoading : isLoading;
   const isCurrentError = searchKeyword ? keywordError : isError;
@@ -100,9 +143,21 @@ const ExploreList = () => {
     <ExploreListContainer>
       <SearchBar
         placeholder={"관광지 검색"}
-        value={searchKeyword}
-        onChange={(e) => setSearchKeyword(e.target.value)}
-        onClear={() => setSearchKeyword("")}
+        value={inputKeyword}
+        onChange={(e) => setInputKeyword(e.target.value)}
+        onClear={() => {
+          setInputKeyword("");
+          setSearchKeyword("");
+          setSearchParams(
+            (prev) => {
+              const nextParams = new URLSearchParams(prev);
+              nextParams.delete("keyword");
+              return nextParams;
+            },
+            { replace: true },
+          );
+        }}
+        onSearch={() => syncKeyword(inputKeyword)}
       />
 
       <CategorySection>
@@ -179,7 +234,7 @@ const ExploreList = () => {
                 </LoadingSpinner>
               )}
 
-            <li ref={ref} style={{ height: 1 }} />
+            {filteredSpots.length > 0 && <li ref={ref} style={{ height: 1 }} />}
           </>
         )}
       </SpotList>

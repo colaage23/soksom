@@ -28,7 +28,7 @@ const Map = () => {
 
   return (
     <MapContainer>
-      <KakaoMap mode={mode} />
+      <KakaoMap mode={mode} open={open} hasDetail={!!detailSpot} />
 
       <ToggleButton
         $visible={!!detailSpot}

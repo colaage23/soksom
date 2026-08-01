@@ -46,13 +46,13 @@ export const getSpotsByLocation = async ({
 };
 
 export const getSpotDetail = async ({
-  contentId,
-  contentTypeId,
+  contentid,
+  contenttypeid,
 }: ISpotDetailRequest): Promise<ISpotDetailResponse> => {
   try {
     const response = await axios.get<{ data: ISpotDetailResponse }>(
       "/api/detail",
-      { params: { contentId, contentTypeId } },
+      { params: { contentid, contenttypeid } },
     );
 
     return response.data.data;

@@ -1,9 +1,39 @@
+import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { MapPin, Search, Sparkles } from "lucide-react";
+import { ChevronsDown, MapPin, Search, Sparkles } from "lucide-react";
 import colors from "../../../constants/colors";
 import { homeSectionInner } from "../styles/homeSectionStyles.ts";
+import { useSearchKeywordStore } from "../../../stores/useSearchKeywordStorer";
 
-const HeroSectionComp = ({ searchTags }: { searchTags: string[] }) => {
+const HeroSectionComp = () => {
+  const navigate = useNavigate();
+  const [keyword, setKeyword] = useState("");
+  const addRecentSearch = useSearchKeywordStore(
+    (state) => state.addRecentSearch,
+  );
+  const recentSearches = useSearchKeywordStore((state) => state.recentSearches);
+
+  const moveToMapSearch = (nextKeyword: string) => {
+    const trimmedKeyword = nextKeyword.trim();
+
+    if (trimmedKeyword) {
+      addRecentSearch(trimmedKeyword);
+    }
+
+    navigate(
+      trimmedKeyword
+        ? `/map?keyword=${encodeURIComponent(trimmedKeyword)}`
+        : "/map",
+    );
+  };
+
+  const handleSearch = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    moveToMapSearch(keyword);
+  };
+
   return (
     <HeroSection>
       <BackgroundImage aria-hidden="true" />
@@ -30,28 +60,35 @@ const HeroSectionComp = ({ searchTags }: { searchTags: string[] }) => {
           관광지 혼잡도를 미리 보고, 숨은 명소까지 이어주는 똑똑한 여행 루트.
         </SubCopy>
 
-        <SearchPanel>
+        <SearchPanel onSubmit={handleSearch}>
           <SearchField>
             <Search size={20} />
             <SearchInput
               type="text"
               placeholder="가고 싶은 제주 관광지를 검색해보세요"
               aria-label="제주 관광지 검색"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
             />
           </SearchField>
-          <SearchButton>탐색하기</SearchButton>
+          <SearchButton type="submit">탐색하기</SearchButton>
         </SearchPanel>
 
         <TagSection>
-          <TagLabel>최근 검색</TagLabel>
+          {recentSearches.length > 0 && <TagLabel>최근 검색</TagLabel>}
           <TagList>
-            {searchTags.map((tag) => (
-              <SearchTag key={tag}>{tag}</SearchTag>
+            {recentSearches.map((tag) => (
+              <SearchTag key={tag} onClick={() => moveToMapSearch(tag)}>
+                {tag}
+              </SearchTag>
             ))}
           </TagList>
         </TagSection>
 
-        <ScrollHint>SCROLL</ScrollHint>
+        <ScrollHint>
+          <span>SCROLL</span>
+          <ScrollHintIcon />
+        </ScrollHint>
       </Content>
     </HeroSection>
   );
@@ -92,7 +129,8 @@ const Content = styled.div`
   flex-direction: column;
   justify-content: center;
   width: 100%;
-  min-height: 100vh;
+  min-height: 100%;
+  height: 100%;
   padding: 0 24px;
   box-sizing: border-box;
   color: #f7f2e8;
@@ -165,7 +203,7 @@ const SubCopy = styled.p`
   }
 `;
 
-const SearchPanel = styled.div`
+const SearchPanel = styled.form`
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -300,21 +338,39 @@ const SearchTag = styled.button`
 `;
 
 const ScrollHint = styled.span`
-  align-self: center;
-  margin-top: 120px;
+  position: absolute;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   width: fit-content;
+  left: 50%;
+  transform: translateX(-50%);
   color: rgba(247, 242, 232, 0.82);
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.24em;
+  bottom: 48px;
 
   @media (max-width: 768px) {
-    margin-top: 48px;
+    bottom: 28px;
   }
 
   @media (max-width: 480px) {
-    margin-top: 28px;
+    bottom: 18px;
+    gap: 6px;
     font-size: 0.74rem;
     letter-spacing: 0.18em;
+  }
+`;
+
+const ScrollHintIcon = styled(ChevronsDown)`
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.9;
+
+  @media (max-width: 480px) {
+    width: 16px;
+    height: 16px;
   }
 `;

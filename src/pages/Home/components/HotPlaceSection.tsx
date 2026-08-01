@@ -155,22 +155,13 @@ const HotPlaceSection = () => {
           <HeadingBlock>
             <Eyebrow>CURATED BY SOKSOM</Eyebrow>
             <Title>
-              조용한 숨은 명소,
-              <br />
-              혹은 그래도 가보고 싶은
+              가보고 싶은
               <br />
               <Accent>핫 플레이스</Accent>.
             </Title>
-            <Description>
-              <p>
-                혼잡도 데이터를 기반으로 분위기는 비슷하지만 덜 알려진 곳을 함께
-                보여드려요.
-              </p>
-              <p>둘 다 둘러보고 마음에 드는 쪽으로 떠나보세요.</p>
-            </Description>
           </HeadingBlock>
 
-          <FilterGroup aria-label="장소 필터">
+          {/* <FilterGroup aria-label="장소 필터">
             {filters.map((filter) => (
               <FilterButton
                 key={filter}
@@ -186,7 +177,7 @@ const HotPlaceSection = () => {
                 {filter}
               </FilterButton>
             ))}
-          </FilterGroup>
+          </FilterGroup> */}
         </HeaderRow>
 
         <CardGrid>
