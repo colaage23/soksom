@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 import SpotCard from "./SpotCard";
 import { useSpotStore } from "../../../stores/useSpotStore";
@@ -24,24 +25,62 @@ const CATEGORY_TYPE_MAP: Record<string, string | null> = {
 };
 
 const ExploreList = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [scrollContainer, setScrollContainer] =
     useState<HTMLUListElement | null>(null);
 
   const { selectedSpot, setSelectedSpot, setDetailSpot, searchCenter } =
     useSpotStore();
   const { likedSpot } = useLikedSpotStore();
-  const { searchKeyword, setSearchKeyword } = useSearchKeywordStore();
+  const { searchKeyword, setSearchKeyword, addRecentSearch } =
+    useSearchKeywordStore();
+  const keywordFromUrl = searchParams.get("keyword") ?? "";
+  const [inputKeyword, setInputKeyword] = useState(keywordFromUrl);
 
   const { ref, inView } = useInView({ root: scrollContainer });
 
-  const [keywordInput, setKeywordInput] = useState(searchKeyword);
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const syncKeyword = (nextKeyword: string) => {
+    const normalizedKeyword = nextKeyword.trim();
+
+    if (normalizedKeyword !== searchKeyword) {
+      setSearchKeyword(normalizedKeyword);
+    }
+
+    setSearchParams(
+      (prev) => {
+        const nextParams = new URLSearchParams(prev);
+
+        if (normalizedKeyword) {
+          nextParams.set("keyword", normalizedKeyword);
+        } else {
+          nextParams.delete("keyword");
+        }
+
+        return nextParams;
+      },
+      { replace: true },
+    );
+
+    if (normalizedKeyword) {
+      addRecentSearch(normalizedKeyword);
+    }
+  };
+
+  useEffect(() => {
+    setInputKeyword(keywordFromUrl);
+
+    if (searchKeyword === keywordFromUrl) return;
+
+    setSearchKeyword(keywordFromUrl);
+  }, [keywordFromUrl, searchKeyword, setSearchKeyword]);
 
   const {
     data: keywordData,
     isLoading: keywordLoading,
-    // isError: keywordError,
+    isError: keywordError,
     fetchNextPage: fetchNextKeyword,
     hasNextPage: hasNextKeyword,
     isFetchingNextPage: isFetchingNextKeyword,
@@ -50,7 +89,7 @@ const ExploreList = () => {
   const {
     data: locationData,
     isLoading,
-    // isError,
+    isError,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -86,7 +125,7 @@ const ExploreList = () => {
     locationData?.pages.flatMap((page) => page).filter(Boolean) ?? [];
 
   const isCurrentLoading = searchKeyword ? keywordLoading : isLoading;
-  // const isCurrentError = searchKeyword ? keywordError : isError;
+  const isCurrentError = searchKeyword ? keywordError : isError;
 
   const categories = Object.keys(CATEGORY_TYPE_MAP); // 또는 그냥 기존 배열 재사용
   const visibleCategories = isExpanded ? categories : categories.slice(0, 5);
@@ -104,13 +143,21 @@ const ExploreList = () => {
     <ExploreListContainer>
       <SearchBar
         placeholder={"관광지 검색"}
-        value={keywordInput}
-        onChange={(e) => setKeywordInput(e.target.value)}
+        value={inputKeyword}
+        onChange={(e) => setInputKeyword(e.target.value)}
         onClear={() => {
-          setKeywordInput("");
+          setInputKeyword("");
           setSearchKeyword("");
+          setSearchParams(
+            (prev) => {
+              const nextParams = new URLSearchParams(prev);
+              nextParams.delete("keyword");
+              return nextParams;
+            },
+            { replace: true },
+          );
         }}
-        onSearch={() => setSearchKeyword(keywordInput)}
+        onSearch={() => syncKeyword(inputKeyword)}
       />
 
       <CategorySection>
@@ -145,7 +192,7 @@ const ExploreList = () => {
         {isCurrentLoading
           ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
           : null}{" "}
-        {/* {isCurrentError && <p>에러가 발생했습니다.</p>} */}
+        {isCurrentError && <p>에러가 발생했습니다.</p>}
         {!isCurrentLoading && filteredSpots?.length === 0 ? (
           <EmptyState>
             <EmptyChip>
