@@ -4,11 +4,13 @@ import {
   Cloud,
   CloudRain,
   Heart,
+  type LucideIcon,
   Sun,
   SunMedium,
 } from "lucide-react";
 import styled from "styled-components";
 import colors from "../../../constants/colors";
+import { useJejuWeather } from "../../../hooks/useJejuWeather";
 import {
   homeSectionDescription,
   homeSectionEyebrow,
@@ -16,15 +18,21 @@ import {
   homeSectionTitle,
 } from "../styles/homeSectionStyles.ts";
 
-const forecastItems = [
-  { day: "오늘", icon: SunMedium, temp: "24°", rain: "10%" },
-  { day: "내일", icon: Cloud, temp: "23°", rain: "20%" },
-  { day: "수", icon: CloudRain, temp: "21°", rain: "80%" },
-  { day: "목", icon: Cloud, temp: "22°", rain: "40%" },
-  { day: "금", icon: Sun, temp: "25°", rain: "5%" },
-  { day: "토", icon: Sun, temp: "26°", rain: "0%" },
-  { day: "일", icon: Cloud, temp: "24°", rain: "15%" },
-] as const;
+const weatherIconByCode = (weatherCode: number, isDay = true): LucideIcon => {
+  if (weatherCode === 0) {
+    return isDay ? SunMedium : Cloud;
+  }
+
+  if ([1, 2, 3, 45, 48].includes(weatherCode)) {
+    return Cloud;
+  }
+
+  if ([51, 53, 55, 61, 63, 65, 80, 81, 82, 95].includes(weatherCode)) {
+    return CloudRain;
+  }
+
+  return Sun;
+};
 
 const places = [
   {
@@ -65,6 +73,13 @@ const toneLabelColor = {
 } as const;
 
 const WeatherSection = () => {
+  const { data: weather, isLoading, isError } = useJejuWeather();
+  const currentWeatherIcon = weatherIconByCode(
+    weather?.weatherCode ?? 0,
+    weather?.isDay ?? true,
+  );
+  const forecastItems = weather?.forecast ?? [];
+
   return (
     <Section>
       <Inner>
@@ -87,39 +102,61 @@ const WeatherSection = () => {
 
         <ContentGrid>
           <WeatherCard>
-            {/* 수정 필요 */}
             <WeatherTop>
               <div>
-                <WeatherMeta>제주시 · 지금</WeatherMeta>
-                <WeatherSummary>맑고 산뜻한 초여름</WeatherSummary>
+                <WeatherMeta>
+                  {weather?.locationLabel ?? "제주시 · 지금"}
+                </WeatherMeta>
+                <WeatherSummary>
+                  {isLoading
+                    ? "제주 날씨를 불러오는 중이에요"
+                    : isError
+                      ? "날씨 정보를 불러오지 못했어요"
+                      : weather?.summary}
+                </WeatherSummary>
               </div>
               <WeatherIconWrap>
-                <SunMedium size={20} />
+                {(() => {
+                  const Icon = currentWeatherIcon;
+                  return <Icon size={20} />;
+                })()}
               </WeatherIconWrap>
             </WeatherTop>
 
             <WeatherInfoRow>
-              <CurrentTemp>24°</CurrentTemp>
+              <CurrentTemp>{weather?.temperature ?? "--°"}</CurrentTemp>
               <WeatherDetailGroup>
-                <WeatherDetails>체감 25° · 습도 62%</WeatherDetails>
-                <WeatherDetails>북서풍 3m/s · 자외선 보통</WeatherDetails>
+                <WeatherDetails>
+                  체감 {weather?.apparentTemperature ?? "--°"} · 습도{" "}
+                  {weather?.humidity ?? "--%"}
+                </WeatherDetails>
+                <WeatherDetails>
+                  바람 {weather?.windSpeed ?? "--m/s"} · 자외선{" "}
+                  {weather?.uvIndex ?? "--"}
+                </WeatherDetails>
               </WeatherDetailGroup>
             </WeatherInfoRow>
 
             <ForecastStrip>
-              {forecastItems.map(({ day, icon: Icon, temp, rain }) => (
-                <ForecastItem key={day}>
-                  <ForecastDay>{day}</ForecastDay>
-                  <Icon size={16} />
-                  <ForecastTemp>{temp}</ForecastTemp>
-                  <ForecastRain>{rain}</ForecastRain>
-                </ForecastItem>
-              ))}
+              {forecastItems.map(
+                ({ day, weatherCode, temperature, rainProbability }) => {
+                  const Icon = weatherIconByCode(weatherCode);
+
+                  return (
+                    <ForecastItem key={day}>
+                      <ForecastDay>{day}</ForecastDay>
+                      <Icon size={16} />
+                      <ForecastTemp>{temperature}</ForecastTemp>
+                      <ForecastRain>{rainProbability}</ForecastRain>
+                    </ForecastItem>
+                  );
+                },
+              )}
             </ForecastStrip>
 
             <WeatherNote>
               <CircleAlert size={14} />
-              기상청 중기예보 기반. 최대 11일 제공
+              Open-Meteo 예보 기준. 최대 7일 제공
             </WeatherNote>
           </WeatherCard>
 
@@ -335,7 +372,7 @@ const ForecastItem = styled.div`
   display: grid;
   justify-items: center;
   gap: 8px;
-  padding: 12px 8px;
+  padding: 12px 6px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.08);
   color: rgba(246, 250, 248, 0.92);
