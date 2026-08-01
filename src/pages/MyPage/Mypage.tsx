@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../constants/colors";
 import { useGetFavoriteSpots } from "../../hooks/favorite/useGetFavoriteSpots";
-import { recentPlaces } from "./data/recentPlacesData";
+import { useGetRecentSearchPlaces } from "../../hooks/searchHistory/useGetRecentSearchPlaces";
 import { formatVisitDateLabel } from "./utils/placeDateLabel";
 
 const SIDEBAR_LIST_TOP = 96;
@@ -97,11 +97,33 @@ const getFavoriteIcon = (category?: string) => {
   return MapPinned;
 };
 
+const getRecentPlaceIcon = (title: string) => {
+  if (title.includes("숲")) {
+    return Trees;
+  }
+
+  if (
+    title.includes("해") ||
+    title.includes("바다") ||
+    title.includes("해변")
+  ) {
+    return Waves;
+  }
+
+  if (title.includes("오름") || title.includes("산")) {
+    return Compass;
+  }
+
+  return MapPinned;
+};
+
 const Mypage = () => {
   const navigate = useNavigate();
   const { data: favoriteSpots = [], isLoading: isFavoriteLoading } =
     useGetFavoriteSpots();
-  const previewRecentPlaces = recentPlaces.slice(0, 2);
+  const { data: recentSearchPlaces = [], isLoading: isRecentLoading } =
+    useGetRecentSearchPlaces();
+  const previewRecentPlaces = recentSearchPlaces.slice(0, 2);
   const previewFavoriteSpots = favoriteSpots.slice(0, 3);
   const [selectedSection, setSelectedSection] =
     useState<(typeof sidebarSections)[number]["id"]>("recent");
@@ -217,7 +239,7 @@ const Mypage = () => {
           <ContentColumn>
             <SectionBlock id="mypage-recent">
               <SectionHeader>
-                <SectionTitle>최근 찾아본 장소</SectionTitle>
+                <SectionTitle>최근 조회한 장소</SectionTitle>
                 <SectionLink
                   type="button"
                   onClick={() => navigate("/mypage/recent-places")}
@@ -228,33 +250,56 @@ const Mypage = () => {
               </SectionHeader>
 
               <RecentGrid>
-                {previewRecentPlaces.map((place) => {
-                  const Icon = place.icon;
+                {isRecentLoading
+                  ? Array.from({ length: 2 }).map((_, index) => (
+                      <MiniCard key={`recent-loading-${index}`}>
+                        <MiniCardVisual>
+                          <MapPinned size={28} />
+                        </MiniCardVisual>
+                        <MiniCardText>
+                          <MiniCardTitle>최근 조회 불러오는 중</MiniCardTitle>
+                          <MiniCardMeta>잠시만 기다려 주세요.</MiniCardMeta>
+                          <StatusPill $variant="calm">로딩 중</StatusPill>
+                        </MiniCardText>
+                      </MiniCard>
+                    ))
+                  : previewRecentPlaces.map((place) => {
+                      const Icon = getRecentPlaceIcon(place.title);
 
-                  return (
-                    <MiniCard key={place.title}>
-                      <MiniCardVisual>
-                        <Icon size={28} />
-                      </MiniCardVisual>
-                      <MiniCardText>
-                        <MiniCardTitle>{place.title}</MiniCardTitle>
-                        <MiniCardMeta>
-                          {formatVisitDateLabel(place.date)}
-                        </MiniCardMeta>
-                        <StatusPill
-                          $variant={place.status === "여유" ? "calm" : "warm"}
-                        >
-                          {place.status}
-                        </StatusPill>
-                      </MiniCardText>
-                    </MiniCard>
-                  );
-                })}
+                      return (
+                        <MiniCard key={place.historyId}>
+                          <MiniCardVisual>
+                            <Icon size={28} />
+                          </MiniCardVisual>
+                          <MiniCardText>
+                            <MiniCardTitle>{place.title}</MiniCardTitle>
+                            <MiniCardMeta>
+                              {place.createdAt
+                                ? formatVisitDateLabel(
+                                    place.createdAt
+                                      .slice(0, 10)
+                                      .replace(/-/g, "."),
+                                  )
+                                : "최근 조회"}
+                            </MiniCardMeta>
+                            <StatusPill $variant="calm">최근 조회</StatusPill>
+                          </MiniCardText>
+                        </MiniCard>
+                      );
+                    })}
 
-                <HighlightCard>
-                  <HighlightNumber>14곳</HighlightNumber>
-                  <HighlightText>이번 달 찾아본 여행지</HighlightText>
-                </HighlightCard>
+                {!isRecentLoading && previewRecentPlaces.length === 0 ? (
+                  <RecentEmptyCard>
+                    아직 조회한 장소가 없습니다.
+                  </RecentEmptyCard>
+                ) : (
+                  <HighlightCard>
+                    <HighlightNumber>
+                      {recentSearchPlaces.length}곳
+                    </HighlightNumber>
+                    <HighlightText>최근 조회한 여행지</HighlightText>
+                  </HighlightCard>
+                )}
               </RecentGrid>
             </SectionBlock>
 
@@ -724,6 +769,18 @@ const HighlightText = styled.p`
   color: rgba(255, 255, 255, 0.84);
   font-size: 0.96rem;
   font-weight: 600;
+`;
+
+const RecentEmptyCard = styled.article`
+  grid-column: 1 / -1;
+  padding: 28px 24px;
+  border-radius: 24px;
+  border: 1px dashed rgba(36, 149, 155, 0.22);
+  background: rgba(255, 255, 255, 0.72);
+  color: #607069;
+  font-size: 0.94rem;
+  font-weight: 600;
+  text-align: center;
 `;
 
 const FavoriteGrid = styled.div`
