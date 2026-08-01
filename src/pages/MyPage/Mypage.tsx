@@ -1,6 +1,7 @@
 import {
   CalendarDays,
   ChevronRight,
+  Compass,
   Heart,
   LogOut,
   MapPinned,
@@ -11,7 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../constants/colors";
-import { favoritePlaces } from "./data/favoritePlacesData";
+import { useGetFavoriteSpots } from "../../hooks/favorite/useGetFavoriteSpots";
 import { recentPlaces } from "./data/recentPlacesData";
 import { formatVisitDateLabel } from "./utils/placeDateLabel";
 
@@ -66,9 +67,42 @@ const pastTrips = [
   },
 ];
 
+const getFavoriteIcon = (category?: string) => {
+  const normalizedCategory = category?.toLowerCase() ?? "";
+
+  if (
+    normalizedCategory.includes("산") ||
+    normalizedCategory.includes("오름") ||
+    normalizedCategory.includes("레포츠")
+  ) {
+    return Compass;
+  }
+
+  if (
+    normalizedCategory.includes("숲") ||
+    normalizedCategory.includes("공원") ||
+    normalizedCategory.includes("자연")
+  ) {
+    return Trees;
+  }
+
+  if (
+    normalizedCategory.includes("해") ||
+    normalizedCategory.includes("바다") ||
+    normalizedCategory.includes("해변")
+  ) {
+    return Waves;
+  }
+
+  return MapPinned;
+};
+
 const Mypage = () => {
   const navigate = useNavigate();
+  const { data: favoriteSpots = [], isLoading: isFavoriteLoading } =
+    useGetFavoriteSpots();
   const previewRecentPlaces = recentPlaces.slice(0, 2);
+  const previewFavoriteSpots = favoriteSpots.slice(0, 3);
   const [selectedSection, setSelectedSection] =
     useState<(typeof sidebarSections)[number]["id"]>("recent");
   const [selectedTripFilter, setSelectedTripFilter] =
@@ -237,30 +271,59 @@ const Mypage = () => {
               </SectionHeader>
 
               <FavoriteGrid>
-                {favoritePlaces.map((place, index) => {
-                  const Icon = place.icon;
+                {isFavoriteLoading ? (
+                  <FavoriteEmptyCard>
+                    아직 저장된 즐겨찾기 장소가 없습니다.
+                  </FavoriteEmptyCard>
+                ) : (
+                  previewFavoriteSpots.map((place, index) => {
+                    const category =
+                      place.lclsSystm3Nm ??
+                      place.lclsSystm2Nm ??
+                      place.lclsSystm1Nm ??
+                      "저장한 장소";
+                    const Icon = getFavoriteIcon(category);
 
-                  return (
-                    <FavoriteCard key={place.title}>
-                      <FavoriteVisual $index={index}>
-                        <LevelBadge
-                          $variant={
-                            place.status === "여유로움" ? "calm" : "warm"
-                          }
-                        >
-                          {place.status}
-                        </LevelBadge>
-                        <Heart size={18} fill="#111" color="#111" />
-                      </FavoriteVisual>
-                      <FavoriteBody>
-                        <Icon size={30} />
-                        <FavoriteTitle>{place.title}</FavoriteTitle>
-                        <FavoriteMeta>{place.region}</FavoriteMeta>
-                        <FavoriteTags>{place.tags.join(" ")}</FavoriteTags>
-                      </FavoriteBody>
-                    </FavoriteCard>
-                  );
-                })}
+                    return (
+                      <FavoriteCard key={place.contentid}>
+                        <FavoriteVisual $index={index}>
+                          <LevelBadge
+                            $variant={
+                              category.includes("자연") ||
+                              category.includes("숲")
+                                ? "calm"
+                                : "warm"
+                            }
+                          >
+                            {category}
+                          </LevelBadge>
+                          <Heart size={18} fill="#111" color="#111" />
+                        </FavoriteVisual>
+                        <FavoriteBody>
+                          <Icon size={30} />
+                          <FavoriteTitle>{place.title}</FavoriteTitle>
+                          <FavoriteMeta>
+                            {[place.addr1, place.addr2]
+                              .filter(Boolean)
+                              .join(" ") || "주소 정보 없음"}
+                          </FavoriteMeta>
+                          <FavoriteTags>
+                            {[place.lclsSystm1Nm, place.lclsSystm2Nm]
+                              .filter(Boolean)
+                              .map((tag) => `#${tag}`)
+                              .join(" ") || "#favorite"}
+                          </FavoriteTags>
+                        </FavoriteBody>
+                      </FavoriteCard>
+                    );
+                  })
+                )}
+
+                {!isFavoriteLoading && previewFavoriteSpots.length === 0 && (
+                  <FavoriteEmptyCard>
+                    아직 저장된 즐겨찾기 장소가 없습니다.
+                  </FavoriteEmptyCard>
+                )}
               </FavoriteGrid>
             </SectionBlock>
 
@@ -671,6 +734,18 @@ const FavoriteGrid = styled.div`
   @media (max-width: 960px) {
     grid-template-columns: 1fr;
   }
+`;
+
+const FavoriteEmptyCard = styled.article`
+  grid-column: 1 / -1;
+  padding: 28px 24px;
+  border-radius: 24px;
+  border: 1px dashed rgba(36, 149, 155, 0.22);
+  background: rgba(255, 255, 255, 0.72);
+  color: #607069;
+  font-size: 0.94rem;
+  font-weight: 600;
+  text-align: center;
 `;
 
 const FavoriteCard = styled.article`

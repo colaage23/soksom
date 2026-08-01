@@ -29,6 +29,8 @@ type PlaceCollectionPageProps = {
   stats: CollectionStat[];
   items: CollectionPageItem[];
   formatDateLabel?: (dateText: string) => string;
+  isLoading?: boolean;
+  emptyMessage?: string;
 };
 
 const PlaceCollectionPage = ({
@@ -38,6 +40,8 @@ const PlaceCollectionPage = ({
   stats,
   items,
   formatDateLabel,
+  isLoading = false,
+  emptyMessage = "표시할 장소가 없습니다.",
 }: PlaceCollectionPageProps) => {
   const navigate = useNavigate();
 
@@ -69,77 +73,108 @@ const PlaceCollectionPage = ({
           </HeroContent>
         </HeroSection>
 
-        <PlacesGrid>
-          {items.map((item, index) => {
-            const Icon = item.icon;
-
-            return (
-              <PlaceCard key={item.title}>
+        {isLoading ? (
+          <PlacesGrid>
+            {Array.from({ length: 4 }).map((_, index) => (
+              <PlaceCard key={`favorite-skeleton-${index}`}>
                 <PlaceVisual $index={index}>
-                  <PlaceBadge $variant={item.badgeVariant}>
-                    {item.badge}
-                  </PlaceBadge>
-                  <Icon size={34} />
+                  <PlaceBadge $variant="calm">불러오는 중</PlaceBadge>
                 </PlaceVisual>
-
                 <PlaceBody>
                   <PlaceHeader>
                     <PlaceHeaderTop>
                       <PlaceTitleGroup>
-                        <PlaceMetaText>
-                          {formatDateLabel
-                            ? formatDateLabel(item.date)
-                            : item.date}
-                        </PlaceMetaText>
-                        <PlaceTitle>{item.title}</PlaceTitle>
-                        <PlaceRegion>{item.region}</PlaceRegion>
+                        <PlaceMetaText>로딩 중</PlaceMetaText>
+                        <PlaceTitle>
+                          즐겨찾기 장소를 불러오고 있습니다.
+                        </PlaceTitle>
+                        <PlaceRegion>잠시만 기다려 주세요.</PlaceRegion>
                       </PlaceTitleGroup>
-                      <FavoriteButton
-                        type="button"
-                        $active={Boolean(item.isFavorite)}
-                        aria-label={
-                          item.isFavorite
-                            ? `${item.title} 즐겨찾기 해제`
-                            : `${item.title} 즐겨찾기 추가`
-                        }
-                      >
-                        <Heart
-                          size={18}
-                          fill={item.isFavorite ? "currentColor" : "none"}
-                        />
-                      </FavoriteButton>
                     </PlaceHeaderTop>
                   </PlaceHeader>
 
-                  <PlaceSummary>{item.summary}</PlaceSummary>
-
-                  <MetaList>
-                    <MetaItem>
-                      <MapPinned size={16} />
-                      <span>{item.region}</span>
-                    </MetaItem>
-                  </MetaList>
-
-                  <FooterRow>
-                    <TagList>
-                      {item.tags.map((tag) => (
-                        <Tag key={tag}>{tag}</Tag>
-                      ))}
-                    </TagList>
-
-                    <DetailButton
-                      type="button"
-                      onClick={() => navigate("/map")}
-                    >
-                      상세 보기
-                      <MoveRight size={16} />
-                    </DetailButton>
-                  </FooterRow>
+                  <PlaceSummary>
+                    저장된 장소 목록을 서버에서 조회하고 있습니다.
+                  </PlaceSummary>
                 </PlaceBody>
               </PlaceCard>
-            );
-          })}
-        </PlacesGrid>
+            ))}
+          </PlacesGrid>
+        ) : items.length === 0 ? (
+          <EmptyStateCard>{emptyMessage}</EmptyStateCard>
+        ) : (
+          <PlacesGrid>
+            {items.map((item, index) => {
+              const Icon = item.icon;
+
+              return (
+                <PlaceCard key={item.title}>
+                  <PlaceVisual $index={index}>
+                    <PlaceBadge $variant={item.badgeVariant}>
+                      {item.badge}
+                    </PlaceBadge>
+                    <Icon size={34} />
+                  </PlaceVisual>
+
+                  <PlaceBody>
+                    <PlaceHeader>
+                      <PlaceHeaderTop>
+                        <PlaceTitleGroup>
+                          <PlaceMetaText>
+                            {formatDateLabel
+                              ? formatDateLabel(item.date)
+                              : item.date}
+                          </PlaceMetaText>
+                          <PlaceTitle>{item.title}</PlaceTitle>
+                          <PlaceRegion>{item.region}</PlaceRegion>
+                        </PlaceTitleGroup>
+                        <FavoriteButton
+                          type="button"
+                          $active={Boolean(item.isFavorite)}
+                          aria-label={
+                            item.isFavorite
+                              ? `${item.title} 즐겨찾기 해제`
+                              : `${item.title} 즐겨찾기 추가`
+                          }
+                        >
+                          <Heart
+                            size={18}
+                            fill={item.isFavorite ? "currentColor" : "none"}
+                          />
+                        </FavoriteButton>
+                      </PlaceHeaderTop>
+                    </PlaceHeader>
+
+                    <PlaceSummary>{item.summary}</PlaceSummary>
+
+                    <MetaList>
+                      <MetaItem>
+                        <MapPinned size={16} />
+                        <span>{item.region}</span>
+                      </MetaItem>
+                    </MetaList>
+
+                    <FooterRow>
+                      <TagList>
+                        {item.tags.map((tag) => (
+                          <Tag key={tag}>{tag}</Tag>
+                        ))}
+                      </TagList>
+
+                      <DetailButton
+                        type="button"
+                        onClick={() => navigate("/map")}
+                      >
+                        상세 보기
+                        <MoveRight size={16} />
+                      </DetailButton>
+                    </FooterRow>
+                  </PlaceBody>
+                </PlaceCard>
+              );
+            })}
+          </PlacesGrid>
+        )}
       </PageInner>
     </PageShell>
   );
@@ -276,6 +311,18 @@ const PlacesGrid = styled.section`
   @media (max-width: 980px) {
     grid-template-columns: 1fr;
   }
+`;
+
+const EmptyStateCard = styled.article`
+  padding: 40px 28px;
+  border: 1px solid rgba(36, 149, 155, 0.08);
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 22px 40px rgba(35, 49, 44, 0.05);
+  color: #52615a;
+  font-size: 0.98rem;
+  font-weight: 600;
+  text-align: center;
 `;
 
 const PlaceCard = styled.article`
