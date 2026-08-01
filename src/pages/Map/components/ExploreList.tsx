@@ -27,19 +27,21 @@ const ExploreList = () => {
   const [scrollContainer, setScrollContainer] =
     useState<HTMLUListElement | null>(null);
 
-  const { selectedSpot, setSelectedSpot, setDetailSpot } = useSpotStore();
+  const { selectedSpot, setSelectedSpot, setDetailSpot, searchCenter } =
+    useSpotStore();
   const { likedSpot } = useLikedSpotStore();
   const { searchKeyword, setSearchKeyword } = useSearchKeywordStore();
 
   const { ref, inView } = useInView({ root: scrollContainer });
 
+  const [keywordInput, setKeywordInput] = useState(searchKeyword);
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false);
 
   const {
     data: keywordData,
     isLoading: keywordLoading,
-    isError: keywordError,
+    // isError: keywordError,
     fetchNextPage: fetchNextKeyword,
     hasNextPage: hasNextKeyword,
     isFetchingNextPage: isFetchingNextKeyword,
@@ -48,13 +50,13 @@ const ExploreList = () => {
   const {
     data: locationData,
     isLoading,
-    isError,
+    // isError,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
   } = useGetSpotsByLocation({
-    mapX: "126.492778",
-    mapY: "33.511111",
+    mapX: searchCenter?.mapX.toString() ?? "126.492778",
+    mapY: searchCenter?.mapY.toString() ?? "33.511111",
     radius: "20000",
   });
 
@@ -78,11 +80,13 @@ const ExploreList = () => {
     selectedCategory,
   ]);
 
-  const spotsByKeyword = keywordData?.pages.flatMap((page) => page) ?? [];
-  const spots = locationData?.pages.flatMap((page) => page) ?? [];
+  const spotsByKeyword =
+    keywordData?.pages.flatMap((page) => page).filter(Boolean) ?? [];
+  const spots =
+    locationData?.pages.flatMap((page) => page).filter(Boolean) ?? [];
 
   const isCurrentLoading = searchKeyword ? keywordLoading : isLoading;
-  const isCurrentError = searchKeyword ? keywordError : isError;
+  // const isCurrentError = searchKeyword ? keywordError : isError;
 
   const categories = Object.keys(CATEGORY_TYPE_MAP); // 또는 그냥 기존 배열 재사용
   const visibleCategories = isExpanded ? categories : categories.slice(0, 5);
@@ -100,9 +104,13 @@ const ExploreList = () => {
     <ExploreListContainer>
       <SearchBar
         placeholder={"관광지 검색"}
-        value={searchKeyword}
-        onChange={(e) => setSearchKeyword(e.target.value)}
-        onClear={() => setSearchKeyword("")}
+        value={keywordInput}
+        onChange={(e) => setKeywordInput(e.target.value)}
+        onClear={() => {
+          setKeywordInput("");
+          setSearchKeyword("");
+        }}
+        onSearch={() => setSearchKeyword(keywordInput)}
       />
 
       <CategorySection>
@@ -137,7 +145,7 @@ const ExploreList = () => {
         {isCurrentLoading
           ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
           : null}{" "}
-        {isCurrentError && <p>에러가 발생했습니다.</p>}
+        {/* {isCurrentError && <p>에러가 발생했습니다.</p>} */}
         {!isCurrentLoading && filteredSpots?.length === 0 ? (
           <EmptyState>
             <EmptyChip>
@@ -179,7 +187,7 @@ const ExploreList = () => {
                 </LoadingSpinner>
               )}
 
-            <li ref={ref} style={{ height: 1 }} />
+            {filteredSpots.length > 0 && <li ref={ref} style={{ height: 1 }} />}
           </>
         )}
       </SpotList>

@@ -43,28 +43,28 @@ const SpotDetail = () => {
   const { toggleWayPoint, isSelected } = useWayPointStore();
 
   const { data: spotDetail } = useGetSpotDetail({
-    contentId: selectedSpot?.contentid ?? "",
-    contentTypeId: selectedSpot?.contenttypeid,
+    contentid: selectedSpot?.contentid ?? "",
+    contenttypeid: selectedSpot?.contenttypeid,
   });
 
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (!spotDetail) return null;
 
-  // const status = congestionStyle[spotDetail.congestion];
-  const isLongText = spotDetail?.common.overview?.length > 80;
+  // const status = congestionStyle[spotDetail?.congestion];
+  const isLongText = spotDetail?.common?.overview?.length > 80;
 
   // 콘텐츠 타입(관광지/쇼핑/음식점 등)에 따라 intro 필드명이 다르게 내려와서 통일
-  const useTimeInfo = spotDetail?.intro.usetime || spotDetail?.intro.opentime;
+  const useTimeInfo = spotDetail?.intro?.usetime || spotDetail?.intro?.opentime;
   const parkingInfo =
-    spotDetail?.intro.parking || spotDetail?.intro.parkingshopping;
+    spotDetail?.intro?.parking || spotDetail?.intro?.parkingshopping;
   const restDateInfo =
-    spotDetail?.intro.restdate || spotDetail?.intro.restdateshopping;
+    spotDetail?.intro?.restdate || spotDetail?.intro?.restdateshopping;
   const infoCenterInfo =
-    spotDetail?.intro.infocenter || spotDetail?.intro.infocentershopping;
-  const saleItemInfo = spotDetail?.intro.saleitem;
-  const restroomInfo = spotDetail?.intro.restroom;
-  const homepageInfo = spotDetail?.common.homepage;
+    spotDetail?.intro?.infocenter || spotDetail?.intro?.infocentershopping;
+  const saleItemInfo = spotDetail?.intro?.saleitem;
+  const restroomInfo = spotDetail?.intro?.restroom;
+  const homepageInfo = spotDetail?.common?.homepage;
   // homepage는 API마다 형태가 달라서 두 케이스 모두 처리:
   // 1) <a href="...">...</a> 형태의 HTML 문자열
   // 2) "http://..." 같은 순수 URL 문자열
@@ -92,7 +92,7 @@ const SpotDetail = () => {
   return (
     <SpotDetailContainer>
       <SpotHeaderWrapper>
-        <SpotImage draggable={false} src={spotDetail?.common.firstimage} />
+        <SpotImage draggable={false} src={spotDetail?.common?.firstimage} />
 
         <SpotActions>
           <IconButton onClick={() => setDetailSpot(null)}>
@@ -101,14 +101,14 @@ const SpotDetail = () => {
 
           <RightGroup>
             <IconButton
-              $active={likedSpot.includes(spotDetail.common.contentid)}
+              $active={likedSpot.includes(spotDetail?.common?.contentid)}
               onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                 e.stopPropagation();
-                toggleLikedSpot(spotDetail.common.contentid);
+                toggleLikedSpot(spotDetail?.common?.contentid);
               }}
             >
               <LikeIcon
-                $active={likedSpot.includes(spotDetail.common.contentid)}
+                $active={likedSpot.includes(spotDetail?.common?.contentid)}
               />
             </IconButton>
             {/* 공유한다고 하면 어떤 형태? */}
@@ -119,8 +119,8 @@ const SpotDetail = () => {
         </SpotActions>
 
         <SpotHeader>
-          <SpotName>{spotDetail?.common.title}</SpotName>
-          <SpotAddress>{spotDetail?.common.addr1}</SpotAddress>
+          <SpotName>{spotDetail?.common?.title}</SpotName>
+          <SpotAddress>{spotDetail?.common?.addr1}</SpotAddress>
         </SpotHeader>
       </SpotHeaderWrapper>
 
@@ -131,7 +131,7 @@ const SpotDetail = () => {
             <CongestionBadge
               style={{
                 backgroundColor:
-                  spotDetail.congestion === "혼잡"
+                  spotDetail?.congestion === "혼잡"
                     ? status.bgColor
                     : `${status.bgColor}65`,
                 color: status.color,
@@ -160,7 +160,7 @@ const SpotDetail = () => {
         <OverviewBox>
           <OverviewTitle>상세 정보</OverviewTitle>
           <OverviewDescription $expanded={isExpanded}>
-            {spotDetail?.common.overview}
+            {spotDetail?.common?.overview}
           </OverviewDescription>
           {isLongText && (
             <MoreButton onClick={() => setIsExpanded((prev) => !prev)}>
@@ -252,7 +252,7 @@ const SpotDetail = () => {
             </InfoBox>
           )}
 
-          {spotDetail?.intro.chkpet && (
+          {spotDetail?.intro?.chkpet && (
             <InfoBox
               style={{ gridColumn: "1 / -1", backgroundColor: "#e5faf880" }}
             >
@@ -260,15 +260,15 @@ const SpotDetail = () => {
                 <SparklesIcon />
               </InfoIconBadge>
               <InfoTitle>애완동물 동반</InfoTitle>
-              <InfoText>{spotDetail?.intro.chkpet}</InfoText>
+              <InfoText>{spotDetail?.intro?.chkpet}</InfoText>
             </InfoBox>
           )}
         </InfoContainer>
 
-        {spotDetail.info?.length > 0 && isRoomInfo && (
+        {spotDetail?.info?.length > 0 && isRoomInfo && (
           <RoomListBox>
             <OverviewTitle>객실 정보</OverviewTitle>
-            {spotDetail.info.map((room, idx) => (
+            {spotDetail?.info.map((room, idx) => (
               <RoomCard key={`${room.contentid}-${idx}`}>
                 {room.roomimg1 && (
                   <RoomImage
@@ -338,12 +338,12 @@ const SpotDetail = () => {
           </RoomListBox>
         )}
 
-        {spotDetail.info?.length > 0 && !isRoomInfo && (
+        {spotDetail?.info?.length > 0 && !isRoomInfo && (
           <InfoListBox>
             <OverviewTitle style={{ gridColumn: "1 / -1" }}>
               상세 안내
             </OverviewTitle>
-            {spotDetail.info.map((item) => (
+            {spotDetail?.info.map((item) => (
               <InfoListItem key={item.serialnum}>
                 <InfoListLabel>{item.infoname}</InfoListLabel>
                 <InfoListText
@@ -357,7 +357,7 @@ const SpotDetail = () => {
         {/* 대체 관광지 어떻게 불러오지? 우선 api는 없음 */}
         <RecommendationBox>
           {/* <RecommendationTitle>{status.recommendation}</RecommendationTitle>
-          {spotDetail.recommendations.map((item) => (
+          {spotDetail?.recommendations.map((item) => (
             <RecommendationCard key={item.contentid}>
               <RecommendationImage src={item.firstimage} alt={item.name} />
 
