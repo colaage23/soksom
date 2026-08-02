@@ -20,7 +20,7 @@ export const homeSectionTitle = css`
   color: #18130d;
   font-family: Gowun Batang;
   font-size: clamp(2rem, 5vw, 3.8rem);
-  line-height: 1.02;
+  line-height: 1.12;
 `;
 
 export const homeSectionDescription = css`

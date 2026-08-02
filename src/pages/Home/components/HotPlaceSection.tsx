@@ -155,9 +155,9 @@ const HotPlaceSection = () => {
           <HeadingBlock>
             <Eyebrow>CURATED BY SOKSOM</Eyebrow>
             <Title>
-              가보고 싶은
+              머물고 싶은 풍경,
               <br />
-              <Accent>핫 플레이스</Accent>.
+              <Accent>다시 찾고 싶은 여행지</Accent>.
             </Title>
           </HeadingBlock>
 

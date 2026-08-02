@@ -250,45 +250,40 @@ const Mypage = () => {
               </SectionHeader>
 
               <RecentGrid>
-                {isRecentLoading
-                  ? Array.from({ length: 2 }).map((_, index) => (
-                      <MiniCard key={`recent-loading-${index}`}>
+                {isRecentLoading ? (
+                  <RecentEmptyCard>
+                    아직 조회한 장소가 없습니다.
+                  </RecentEmptyCard>
+                ) : (
+                  previewRecentPlaces.map((place) => {
+                    const Icon = getRecentPlaceIcon(place.title);
+
+                    return (
+                      <MiniCard key={place.historyId}>
                         <MiniCardVisual>
-                          <MapPinned size={28} />
+                          <Icon size={28} />
                         </MiniCardVisual>
                         <MiniCardText>
-                          <MiniCardTitle>최근 조회 불러오는 중</MiniCardTitle>
-                          <MiniCardMeta>잠시만 기다려 주세요.</MiniCardMeta>
-                          <StatusPill $variant="calm">로딩 중</StatusPill>
+                          <MiniCardTitle>{place.title}</MiniCardTitle>
+                          <MiniCardMeta>
+                            {place.createdAt
+                              ? formatVisitDateLabel(
+                                  place.createdAt
+                                    .slice(0, 10)
+                                    .replace(/-/g, "."),
+                                )
+                              : "최근 조회"}
+                          </MiniCardMeta>
+                          <StatusPill $variant="calm">최근 조회</StatusPill>
                         </MiniCardText>
                       </MiniCard>
-                    ))
-                  : previewRecentPlaces.map((place) => {
-                      const Icon = getRecentPlaceIcon(place.title);
+                    );
+                  })
+                )}
 
-                      return (
-                        <MiniCard key={place.historyId}>
-                          <MiniCardVisual>
-                            <Icon size={28} />
-                          </MiniCardVisual>
-                          <MiniCardText>
-                            <MiniCardTitle>{place.title}</MiniCardTitle>
-                            <MiniCardMeta>
-                              {place.createdAt
-                                ? formatVisitDateLabel(
-                                    place.createdAt
-                                      .slice(0, 10)
-                                      .replace(/-/g, "."),
-                                  )
-                                : "최근 조회"}
-                            </MiniCardMeta>
-                            <StatusPill $variant="calm">최근 조회</StatusPill>
-                          </MiniCardText>
-                        </MiniCard>
-                      );
-                    })}
-
-                {!isRecentLoading && previewRecentPlaces.length === 0 ? (
+                {isRecentLoading ? (
+                  <></>
+                ) : !isRecentLoading && previewRecentPlaces.length === 0 ? (
                   <RecentEmptyCard>
                     아직 조회한 장소가 없습니다.
                   </RecentEmptyCard>
