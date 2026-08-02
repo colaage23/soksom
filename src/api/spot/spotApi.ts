@@ -6,6 +6,7 @@ import type {
   ISpotDetailRequest,
   ISpotDetailResponse,
 } from "../../types/spot";
+import { axiosInstance } from "../axiosInstance";
 
 export const getSpotsByKeyword = async ({
   pageNo,
@@ -50,8 +51,8 @@ export const getSpotDetail = async ({
   contenttypeid,
 }: ISpotDetailRequest): Promise<ISpotDetailResponse> => {
   try {
-    const response = await axios.get<{ data: ISpotDetailResponse }>(
-      "/api/detail",
+    const response = await axiosInstance.get<{ data: ISpotDetailResponse }>(
+      "/detail",
       { params: { contentid, contenttypeid } },
     );
 
