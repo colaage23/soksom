@@ -7,6 +7,7 @@ import { useState, type FormEvent } from "react";
 import { useLogin } from "../../../hooks/auth/useAuth";
 import { useNavigate } from "react-router-dom";
 import FindPasswordModal from "../../../components/modal/FindPasswordModal";
+import { getSocialAuthUrl } from "../../../utils/socialAuth";
 
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
@@ -122,8 +123,12 @@ const LoginForm = () => {
           {Socials.map((social, index) => (
             <SocialLoginButton
               key={index}
+              type="button"
               $bgColor={social.bgColor}
               $color={social.color}
+              onClick={() => {
+                window.location.href = getSocialAuthUrl(social.provider);
+              }}
             >
               {social.icon} <span>{social.name}</span>로 로그인
             </SocialLoginButton>
@@ -139,20 +144,25 @@ const LoginForm = () => {
   );
 };
 
+type Provider = "kakao" | "google" | "naver";
+
 const Socials = [
   {
+    provider: "kakao" as Provider,
     name: "카카오톡",
     bgColor: "#FEE500",
     color: "#000000",
     icon: <img width={16} src={KakaoSymbol} alt="카카오 로그인 심볼" />,
   },
   {
+    provider: "google" as Provider,
     name: "Google",
     bgColor: "#F2F2F2",
     color: "#181a1e",
     icon: <img width={16} src={GoogleSymbol} alt="구글 로그인 심볼" />,
   },
   {
+    provider: "naver" as Provider,
     name: "네이버",
     bgColor: "#03A94D",
     color: "#fff",
