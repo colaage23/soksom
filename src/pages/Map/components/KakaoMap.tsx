@@ -1,5 +1,10 @@
 import styled from "styled-components";
-import { Map, MapMarker, Polyline } from "react-kakao-maps-sdk";
+import {
+  CustomOverlayMap,
+  Map,
+  MapMarker,
+  Polyline,
+} from "react-kakao-maps-sdk";
 import { getMarkerSrc, getNumberMarkerSrc } from "../../../utils/marker";
 import { useSpotStore } from "../../../stores/useSpotStore";
 import { useEffect, useRef, useState } from "react";
@@ -15,11 +20,36 @@ interface IKakaoMapProps {
 
 const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
   const mapRef = useRef<kakao.maps.Map>(null);
-  const { selectedSpot, setDetailSpot, setSearchCenter } = useSpotStore();
+  const {
+    selectedSpot,
+    setSelectedSpot,
+    setDetailSpot,
+    setSearchCenter,
+    visibleSpots,
+  } = useSpotStore();
   const { directions } = useDirectionStore();
   const { wayPoint, expandedDay } = useWayPointStore();
 
   const [showSearchHereButton, setShowSearchHereButton] = useState(false);
+
+  const [level, setLevel] = useState(9);
+
+  const [hoveredSpot, setHoveredSpot] = useState<string | null>(null);
+
+  const getMarkerSize = (mapLevel: number) => {
+    const minLevel = 1;
+    const maxLevel = 9;
+    const minSize = 30;
+    const maxSize = 60;
+
+    const clampedLevel = Math.min(Math.max(mapLevel, minLevel), maxLevel);
+    const ratio = (maxLevel - clampedLevel) / (maxLevel - minLevel);
+    const size = minSize + ratio * (maxSize - minSize);
+
+    return Math.round(size);
+  };
+
+  const markerSize = getMarkerSize(level);
 
   const handleUserMapMove = () => {
     setShowSearchHereButton(true);
@@ -45,18 +75,28 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
     const map = mapRef.current;
     if (!map) return;
 
-    map.setLevel(selectedSpot ? 4 : 9);
+    const nextLevel = selectedSpot ? 4 : 9;
+    map.setLevel(nextLevel);
+    setLevel(nextLevel);
   }, [selectedSpot]);
 
   const handleLevel = (type: "increase" | "decrease") => {
     const map = mapRef.current;
     if (!map) return;
 
-    if (type === "increase") {
-      map.setLevel(map.getLevel() + 1);
-    } else {
-      map.setLevel(map.getLevel() - 1);
-    }
+    const nextLevel =
+      type === "increase" ? map.getLevel() + 1 : map.getLevel() - 1;
+
+    map.setLevel(nextLevel);
+    setLevel(nextLevel);
+  };
+
+  const handleZoomChanged = () => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    setLevel(map.getLevel());
+    handleUserMapMove();
   };
 
   const routePath =
@@ -78,40 +118,72 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
         zoomable={true}
         ref={mapRef}
         onDragEnd={handleUserMapMove}
-        onZoomChanged={handleUserMapMove}
+        onZoomChanged={handleZoomChanged}
       >
-        {(!currentDaySpots || currentDaySpots.length === 0) && selectedSpot && (
-          <MapMarker
-            position={{
-              lat: lat,
-              lng: lng,
-            }}
-            image={{
-              src: getMarkerSrc("#000000"),
-              size: { width: 40, height: 40 },
-              options: { offset: { x: 40, y: 40 } },
-            }}
-            clickable={true}
-            onClick={() => setDetailSpot(selectedSpot)}
-          />
-        )}
+        {mode === "explore" &&
+          visibleSpots.map((spot) => (
+            <MapMarker
+              key={spot.contentid}
+              position={{
+                lat: Number(spot.mapy),
+                lng: Number(spot.mapx),
+              }}
+              image={{
+                src: getMarkerSrc("#000000"),
+                size: { width: markerSize, height: markerSize },
+                options: {
+                  offset: { x: markerSize / 2, y: markerSize / 1.5 },
+                },
+              }}
+              clickable={true}
+              onClick={() => {
+                setSelectedSpot(spot);
+                setDetailSpot(spot);
+              }}
+              onMouseOver={() => setHoveredSpot(spot.contentid)}
+              onMouseOut={() => setHoveredSpot(null)}
+            />
+          ))}
 
-        {currentDaySpots.map((point, idx) => (
-          <MapMarker
-            key={point.contentid}
-            position={{
-              lat: Number(point.mapy),
-              lng: Number(point.mapx),
-            }}
-            image={{
-              src: getNumberMarkerSrc(idx + 1),
-              size: { width: 40, height: 40 },
-              options: { offset: { x: 40, y: 40 } },
-            }}
-            clickable={true}
-            onClick={() => setDetailSpot(point)}
-          />
-        ))}
+        {mode === "route" &&
+          currentDaySpots.map((point, idx) => (
+            <MapMarker
+              key={point.contentid}
+              position={{
+                lat: Number(point.mapy),
+                lng: Number(point.mapx),
+              }}
+              image={{
+                src: getNumberMarkerSrc(idx + 1),
+                size: { width: 40, height: 40 },
+                options: { offset: { x: 40, y: 40 } },
+              }}
+              clickable={true}
+              onClick={() => {
+                setSelectedSpot(point);
+                setDetailSpot(point);
+              }}
+            />
+          ))}
+
+        {hoveredSpot &&
+          (() => {
+            const spots = mode === "explore" ? visibleSpots : currentDaySpots;
+            const spot = spots.find((s) => s.contentid === hoveredSpot);
+            if (!spot) return null;
+
+            return (
+              <CustomOverlayMap
+                position={{
+                  lat: Number(spot.mapy),
+                  lng: Number(spot.mapx),
+                }}
+                yAnchor={-0.5}
+              >
+                <MarkerLabel>{spot.title}</MarkerLabel>
+              </CustomOverlayMap>
+            );
+          })()}
 
         {mode === "route" && routePath.length > 0 && (
           <>
@@ -175,6 +247,22 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
     </MapContainer>
   );
 };
+
+const MarkerLabel = styled.div`
+  padding: 4px 10px;
+
+  border-radius: 8px;
+  background-color: #1b2024;
+
+  color: #fdfcf8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+
+  pointer-events: none;
+`;
 
 const MapContainer = styled.div`
   position: absolute;

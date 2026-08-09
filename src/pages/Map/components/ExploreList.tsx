@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 import SpotCard from "./SpotCard";
@@ -29,8 +29,13 @@ const ExploreList = () => {
   const [scrollContainer, setScrollContainer] =
     useState<HTMLUListElement | null>(null);
 
-  const { selectedSpot, setSelectedSpot, setDetailSpot, searchCenter } =
-    useSpotStore();
+  const {
+    selectedSpot,
+    setSelectedSpot,
+    setDetailSpot,
+    searchCenter,
+    setVisibleSpots,
+  } = useSpotStore();
   const { likedSpot } = useLikedSpotStore();
   const { searchKeyword, setSearchKeyword, addRecentSearch } =
     useSearchKeywordStore();
@@ -70,7 +75,6 @@ const ExploreList = () => {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setInputKeyword(keywordFromUrl);
 
     if (searchKeyword === keywordFromUrl) return;
@@ -120,10 +124,15 @@ const ExploreList = () => {
     selectedCategory,
   ]);
 
-  const spotsByKeyword =
-    keywordData?.pages.flatMap((page) => page).filter(Boolean) ?? [];
-  const spots =
-    locationData?.pages.flatMap((page) => page).filter(Boolean) ?? [];
+  const spotsByKeyword = useMemo(
+    () => keywordData?.pages.flatMap((page) => page).filter(Boolean) ?? [],
+    [keywordData],
+  );
+
+  const spots = useMemo(
+    () => locationData?.pages.flatMap((page) => page).filter(Boolean) ?? [],
+    [locationData],
+  );
 
   const isCurrentLoading = searchKeyword ? keywordLoading : isLoading;
   const isCurrentError = searchKeyword ? keywordError : isError;
@@ -131,14 +140,21 @@ const ExploreList = () => {
   const categories = Object.keys(CATEGORY_TYPE_MAP); // 또는 그냥 기존 배열 재사용
   const visibleCategories = isExpanded ? categories : categories.slice(0, 5);
 
-  const displaySpots = searchKeyword ? (spotsByKeyword ?? []) : (spots ?? []);
-  const filteredSpots = (() => {
+  const displaySpots = useMemo(
+    () => (searchKeyword ? (spotsByKeyword ?? []) : (spots ?? [])),
+    [searchKeyword, spotsByKeyword, spots],
+  );
+  const filteredSpots = useMemo(() => {
     if (selectedCategory === "MY")
       return displaySpots.filter((spot) => likedSpot.includes(spot.contentid));
     const typeId = CATEGORY_TYPE_MAP[selectedCategory];
     if (!typeId) return displaySpots;
     return displaySpots.filter((spot) => spot?.contenttypeid === typeId);
-  })();
+  }, [displaySpots, selectedCategory, likedSpot]);
+
+  useEffect(() => {
+    setVisibleSpots(filteredSpots);
+  }, [filteredSpots, setVisibleSpots]);
 
   return (
     <ExploreListContainer>
