@@ -70,6 +70,7 @@ const ExploreList = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setInputKeyword(keywordFromUrl);
 
     if (searchKeyword === keywordFromUrl) return;

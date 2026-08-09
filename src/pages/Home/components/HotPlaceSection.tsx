@@ -3,12 +3,12 @@ import { useMemo, useState } from "react";
 import styled, { css } from "styled-components";
 import colors from "../../../constants/colors";
 import {
-  homeSectionDescription,
   homeSectionEyebrow,
   homeSectionInner,
   homeSectionTitle,
 } from "../styles/homeSectionStyles.ts";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const filters = ["숨은 명소", "핫플레이스"] as const;
 
 type FilterLabel = (typeof filters)[number];
@@ -143,8 +143,7 @@ const toneStyles = {
 } as const;
 
 const HotPlaceSection = () => {
-  const [selectedFilter, setSelectedFilter] =
-    useState<FilterLabel>("숨은 명소");
+  const [selectedFilter] = useState<FilterLabel>("숨은 명소");
 
   const places = useMemo(() => placeSets[selectedFilter], [selectedFilter]);
 
@@ -273,70 +272,70 @@ const Accent = styled.span`
   color: #ff7d43;
 `;
 
-const Description = styled.div`
-  ${homeSectionDescription};
-  max-width: 760px;
+// const Description = styled.div`
+//   ${homeSectionDescription};
+//   max-width: 760px;
 
-  p {
-    margin: 0;
-  }
+//   p {
+//     margin: 0;
+//   }
 
-  p + p {
-    margin-top: 4px;
-  }
-`;
+//   p + p {
+//     margin-top: 4px;
+//   }
+// `;
 
-const FilterGroup = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 58px;
-  padding: 4px;
-  border: 1px solid rgba(124, 111, 84, 0.08);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 18px 34px rgba(97, 81, 46, 0.08);
+// const FilterGroup = styled.div`
+//   display: inline-flex;
+//   align-items: center;
+//   gap: 10px;
+//   margin-top: 58px;
+//   padding: 4px;
+//   border: 1px solid rgba(124, 111, 84, 0.08);
+//   border-radius: 999px;
+//   background: rgba(255, 255, 255, 0.72);
+//   box-shadow: 0 18px 34px rgba(97, 81, 46, 0.08);
 
-  @media (max-width: 980px) {
-    margin-top: 0;
-  }
+//   @media (max-width: 980px) {
+//     margin-top: 0;
+//   }
 
-  @media (max-width: 480px) {
-    width: 100%;
-    justify-content: space-between;
-  }
-`;
+//   @media (max-width: 480px) {
+//     width: 100%;
+//     justify-content: space-between;
+//   }
+// `;
 
-const FilterButton = styled.button<{ $active: boolean }>`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-width: 120px;
-  padding: 10px 16px;
-  border: 0;
-  border-radius: 999px;
-  background: ${({ $active }) => ($active ? colors.main : "transparent")};
-  color: ${({ $active }) => ($active ? "#f8f6f0" : "#40382d")};
-  font-size: 0.92rem;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
+// const FilterButton = styled.button<{ $active: boolean }>`
+//   display: inline-flex;
+//   align-items: center;
+//   justify-content: center;
+//   gap: 8px;
+//   min-width: 120px;
+//   padding: 10px 16px;
+//   border: 0;
+//   border-radius: 999px;
+//   background: ${({ $active }) => ($active ? colors.main : "transparent")};
+//   color: ${({ $active }) => ($active ? "#f8f6f0" : "#40382d")};
+//   font-size: 0.92rem;
+//   font-weight: 600;
+//   white-space: nowrap;
+//   cursor: pointer;
+//   transition:
+//     background-color 0.2s ease,
+//     color 0.2s ease,
+//     transform 0.2s ease;
 
-  &:hover {
-    transform: translateY(-1px);
-  }
+//   &:hover {
+//     transform: translateY(-1px);
+//   }
 
-  @media (max-width: 480px) {
-    min-width: auto;
-    flex: 1;
-    padding: 11px 12px;
-  }
-`;
+//   @media (max-width: 480px) {
+//     min-width: auto;
+//     flex: 1;
+//     padding: 11px 12px;
+//   }
+// `;
 
 const CardGrid = styled.div`
   display: grid;

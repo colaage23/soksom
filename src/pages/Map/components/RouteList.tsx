@@ -64,7 +64,7 @@ const RouteList = () => {
     if (data) {
       setDirections(data);
     }
-  }, [data]);
+  }, [data, setDirections]);
 
   const route = data?.routes?.[0] as KakaoDirectionRoute | undefined;
 
