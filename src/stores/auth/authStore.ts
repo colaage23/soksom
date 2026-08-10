@@ -7,7 +7,9 @@ interface IAuthState {
   setMode: (mode: AuthMode) => void;
 
   accessToken: string | null;
+  isInitialized: boolean;
   setAccessToken: (token: string) => void;
+  setInitialized: (value: boolean) => void;
   clearAuth: () => void;
 }
 
@@ -16,9 +18,11 @@ export const useAuthStore = create<IAuthState>((set) => ({
   setMode: (mode) => set({ mode }),
 
   accessToken: null,
+  isInitialized: false,
   setAccessToken: (token) => set({ accessToken: token }),
+  setInitialized: (value) => set({ isInitialized: value }),
   clearAuth: () => {
-    localStorage.removeItem("refeshToken");
+    localStorage.removeItem("soksomRefreshToken");
     set({ accessToken: null });
   },
 }));

@@ -15,3 +15,12 @@ export const login = async (body: ILoginRequest): Promise<ILoginResponse> => {
   );
   return data;
 };
+
+export const refresh = async (
+  refreshToken: string,
+): Promise<ILoginResponse> => {
+  const { data } = await axiosInstance.post<ILoginResponse>("/auth/refresh", {
+    refreshToken,
+  });
+  return data;
+};
