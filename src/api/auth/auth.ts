@@ -2,6 +2,8 @@ import type {
   ILoginRequest,
   ILoginResponse,
   ISignupRequest,
+  IUserInfo,
+  IUserInfoResponse,
 } from "../../types/auth";
 import { axiosInstance } from "../axiosInstance";
 
@@ -23,4 +25,9 @@ export const refresh = async (
     refreshToken,
   });
   return data;
+};
+
+export const getUserInfo = async (): Promise<IUserInfo> => {
+  const { data } = await axiosInstance.get<IUserInfoResponse>("/user");
+  return data.data;
 };

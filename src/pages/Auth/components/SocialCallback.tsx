@@ -3,12 +3,14 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 import { axiosInstance } from "../../../api/axiosInstance";
 import SoksomLogo from "../../../../public/logo.svg";
+import { useAuthStore } from "../../../stores/auth/authStore";
 
 const SocialCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [error, setError] = useState(false);
   const hasRequested = useRef(false);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
 
   useEffect(() => {
     const code = searchParams.get("code");
@@ -27,7 +29,7 @@ const SocialCallback = () => {
           code,
         });
 
-        localStorage.setItem("soksomAccessToken", data.accessToken);
+        setAccessToken(data.accessToken);
         localStorage.setItem("soksomRefreshToken", data.refreshToken);
 
         navigate("/", { replace: true });
@@ -39,7 +41,7 @@ const SocialCallback = () => {
     };
 
     login();
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, setAccessToken]);
 
   if (error) {
     return (
