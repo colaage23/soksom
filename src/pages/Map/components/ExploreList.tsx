@@ -47,6 +47,8 @@ const ExploreList = () => {
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const [prevKeywordFromUrl, setPrevKeywordFromUrl] = useState(keywordFromUrl);
+
   const syncKeyword = (nextKeyword: string) => {
     const normalizedKeyword = nextKeyword.trim();
 
@@ -74,13 +76,14 @@ const ExploreList = () => {
     }
   };
 
-  useEffect(() => {
+  if (keywordFromUrl !== prevKeywordFromUrl) {
+    setPrevKeywordFromUrl(keywordFromUrl);
     setInputKeyword(keywordFromUrl);
 
-    if (searchKeyword === keywordFromUrl) return;
-
-    setSearchKeyword(keywordFromUrl);
-  }, [keywordFromUrl, searchKeyword, setSearchKeyword]);
+    if (searchKeyword !== keywordFromUrl) {
+      setSearchKeyword(keywordFromUrl);
+    }
+  }
 
   const {
     data: keywordData,
