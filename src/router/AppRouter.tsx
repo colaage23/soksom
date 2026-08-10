@@ -8,6 +8,8 @@ import Mypage from "../pages/MyPage/Mypage";
 import FavoritePlaces from "../pages/MyPage/FavoritePlaces";
 import RecentPlaces from "../pages/MyPage/RecentPlaces";
 import SocialCallback from "../pages/Auth/components/SocialCallback";
+import PublicRoute from "./PublicRoute";
+import PrivateRoute from "./PrivateRoute";
 
 const HomeOrCallback = () => {
   const [searchParams] = useSearchParams();
@@ -22,10 +24,16 @@ function AppRouter() {
       <Route path="/" element={<AppLayout />}>
         <Route index element={<HomeOrCallback />} />
         <Route path="map" element={<Map />} />
-        <Route path="auth" element={<Auth />} />
-        <Route path="mypage" element={<Mypage />} />
-        <Route path="mypage/favorites" element={<FavoritePlaces />} />
-        <Route path="mypage/recent-places" element={<RecentPlaces />} />
+
+        <Route element={<PublicRoute />}>
+          <Route path="auth" element={<Auth />} />
+        </Route>
+
+        <Route element={<PrivateRoute />}>
+          <Route path="mypage" element={<Mypage />} />
+          <Route path="mypage/favorites" element={<FavoritePlaces />} />
+          <Route path="mypage/recent-places" element={<RecentPlaces />} />
+        </Route>
       </Route>
     </Routes>
   );
