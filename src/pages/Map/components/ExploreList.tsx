@@ -36,7 +36,7 @@ const ExploreList = () => {
     searchCenter,
     setVisibleSpots,
   } = useSpotStore();
-  const { likedSpot } = useLikedSpotStore();
+  const likedSpotMap = useLikedSpotStore((state) => state.likedSpotMap);
   const { searchKeyword, setSearchKeyword, addRecentSearch } =
     useSearchKeywordStore();
   const keywordFromUrl = searchParams.get("keyword") ?? "";
@@ -146,11 +146,13 @@ const ExploreList = () => {
   );
   const filteredSpots = useMemo(() => {
     if (selectedCategory === "MY")
-      return displaySpots.filter((spot) => likedSpot.includes(spot.contentid));
+      return displaySpots.filter((spot) =>
+        Boolean(likedSpotMap[spot.contentid]),
+      );
     const typeId = CATEGORY_TYPE_MAP[selectedCategory];
     if (!typeId) return displaySpots;
     return displaySpots.filter((spot) => spot?.contenttypeid === typeId);
-  }, [displaySpots, selectedCategory, likedSpot]);
+  }, [displaySpots, selectedCategory, likedSpotMap]);
 
   useEffect(() => {
     setVisibleSpots(filteredSpots);
@@ -190,7 +192,7 @@ const ExploreList = () => {
             )}
             {category}
             {category === "MY" && (
-              <LikeCountChip>{likedSpot.length}</LikeCountChip>
+              <LikeCountChip>{Object.keys(likedSpotMap).length}</LikeCountChip>
             )}
           </CategoryChip>
         ))}

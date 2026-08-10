@@ -150,3 +150,75 @@ export const getFavoriteSpots = async ({
     throw new Error("Fail to fetch Favorite Spots.", { cause: error });
   }
 };
+
+export interface IAddFavoritePayload {
+  contentId: string;
+  contentTypeId?: string;
+  spotName: string;
+  address: string;
+  ldongRegnCd?: string;
+  ldongSignguCd?: string;
+  lclsSystm1?: string;
+  lclsSystm2?: string;
+  lclsSystm3?: string;
+  latitude?: number;
+  longitude?: number;
+  thumbnail?: string;
+}
+
+interface IAddFavoriteResponse {
+  success: boolean;
+  message?: string;
+  data: string | number;
+}
+
+export const addFavorite = async (
+  payload: IAddFavoritePayload,
+): Promise<string> => {
+  try {
+    const response = await axiosInstance.post<IAddFavoriteResponse>(
+      "/favorite",
+      payload,
+    );
+    return String(response.data.data);
+  } catch (error) {
+    console.error("Add Favorite Error: ", error);
+    throw new Error("Fail to add Favorite.", { cause: error });
+  }
+};
+
+export const removeFavorite = async (favoriteId: string): Promise<void> => {
+  try {
+    await axiosInstance.delete(`/favorite/${favoriteId}`);
+  } catch (error) {
+    console.error("Remove Favorite Error: ", error);
+    throw new Error("Fail to remove Favorite.", { cause: error });
+  }
+};
+
+// SpotCard(ISearchSpotResponse) -> POST 요청 바디 변환
+export const toAddFavoritePayload = (spot: {
+  contentid: string;
+  contenttypeid?: string;
+  title: string;
+  addr1?: string;
+  firstimage?: string;
+  mapx?: string;
+  mapy?: string;
+  lclsSystm1Nm?: string;
+  lclsSystm2Nm?: string;
+  lclsSystm3Nm?: string;
+}): IAddFavoritePayload => ({
+  contentId: spot.contentid,
+  contentTypeId: spot.contenttypeid ?? "",
+  spotName: spot.title,
+  address: spot.addr1 ?? "",
+  ldongRegnCd: "",
+  ldongSignguCd: "",
+  thumbnail: spot.firstimage ?? "",
+  latitude: spot.mapy ? Number(spot.mapy) : 0,
+  longitude: spot.mapx ? Number(spot.mapx) : 0,
+  lclsSystm1: spot.lclsSystm1Nm ?? "",
+  lclsSystm2: spot.lclsSystm2Nm ?? "",
+  lclsSystm3: spot.lclsSystm3Nm ?? "",
+});

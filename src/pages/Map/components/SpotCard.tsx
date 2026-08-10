@@ -1,7 +1,7 @@
 import styled from "styled-components";
-// import { congestionStyle, type Spot } from "../mock";
 import { Heart, MoveRight } from "lucide-react";
 import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
+import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
 import type { ISearchSpotResponse } from "../../../types/spot";
 import FallBackImage from "../../../assets/fallback.png";
 
@@ -18,24 +18,27 @@ const SpotCard = ({
   onClick,
   onArrowClick,
 }: ISpotCardProps) => {
-  const { likedSpot, toggleLikedSpot } = useLikedSpotStore();
+  const likedSpotMap = useLikedSpotStore((state) => state.likedSpotMap);
+  const { toggleFavorite, isPending } = useToggleFavorite();
 
   if (!spot) return null;
 
-  // const status = congestionStyle[spot.congestion];
+  const favoriteId = likedSpotMap[spot.contentid];
+  const isLiked = Boolean(favoriteId);
 
   return (
     <SpotCardContainer $isActive={isActive} onClick={onClick}>
       <SpotImageWrapper>
         <SpotImage src={spot.firstimage || FallBackImage} alt={spot.title} />
         <IconButton
-          $active={likedSpot.includes(spot.contentid)}
+          $active={isLiked}
+          disabled={isPending}
           onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
             e.stopPropagation();
-            toggleLikedSpot(spot.contentid);
+            toggleFavorite(spot, favoriteId);
           }}
         >
-          <LikeIcon $active={likedSpot.includes(spot.contentid)} />
+          <LikeIcon $active={isLiked} />
         </IconButton>
       </SpotImageWrapper>
 
@@ -47,28 +50,6 @@ const SpotCard = ({
         </SubInfoText>
 
         <SpotName>{spot.title}</SpotName>
-
-        {/* <CongestionBox>
-          <CongestionProgressBar>
-            <CongestionProgressFill
-              style={{
-                backgroundColor: status.bgColor,
-                width: `${status.progress}%`,
-              }}
-            />
-          </CongestionProgressBar>
-          <CongestionBadge
-            style={{
-              backgroundColor:
-                spot.congestion === "혼잡"
-                  ? status.bgColor
-                  : `${status.bgColor}65`,
-              color: status.color,
-            }}
-          >
-            {spot.congestion}
-          </CongestionBadge>
-        </CongestionBox> */}
       </SpotInfoBox>
 
       <ArrowButton

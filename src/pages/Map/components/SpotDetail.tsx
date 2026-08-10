@@ -8,7 +8,6 @@ import {
   Heart,
   MoveLeft,
   Phone,
-  Share2,
   Sparkles,
   Ticket,
   Toilet,
@@ -19,6 +18,7 @@ import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
 import { useWayPointStore } from "../../../stores/useWayPointStore";
 import { useGetSpotDetail } from "../../../hooks/spot/useGetSpotDetail";
 import type { ISpotDetailInfo } from "../../../types/spot";
+import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
 
 const ROOM_AMENITIES: { key: keyof ISpotDetailInfo; label: string }[] = [
   { key: "roomaircondition", label: "에어컨" },
@@ -39,7 +39,8 @@ const ROOM_AMENITIES: { key: keyof ISpotDetailInfo; label: string }[] = [
 
 const SpotDetail = () => {
   const { setDetailSpot, selectedSpot } = useSpotStore();
-  const { likedSpot, toggleLikedSpot } = useLikedSpotStore();
+  const likedSpotMap = useLikedSpotStore((state) => state.likedSpotMap);
+  const { toggleFavorite, isPending: isFavoritePending } = useToggleFavorite();
   const { toggleWayPoint, isSelected } = useWayPointStore();
 
   const { data: spotDetail } = useGetSpotDetail({
@@ -101,19 +102,24 @@ const SpotDetail = () => {
 
           <RightGroup>
             <IconButton
-              $active={likedSpot.includes(spotDetail?.common?.contentid)}
+              $active={Boolean(
+                selectedSpot && likedSpotMap[selectedSpot.contentid],
+              )}
+              disabled={isFavoritePending}
               onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                 e.stopPropagation();
-                toggleLikedSpot(spotDetail?.common?.contentid);
+                if (!selectedSpot) return;
+                toggleFavorite(
+                  selectedSpot,
+                  likedSpotMap[selectedSpot.contentid],
+                );
               }}
             >
               <LikeIcon
-                $active={likedSpot.includes(spotDetail?.common?.contentid)}
+                $active={Boolean(
+                  selectedSpot && likedSpotMap[selectedSpot.contentid],
+                )}
               />
-            </IconButton>
-            {/* 공유한다고 하면 어떤 형태? */}
-            <IconButton>
-              <ShareIcon />
             </IconButton>
           </RightGroup>
         </SpotActions>
@@ -472,13 +478,6 @@ const LikeIcon = styled(Heart)<{ $active?: boolean }>`
   stroke: ${({ $active }) => ($active ? "none" : "#1b2024")};
   fill: ${({ $active }) => ($active ? "#fdfcf8" : "none")};
 
-  stroke-width: 2;
-`;
-
-const ShareIcon = styled(Share2)`
-  width: 16px;
-  height: 16px;
-  stroke: #1b2024;
   stroke-width: 2;
 `;
 
