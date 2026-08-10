@@ -40,7 +40,7 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
     const minLevel = 1;
     const maxLevel = 9;
     const minSize = 30;
-    const maxSize = 60;
+    const maxSize = 80;
 
     const clampedLevel = Math.min(Math.max(mapLevel, minLevel), maxLevel);
     const ratio = (maxLevel - clampedLevel) / (maxLevel - minLevel);
@@ -129,7 +129,7 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
                 lng: Number(spot.mapx),
               }}
               image={{
-                src: getMarkerSrc("#000000"),
+                src: getMarkerSrc("#000000", spot.contenttypeid),
                 size: { width: markerSize, height: markerSize },
                 options: {
                   offset: { x: markerSize / 2, y: markerSize / 1.5 },

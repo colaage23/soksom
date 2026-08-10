@@ -1,8 +1,34 @@
-/* 혼잡도에 따른 마커 색 변경ㄴ을 위함임 */
-export const getMarkerSrc = (color: string) => {
+import landmarkSvg from "lucide-static/icons/landmark.svg?raw";
+import partyPopperSvg from "lucide-static/icons/party-popper.svg?raw";
+import bedDoubleSvg from "lucide-static/icons/bed-double.svg?raw";
+import shoppingBagSvg from "lucide-static/icons/shopping-bag.svg?raw";
+import utensilsCrossedSvg from "lucide-static/icons/utensils-crossed.svg?raw";
+import { Camera, SportShoe } from "lucide-static";
+
+const extractIconInner = (raw: string) =>
+  raw.replace(/^[\s\S]*?<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "");
+
+const CATEGORY_ICONS: Record<string, string> = {
+  "12": extractIconInner(Camera), // 관광지
+  "14": extractIconInner(landmarkSvg), // 문화시설
+  "15": extractIconInner(partyPopperSvg), // 행사
+  "28": extractIconInner(SportShoe), // 레포츠
+  "32": extractIconInner(bedDoubleSvg), // 숙박
+  "38": extractIconInner(shoppingBagSvg), // 쇼핑
+  "39": extractIconInner(utensilsCrossedSvg), // 음식점
+};
+
+export const getMarkerSrc = (color: string, contenttypeid?: string) => {
+  const iconInner = contenttypeid ? CATEGORY_ICONS[contenttypeid] : undefined;
+
+  const iconGroup = iconInner
+    ? `<g transform="translate(92.27,84) scale(2) translate(-12,-13)" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${iconInner}</g>`
+    : "";
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 184.54 184.54">
   <path fill="${color}" d="m92.27,38.09c-24.63,0-44.6,19.96-44.6,44.6,0,38.82,44.6,63.77,44.6,63.77,0,0,44.6-24.96,44.6-63.77,0-24.63-19.97-44.6-44.6-44.6Zm0,59.06c-7.99,0-14.46-6.48-14.46-14.46s6.48-14.46,14.46-14.46,14.46,6.48,14.46,14.46-6.48,14.46-14.46,14.46Z"/>
-  <circle cx="92.27" cy="84" r="30" fill="#fff"/>
+  <circle cx="92.27" cy="84" r="36" fill="#fff"/>
+  ${iconGroup}
 </svg>`;
   return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
 };
