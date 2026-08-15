@@ -14,6 +14,7 @@ import SpotDetail from "./components/SpotDetail";
 import KakaoMap from "./components/KakaoMap";
 import { useSpotStore } from "../../stores/useSpotStore";
 import { congestionStyle } from "./mock";
+import { useSyncLikedSpots } from "../../hooks/favorite/useSyncLikedSpots";
 
 const Map = () => {
   const { detailSpot, setDetailSpot } = useSpotStore();
@@ -25,6 +26,8 @@ const Map = () => {
   const Icon = open ? ChevronLeft : ChevronRight;
 
   const congestion = Object.values(congestionStyle).reverse();
+
+  useSyncLikedSpots();
 
   return (
     <MapContainer>

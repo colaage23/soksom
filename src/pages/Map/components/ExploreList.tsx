@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 import SpotCard from "./SpotCard";
@@ -35,8 +35,9 @@ const ExploreList = () => {
     setSelectedSpot,
     setDetailSpot,
     searchCenter,
+    setVisibleSpots,
   } = useSpotStore();
-  const { likedSpot } = useLikedSpotStore();
+  const likedSpotMap = useLikedSpotStore((state) => state.likedSpotMap);
   const { searchKeyword, setSearchKeyword, addRecentSearch } =
     useSearchKeywordStore();
   const keywordFromUrl = searchParams.get("keyword") ?? "";
@@ -47,6 +48,8 @@ const ExploreList = () => {
 
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const [prevKeywordFromUrl, setPrevKeywordFromUrl] = useState(keywordFromUrl);
 
   const syncKeyword = (nextKeyword: string) => {
     const normalizedKeyword = nextKeyword.trim();
@@ -75,13 +78,14 @@ const ExploreList = () => {
     }
   };
 
-  useEffect(() => {
+  if (keywordFromUrl !== prevKeywordFromUrl) {
+    setPrevKeywordFromUrl(keywordFromUrl);
     setInputKeyword(keywordFromUrl);
 
-    if (searchKeyword === keywordFromUrl) return;
-
-    setSearchKeyword(keywordFromUrl);
-  }, [keywordFromUrl, searchKeyword, setSearchKeyword]);
+    if (searchKeyword !== keywordFromUrl) {
+      setSearchKeyword(keywordFromUrl);
+    }
+  }
 
   const {
     data: keywordData,
@@ -125,10 +129,15 @@ const ExploreList = () => {
     selectedCategory,
   ]);
 
-  const spotsByKeyword =
-    keywordData?.pages.flatMap((page) => page).filter(Boolean) ?? [];
-  const spots =
-    locationData?.pages.flatMap((page) => page).filter(Boolean) ?? [];
+  const spotsByKeyword = useMemo(
+    () => keywordData?.pages.flatMap((page) => page).filter(Boolean) ?? [],
+    [keywordData],
+  );
+
+  const spots = useMemo(
+    () => locationData?.pages.flatMap((page) => page).filter(Boolean) ?? [],
+    [locationData],
+  );
 
   const isCurrentLoading = searchKeyword ? keywordLoading : isLoading;
   const isCurrentError = searchKeyword ? keywordError : isError;
@@ -136,14 +145,23 @@ const ExploreList = () => {
   const categories = Object.keys(CATEGORY_TYPE_MAP); // 또는 그냥 기존 배열 재사용
   const visibleCategories = isExpanded ? categories : categories.slice(0, 5);
 
-  const displaySpots = searchKeyword ? (spotsByKeyword ?? []) : (spots ?? []);
-  const filteredSpots = (() => {
+  const displaySpots = useMemo(
+    () => (searchKeyword ? (spotsByKeyword ?? []) : (spots ?? [])),
+    [searchKeyword, spotsByKeyword, spots],
+  );
+  const filteredSpots = useMemo(() => {
     if (selectedCategory === "MY")
-      return displaySpots.filter((spot) => likedSpot.includes(spot.contentid));
+      return displaySpots.filter((spot) =>
+        Boolean(likedSpotMap[spot.contentid]),
+      );
     const typeId = CATEGORY_TYPE_MAP[selectedCategory];
     if (!typeId) return displaySpots;
     return displaySpots.filter((spot) => spot?.contenttypeid === typeId);
-  })();
+  }, [displaySpots, selectedCategory, likedSpotMap]);
+
+  useEffect(() => {
+    setVisibleSpots(filteredSpots);
+  }, [filteredSpots, setVisibleSpots]);
 
   useEffect(() => {
     if (!contentIdFromUrl || filteredSpots.length === 0) {
@@ -210,7 +228,7 @@ const ExploreList = () => {
             )}
             {category}
             {category === "MY" && (
-              <LikeCountChip>{likedSpot.length}</LikeCountChip>
+              <LikeCountChip>{Object.keys(likedSpotMap).length}</LikeCountChip>
             )}
           </CategoryChip>
         ))}

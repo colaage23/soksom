@@ -1,8 +1,10 @@
-import { X } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { ChevronRight, LogOut, UserRound, X } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../constants/colors";
 import { navItems } from "../../constants/navItems";
+import { useAuthStore } from "../../stores/auth/authStore";
+import { useGetUserInfo } from "../../hooks/auth/useGetUserInfo";
 
 type HamburgerProps = {
   isOpen: boolean;
@@ -11,6 +13,14 @@ type HamburgerProps = {
 
 const Hamburger = ({ isOpen, onClose }: HamburgerProps) => {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const isInitialized = useAuthStore((state) => state.isInitialized);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+  const isLoggedIn = isInitialized && Boolean(accessToken);
+
+  const { data: userInfo } = useGetUserInfo();
 
   const handleClose = () => {
     if (document.activeElement instanceof HTMLElement) {
@@ -18,6 +28,12 @@ const Hamburger = ({ isOpen, onClose }: HamburgerProps) => {
     }
 
     onClose();
+  };
+
+  const handleLogout = () => {
+    clearAuth();
+    handleClose();
+    navigate("/");
   };
 
   return (
@@ -40,6 +56,35 @@ const Hamburger = ({ isOpen, onClose }: HamburgerProps) => {
           </CloseButton>
         </PanelHeader>
 
+        {isLoggedIn && (
+          <ProfileSection
+            type="button"
+            onClick={() => {
+              handleClose();
+              navigate("/mypage");
+            }}
+          >
+            <ProfileRow>
+              {userInfo?.img ? (
+                <ProfileImage
+                  src={userInfo.img}
+                  alt={userInfo?.nickname ?? "프로필"}
+                />
+              ) : (
+                <ProfileImagePlaceholder>
+                  <ProfileFallbackIcon />
+                </ProfileImagePlaceholder>
+              )}
+              <ProfileTextBox>
+                <ProfileNickname>{userInfo?.nickname ?? "-"}</ProfileNickname>
+                <ProfileEmail>{userInfo?.email ?? "-"}</ProfileEmail>
+              </ProfileTextBox>
+            </ProfileRow>
+
+            <ProfileArrowIcon />
+          </ProfileSection>
+        )}
+
         <NavList>
           {navItems.map((item) => (
             <NavLink
@@ -54,7 +99,22 @@ const Hamburger = ({ isOpen, onClose }: HamburgerProps) => {
         </NavList>
 
         <BottomSection>
-          <LoginAction type="button">로그인 후 여행 계획 하기</LoginAction>
+          {isLoggedIn ? (
+            <LogoutButton type="button" onClick={handleLogout}>
+              <LogOutIcon />
+              로그아웃
+            </LogoutButton>
+          ) : (
+            <LoginAction
+              type="button"
+              onClick={() => {
+                handleClose();
+                navigate("/auth");
+              }}
+            >
+              로그인 후 여행 계획 하기
+            </LoginAction>
+          )}
         </BottomSection>
       </Panel>
     </MenuRoot>
@@ -91,7 +151,9 @@ const Backdrop = styled.button<{ $isOpen: boolean }>`
 const Panel = styled.aside<{ $isOpen: boolean }>`
   display: none;
   @media (max-width: 768px) {
-    display: block;
+    display: flex;
+    flex-direction: column;
+
     position: absolute;
     top: 0;
     right: 0;
@@ -158,9 +220,12 @@ const NavLink = styled(Link)<{ $isActive: boolean }>`
 `;
 
 const BottomSection = styled.div`
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid #e5e7eb;
+  flex: 1;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 `;
 
 const LoginAction = styled.button`
@@ -172,6 +237,136 @@ const LoginAction = styled.button`
   color: white;
   font-size: 0.95rem;
   font-weight: 700;
+`;
+
+const LogOutIcon = styled(LogOut)`
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2;
+`;
+
+const ProfileSection = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  width: 100%;
+
+  padding: 0 0 20px;
+  margin-bottom: 20px;
+
+  border: none;
+  border-bottom: 1px solid #e5e7eb;
+  background: transparent;
+
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    opacity: 0.7;
+  }
+`;
+
+const ProfileRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  min-width: 0;
+`;
+
+const ProfileArrowIcon = styled(ChevronRight)`
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+
+  stroke: #9ca3af;
+  stroke-width: 2.2;
+`;
+
+const ProfileImage = styled.img`
+  width: 44px;
+  height: 44px;
+
+  border-radius: 50%;
+  object-fit: cover;
+
+  background-color: #f5f2eb;
+`;
+
+const ProfileTextBox = styled.div`
+  display: flex;
+  align-items: start;
+  flex-direction: column;
+  gap: 2px;
+
+  min-width: 0;
+`;
+
+const ProfileNickname = styled.span`
+  color: #111827;
+  font-size: 0.9375rem;
+  font-weight: 700;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const ProfileEmail = styled.span`
+  color: #6b7280;
+  font-size: 0.8125rem;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const LogoutButton = styled.button`
+  width: 100%;
+  min-height: 48px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+
+  margin-top: auto;
+
+  padding: 0 16px;
+
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+
+  color: #ef4444;
+
+  font-size: 0.9375rem;
+  font-weight: 600;
+
+  cursor: pointer;
+`;
+
+const ProfileImagePlaceholder = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  width: 44px;
+  height: 44px;
+
+  border-radius: 50%;
+  background-color: #f5f2eb;
+`;
+
+const ProfileFallbackIcon = styled(UserRound)`
+  width: 26px;
+  height: 26px;
+  stroke: #b5b1a7;
+  stroke-width: 1.6;
 `;
 
 export default Hamburger;

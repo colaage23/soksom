@@ -4,7 +4,6 @@ import {
   Cloud,
   CloudRain,
   Heart,
-  type LucideIcon,
   Sun,
   SunMedium,
 } from "lucide-react";
@@ -18,20 +17,20 @@ import {
   homeSectionTitle,
 } from "../styles/homeSectionStyles.ts";
 
-const weatherIconByCode = (weatherCode: number, isDay = true): LucideIcon => {
+const weatherIconByCode = (weatherCode: number, size: number, isDay = true) => {
   if (weatherCode === 0) {
-    return isDay ? SunMedium : Cloud;
+    return isDay ? <SunMedium size={size} /> : <Cloud size={size} />;
   }
 
   if ([1, 2, 3, 45, 48].includes(weatherCode)) {
-    return Cloud;
+    return <Cloud size={size} />;
   }
 
   if ([51, 53, 55, 61, 63, 65, 80, 81, 82, 95].includes(weatherCode)) {
-    return CloudRain;
+    return <CloudRain size={size} />;
   }
 
-  return Sun;
+  return <Sun size={size} />;
 };
 
 const places = [
@@ -74,10 +73,7 @@ const toneLabelColor = {
 
 const WeatherSection = () => {
   const { data: weather, isLoading, isError } = useJejuWeather();
-  const currentWeatherIcon = weatherIconByCode(
-    weather?.weatherCode ?? 0,
-    weather?.isDay ?? true,
-  );
+
   const forecastItems = weather?.forecast ?? [];
 
   return (
@@ -116,10 +112,11 @@ const WeatherSection = () => {
                 </WeatherSummary>
               </div>
               <WeatherIconWrap>
-                {(() => {
-                  const Icon = currentWeatherIcon;
-                  return <Icon size={20} />;
-                })()}
+                {weatherIconByCode(
+                  weather?.weatherCode ?? 0,
+                  20,
+                  weather?.isDay ?? true,
+                )}
               </WeatherIconWrap>
             </WeatherTop>
 
@@ -139,18 +136,14 @@ const WeatherSection = () => {
 
             <ForecastStrip>
               {forecastItems.map(
-                ({ day, weatherCode, temperature, rainProbability }) => {
-                  const Icon = weatherIconByCode(weatherCode);
-
-                  return (
-                    <ForecastItem key={day}>
-                      <ForecastDay>{day}</ForecastDay>
-                      <Icon size={16} />
-                      <ForecastTemp>{temperature}</ForecastTemp>
-                      <ForecastRain>{rainProbability}</ForecastRain>
-                    </ForecastItem>
-                  );
-                },
+                ({ day, weatherCode, temperature, rainProbability }) => (
+                  <ForecastItem key={day}>
+                    <ForecastDay>{day}</ForecastDay>
+                    {weatherIconByCode(weatherCode, 16)}
+                    <ForecastTemp>{temperature}</ForecastTemp>
+                    <ForecastRain>{rainProbability}</ForecastRain>
+                  </ForecastItem>
+                ),
               )}
             </ForecastStrip>
 
