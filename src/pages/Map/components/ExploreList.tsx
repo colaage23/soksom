@@ -29,12 +29,18 @@ const ExploreList = () => {
   const [scrollContainer, setScrollContainer] =
     useState<HTMLUListElement | null>(null);
 
-  const { selectedSpot, setSelectedSpot, setDetailSpot, searchCenter } =
-    useSpotStore();
+  const {
+    selectedSpot,
+    detailSpot,
+    setSelectedSpot,
+    setDetailSpot,
+    searchCenter,
+  } = useSpotStore();
   const { likedSpot } = useLikedSpotStore();
   const { searchKeyword, setSearchKeyword, addRecentSearch } =
     useSearchKeywordStore();
   const keywordFromUrl = searchParams.get("keyword") ?? "";
+  const contentIdFromUrl = searchParams.get("contentId") ?? "";
   const [inputKeyword, setInputKeyword] = useState(keywordFromUrl);
 
   const { ref, inView } = useInView({ root: scrollContainer });
@@ -138,6 +144,37 @@ const ExploreList = () => {
     if (!typeId) return displaySpots;
     return displaySpots.filter((spot) => spot?.contenttypeid === typeId);
   })();
+
+  useEffect(() => {
+    if (!contentIdFromUrl || filteredSpots.length === 0) {
+      return;
+    }
+
+    const targetSpot = filteredSpots.find(
+      (spot) => spot.contentid === contentIdFromUrl,
+    );
+
+    if (!targetSpot) {
+      return;
+    }
+
+    if (
+      selectedSpot?.contentid === targetSpot.contentid &&
+      detailSpot?.contentid === targetSpot.contentid
+    ) {
+      return;
+    }
+
+    setSelectedSpot(targetSpot);
+    setDetailSpot(targetSpot);
+  }, [
+    contentIdFromUrl,
+    detailSpot?.contentid,
+    filteredSpots,
+    selectedSpot?.contentid,
+    setDetailSpot,
+    setSelectedSpot,
+  ]);
 
   return (
     <ExploreListContainer>

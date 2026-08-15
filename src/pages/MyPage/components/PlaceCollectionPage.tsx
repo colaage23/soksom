@@ -15,6 +15,8 @@ export type CollectionPageItem = {
   primaryMeta: string;
   secondaryMeta: string;
   icon: React.ComponentType<{ size?: number }>;
+  contentId?: string;
+  thumbnail?: string;
 };
 
 type CollectionStat = {
@@ -44,6 +46,21 @@ const PlaceCollectionPage = ({
   emptyMessage = "표시할 장소가 없습니다.",
 }: PlaceCollectionPageProps) => {
   const navigate = useNavigate();
+
+  const handleMoveToExplore = (item: CollectionPageItem) => {
+    const searchParams = new URLSearchParams();
+
+    searchParams.set("keyword", item.title);
+
+    if (item.contentId) {
+      searchParams.set("contentId", item.contentId);
+    }
+
+    navigate({
+      pathname: "/map",
+      search: `?${searchParams.toString()}`,
+    });
+  };
 
   return (
     <PageShell>
@@ -113,7 +130,11 @@ const PlaceCollectionPage = ({
                     <PlaceBadge $variant={item.badgeVariant}>
                       {item.badge}
                     </PlaceBadge>
-                    <Icon size={34} />
+                    {item.thumbnail ? (
+                      <PlaceImage src={item.thumbnail} alt={item.title} />
+                    ) : (
+                      <Icon size={34} />
+                    )}
                   </PlaceVisual>
 
                   <PlaceBody>
@@ -163,7 +184,7 @@ const PlaceCollectionPage = ({
 
                       <DetailButton
                         type="button"
-                        onClick={() => navigate("/map")}
+                        onClick={() => handleMoveToExplore(item)}
                       >
                         상세 보기
                         <MoveRight size={16} />
@@ -344,12 +365,19 @@ const PlaceVisual = styled.div<{ $index: number }>`
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   min-height: 220px;
   background: ${({ $index }) =>
     $index % 2 === 0
       ? "linear-gradient(160deg, rgba(36, 149, 155, 0.2), rgba(36, 149, 155, 0.04))"
       : "linear-gradient(160deg, rgba(22, 63, 65, 0.18), rgba(240, 247, 244, 0.08))"};
   color: ${colors.main};
+`;
+
+const PlaceImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 `;
 
 const PlaceBadge = styled.span<{ $variant: "calm" | "warm" }>`

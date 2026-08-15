@@ -261,7 +261,14 @@ const Mypage = () => {
                     return (
                       <MiniCard key={place.historyId}>
                         <MiniCardVisual>
-                          <Icon size={28} />
+                          {place.firstimage ? (
+                            <MiniCardImage
+                              src={place.firstimage}
+                              alt={place.title}
+                            />
+                          ) : (
+                            <Icon size={28} />
+                          )}
                         </MiniCardVisual>
                         <MiniCardText>
                           <MiniCardTitle>{place.title}</MiniCardTitle>
@@ -693,6 +700,7 @@ const MiniCardVisual = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   border-radius: 18px;
   background: linear-gradient(
     180deg,
@@ -700,6 +708,12 @@ const MiniCardVisual = styled.div`
     rgba(36, 149, 155, 0.04)
   );
   color: ${colors.main};
+`;
+
+const MiniCardImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 `;
 
 const MiniCardText = styled.div`

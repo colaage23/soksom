@@ -52,6 +52,8 @@ const RecentPlaces = () => {
       place.createdAt?.slice(0, 10).replace(/-/g, ".") ?? "최근 조회",
     secondaryMeta: `기록 #${place.historyId}`,
     icon: getRecentPlaceIcon(place.title),
+    contentId: place.contentid,
+    thumbnail: place.firstimage,
   }));
 
   return (
