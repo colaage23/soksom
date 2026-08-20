@@ -144,7 +144,8 @@ export interface ISpotDetailResponse {
 export interface ISpotDetailRequest {
   contentid: string;
   contenttypeid?: string;
+  spotName?: string;
   areaCd?: string;
   signguCd?: string;
-  baseYmd?: string | null;
+  baseYmd?: string;
 }

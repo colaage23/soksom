@@ -50,9 +50,9 @@ const SpotDetail = () => {
   const { data: spotDetail } = useGetSpotDetail({
     contentid: selectedSpot?.contentid ?? "",
     contenttypeid: selectedSpot?.contenttypeid,
+    spotName: selectedSpot?.title,
     areaCd: selectedSpot?.lDongRegnCd,
     signguCd: selectedSpot?.lDongSignguCd,
-    baseYmd: "",
   });
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -113,6 +113,8 @@ const SpotDetail = () => {
 
   const clampedPosition =
     displayRate !== null ? Math.min(95, Math.max(5, displayRate)) : null;
+
+  console.log("dd", spotDetail);
 
   return (
     <SpotDetailContainer>

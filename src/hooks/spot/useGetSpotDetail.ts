@@ -5,6 +5,7 @@ import type { ISpotDetailRequest } from "../../types/spot";
 export const useGetSpotDetail = ({
   contentid,
   contenttypeid,
+  spotName,
   areaCd,
   signguCd,
   baseYmd,
@@ -14,6 +15,7 @@ export const useGetSpotDetail = ({
       "spot-detail",
       contentid,
       contenttypeid,
+      spotName,
       areaCd,
       signguCd,
       baseYmd,
@@ -22,6 +24,7 @@ export const useGetSpotDetail = ({
       getSpotDetail({
         contentid,
         contenttypeid,
+        spotName,
         areaCd,
         signguCd,
         baseYmd,

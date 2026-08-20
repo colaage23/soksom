@@ -51,6 +51,7 @@ export const getSpotsByLocation = async ({
 export const getSpotDetail = async ({
   contentid,
   contenttypeid,
+  spotName,
   areaCd,
   signguCd,
   baseYmd,
@@ -62,6 +63,7 @@ export const getSpotDetail = async ({
         params: {
           contentid,
           contenttypeid,
+          spotName,
           areaCd,
           signguCd,
           baseYmd,
