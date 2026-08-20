@@ -8,6 +8,7 @@ import { navItems } from "../../constants/navItems";
 import SoksomLogo from "../../../public/logo.svg";
 import { useAuthStore } from "../../stores/auth/authStore";
 import { useGetUserInfo } from "../../hooks/auth/useGetUserInfo";
+import { useWayPointStore } from "../../stores/useWayPointStore";
 
 const Header = () => {
   const { pathname } = useLocation();
@@ -73,6 +74,9 @@ const Header = () => {
     clearAuth();
     setIsUserMenuOpen(false);
     navigate("/");
+
+    useWayPointStore.getState().resetWayPoint();
+    useWayPointStore.persist.clearStorage();
   };
 
   const isSolid = !isHomePage || isScrolled;
