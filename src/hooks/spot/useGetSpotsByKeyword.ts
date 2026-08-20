@@ -4,11 +4,12 @@ import type { ISearchByKeywordRequest } from "../../types/spot";
 
 export const useGetSpotsByKeyword = ({
   keyword,
+  baseYmd,
 }: Omit<ISearchByKeywordRequest, "pageNo">) => {
   return useInfiniteQuery({
-    queryKey: ["spot-keyword", keyword],
+    queryKey: ["spot-keyword", keyword, baseYmd],
     queryFn: ({ pageParam }) =>
-      getSpotsByKeyword({ pageNo: pageParam, keyword }),
+      getSpotsByKeyword({ pageNo: pageParam, keyword, baseYmd }),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.length === 0) return undefined;

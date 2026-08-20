@@ -105,6 +105,7 @@ const ExploreList = () => {
     mapX: searchCenter?.mapX.toString() ?? "126.492778",
     mapY: searchCenter?.mapY.toString() ?? "33.511111",
     radius: "20000",
+    baseYmd: "",
   });
 
   useEffect(() => {

@@ -13,8 +13,8 @@ import RouteList from "./components/RouteList";
 import SpotDetail from "./components/SpotDetail";
 import KakaoMap from "./components/KakaoMap";
 import { useSpotStore } from "../../stores/useSpotStore";
-import { congestionStyle } from "./mock";
 import { useSyncLikedSpots } from "../../hooks/favorite/useSyncLikedSpots";
+import { congestionStyle } from "../../constants/congestion";
 
 const Map = () => {
   const { detailSpot, setDetailSpot } = useSpotStore();
