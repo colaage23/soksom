@@ -23,6 +23,7 @@ import {
   getCongestionStyle,
 } from "../../../constants/congestion.utils";
 import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
+import FallBackImage from "../../../assets/fallback.png";
 
 const ROOM_AMENITIES: { key: keyof ISpotDetailInfo; label: string }[] = [
   { key: "roomaircondition", label: "에어컨" },
@@ -119,12 +120,13 @@ const SpotDetail = () => {
   const clampedPosition =
     displayRate !== null ? Math.min(95, Math.max(5, displayRate)) : null;
 
-  console.log("dd", spotDetail);
-
   return (
     <SpotDetailContainer>
       <SpotHeaderWrapper>
-        <SpotImage draggable={false} src={spotDetail?.common?.firstimage} />
+        <SpotImage
+          draggable={false}
+          src={spotDetail?.common?.firstimage || FallBackImage}
+        />
 
         <SpotActions>
           <IconButton onClick={() => setDetailSpot(null)}>
