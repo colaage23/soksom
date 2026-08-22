@@ -2,7 +2,6 @@ import { useState } from "react";
 import styled from "styled-components";
 import { ChevronDown, CalendarDays, RotateCcw } from "lucide-react";
 import DateRangeCalendar from "./DateRangeCalendar";
-import { useTripInfoStore } from "../../../stores/useTripInfoStore";
 import { useWayPointStore } from "../../../stores/useWayPointStore";
 
 const formatDate = (date: Date | null) =>
@@ -16,8 +15,7 @@ const getDayCountFromRange = (start: Date, end: Date) => {
 
 const TripInfoCard = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { dateRange, setDateRange } = useTripInfoStore();
-  const { setDayCount } = useWayPointStore();
+  const { setDayCount, dateRange, setDateRange } = useWayPointStore();
 
   const summary = [
     dateRange.startDate && dateRange.endDate

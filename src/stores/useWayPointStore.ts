@@ -7,14 +7,21 @@ export const MAX_DAY_COUNT = 7;
 // wayPoint 배열의 day 인덱스로 함께 쓰이는 특수값: "아직 일차 미배정 = 보관함"
 export const POOL_DAY = -1;
 
+interface DateRange {
+  startDate: Date | null;
+  endDate: Date | null;
+}
+
 interface IWayPoint {
   pool: ISpotListItem[]; // 일차 미배정 관광지 보관함
   wayPoint: ISpotListItem[][]; // wayPoint[dayIndex] = 해당 일차의 관광지 목록
   dayCount: number; // 1 ~ MAX_DAY_COUNT
   expandedDay: number | null; // 현재 펼쳐진(아코디언) 일차. null = 전부 접힘
+  dateRange: DateRange; // 여행 시작/종료 날짜
 
   setDayCount: (count: number) => void;
   setExpandedDay: (day: number) => void; // 같은 일차를 다시 누르면 접힘(토글)
+  setDateRange: (range: DateRange) => void;
 
   // 관광지 추가/제거는 특정 일차가 아니라 보관함(pool) 기준으로 토글
   toggleWayPoint: (spot: ISpotListItem) => void;
@@ -40,6 +47,7 @@ export const useWayPointStore = create<IWayPoint>()(
       wayPoint: [[]],
       dayCount: 1,
       expandedDay: null,
+      dateRange: { startDate: null, endDate: null },
 
       setDayCount: (count) =>
         set((state) => {
@@ -78,6 +86,8 @@ export const useWayPointStore = create<IWayPoint>()(
         set((state) => ({
           expandedDay: state.expandedDay === day ? null : day,
         })),
+
+      setDateRange: (range) => set({ dateRange: range }),
 
       toggleWayPoint: (spot) =>
         set((state) => {
@@ -156,16 +166,18 @@ export const useWayPointStore = create<IWayPoint>()(
           wayPoint: [[]],
           dayCount: 1,
           expandedDay: null,
+          dateRange: { startDate: null, endDate: null },
         }),
     }),
     {
       name: "wayPoint-storage",
       storage: createJSONStorage(() => localStorage),
-      // pool, wayPoint, dayCount를 localStorage에 저장 (expandedDay는 UI 상태라 저장 안 함)
+      // pool, wayPoint, dayCount, dateRange를 localStorage에 저장 (expandedDay는 UI 상태라 저장 안 함)
       partialize: (state) => ({
         pool: state.pool,
         wayPoint: state.wayPoint,
         dayCount: state.dayCount,
+        dateRange: state.dateRange,
       }),
     },
   ),

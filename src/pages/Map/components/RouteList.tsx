@@ -13,7 +13,6 @@ import { useDirectionStore } from "../../../stores/useDirectionStore";
 import TripInfoCard from "./TripInfoCard";
 import { useCreateTrip } from "../../../hooks/trip/useCreateTrip";
 import toTripDetails from "../../../utils/toTripDetails";
-import { useTripInfoStore } from "../../../stores/useTripInfoStore";
 import TripNameModal from "./TripNameModal";
 
 // 카카오모빌리티 응답에서 우리가 실제로 쓰는 부분만 느슨하게 타입 지정
@@ -24,8 +23,15 @@ interface KakaoDirectionRoute {
 }
 
 const RouteList = () => {
-  const { pool, wayPoint, dayCount, expandedDay, setExpandedDay } =
-    useWayPointStore();
+  const {
+    pool,
+    wayPoint,
+    dayCount,
+    expandedDay,
+    setExpandedDay,
+    resetWayPoint,
+    dateRange,
+  } = useWayPointStore();
   const { setDirections } = useDirectionStore();
 
   const { fetchDirectionWithFallback, data } = useDirectionWithFallback();
@@ -85,7 +91,6 @@ const RouteList = () => {
       .map((s) => ({ distance: s.distance, duration: s.duration }));
   }, [route]);
 
-  const { dateRange } = useTripInfoStore();
   const { mutate: createTripMutate, isPending: isCreating } = useCreateTrip();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -131,7 +136,8 @@ const RouteList = () => {
         onSuccess: (tripId) => {
           console.log("여행 생성 완료:", tripId);
           setIsModalOpen(false);
-          // 완료 후 이동/알림 처리
+          resetWayPoint();
+          alert("일정이 생성되었어요.");
         },
         onError: () => {
           alert("일정 생성에 실패했습니다.");
