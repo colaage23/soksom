@@ -149,3 +149,17 @@ export interface ISpotDetailRequest {
   signguCd?: string;
   baseYmd?: string;
 }
+
+export interface ISpotListItem {
+  contentid: string;
+  contenttypeid?: string;
+  title: string;
+  addr1: string;
+  firstimage?: string;
+  mapx?: string;
+  mapy?: string;
+  lclsSystm2Nm?: string;
+  lDongRegnCd?: string;
+  lDongSignguCd?: string;
+  congestion?: ICongestion | null;
+}

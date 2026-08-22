@@ -1,18 +1,18 @@
 import { create } from "zustand";
-import type { ISearchSpotResponse } from "../types/spot";
+import type { ISpotListItem } from "../types/spot";
 
 interface ISpotStore {
-  selectedSpot: ISearchSpotResponse | null;
-  setSelectedSpot: (spot: ISearchSpotResponse | null) => void;
+  selectedSpot: ISpotListItem | null;
+  setSelectedSpot: (spot: ISpotListItem | null) => void;
 
-  detailSpot: ISearchSpotResponse | null;
-  setDetailSpot: (spot: ISearchSpotResponse | null) => void;
+  detailSpot: ISpotListItem | null;
+  setDetailSpot: (spot: ISpotListItem | null) => void;
 
   searchCenter: { mapX: number; mapY: number } | null;
   setSearchCenter: (center: { mapX: number; mapY: number }) => void;
 
-  visibleSpots: ISearchSpotResponse[];
-  setVisibleSpots: (spots: ISearchSpotResponse[]) => void;
+  visibleSpots: ISpotListItem[];
+  setVisibleSpots: (spots: ISpotListItem[]) => void;
 }
 
 export const useSpotStore = create<ISpotStore>((set) => ({

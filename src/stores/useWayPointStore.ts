@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { ISearchSpotResponse } from "../types/spot";
+import type { ISpotListItem } from "../types/spot";
 
 export const MAX_DAY_COUNT = 7;
 
@@ -8,8 +8,8 @@ export const MAX_DAY_COUNT = 7;
 export const POOL_DAY = -1;
 
 interface IWayPoint {
-  pool: ISearchSpotResponse[]; // 일차 미배정 관광지 보관함
-  wayPoint: ISearchSpotResponse[][]; // wayPoint[dayIndex] = 해당 일차의 관광지 목록
+  pool: ISpotListItem[]; // 일차 미배정 관광지 보관함
+  wayPoint: ISpotListItem[][]; // wayPoint[dayIndex] = 해당 일차의 관광지 목록
   dayCount: number; // 1 ~ MAX_DAY_COUNT
   expandedDay: number | null; // 현재 펼쳐진(아코디언) 일차. null = 전부 접힘
 
@@ -17,7 +17,7 @@ interface IWayPoint {
   setExpandedDay: (day: number) => void; // 같은 일차를 다시 누르면 접힘(토글)
 
   // 관광지 추가/제거는 특정 일차가 아니라 보관함(pool) 기준으로 토글
-  toggleWayPoint: (spot: ISearchSpotResponse) => void;
+  toggleWayPoint: (spot: ISpotListItem) => void;
   // dayIndex: POOL_DAY(-1) = 보관함, 0 이상 = 해당 일차
   removeItem: (dayIndex: number, contentId: string) => void;
   // fromDay/toDay 모두 POOL_DAY 또는 실제 일차 인덱스 (보관함 ↔ 일차, 일차 ↔ 일차 모두 지원)
@@ -28,7 +28,7 @@ interface IWayPoint {
     toIndex: number,
   ) => void;
 
-  isSelected: (spot: ISearchSpotResponse) => boolean;
+  isSelected: (spot: ISpotListItem) => boolean;
 
   resetWayPoint: () => void;
 }
@@ -161,8 +161,12 @@ export const useWayPointStore = create<IWayPoint>()(
     {
       name: "wayPoint-storage",
       storage: createJSONStorage(() => localStorage),
-      // pool만 localStorage에 저장 (wayPoint, dayCount, expandedDay는 저장 안 함)
-      partialize: (state) => ({ pool: state.pool }),
+      // pool, wayPoint, dayCount를 localStorage에 저장 (expandedDay는 UI 상태라 저장 안 함)
+      partialize: (state) => ({
+        pool: state.pool,
+        wayPoint: state.wayPoint,
+        dayCount: state.dayCount,
+      }),
     },
   ),
 );
