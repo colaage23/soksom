@@ -22,6 +22,7 @@ import {
   getCongestionLevel,
   getCongestionStyle,
 } from "../../../constants/congestion.utils";
+import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
 
 const ROOM_AMENITIES: { key: keyof ISpotDetailInfo; label: string }[] = [
   { key: "roomaircondition", label: "에어컨" },
@@ -42,8 +43,12 @@ const ROOM_AMENITIES: { key: keyof ISpotDetailInfo; label: string }[] = [
 
 const SpotDetail = () => {
   const { setDetailSpot, selectedSpot } = useSpotStore();
-  const { likedSpotMap, toggleLikedSpot } = useLikedSpotStore();
-  const isLiked = Boolean(selectedSpot && likedSpotMap[selectedSpot.contentid]);
+  const { likedSpotMap } = useLikedSpotStore();
+  const { toggleFavorite, isPending: isFavoritePending } = useToggleFavorite();
+  const likedSpot = selectedSpot
+    ? likedSpotMap[selectedSpot.contentid]
+    : undefined;
+  const isLiked = Boolean(likedSpot);
 
   const { toggleWayPoint, isSelected } = useWayPointStore();
 
@@ -129,9 +134,11 @@ const SpotDetail = () => {
           <RightGroup>
             <IconButton
               $active={isLiked}
+              disabled={isFavoritePending}
               onClick={(e) => {
                 e.stopPropagation();
-                if (selectedSpot) toggleLikedSpot(selectedSpot);
+                if (selectedSpot)
+                  toggleFavorite(selectedSpot, likedSpot?.favoriteId);
               }}
             >
               <LikeIcon $active={isLiked} />

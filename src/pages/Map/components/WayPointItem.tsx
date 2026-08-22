@@ -3,12 +3,12 @@ import styled from "styled-components";
 import { POOL_DAY, useWayPointStore } from "../../../stores/useWayPointStore";
 import { useDrag, useDrop } from "react-dnd";
 import { useSpotStore } from "../../../stores/useSpotStore";
-import type { ISearchSpotResponse } from "../../../types/spot";
+import type { ISpotListItem } from "../../../types/spot";
 
 interface WayPointItemProps {
   dayIndex: number;
   index: number;
-  spot: ISearchSpotResponse;
+  spot: ISpotListItem;
 }
 
 export interface DragItem {
@@ -16,7 +16,7 @@ export interface DragItem {
   index: number;
   name: string;
   addr1: string;
-  category: string;
+  category?: string;
 }
 
 const WayPointItem = ({ dayIndex, index, spot }: WayPointItemProps) => {

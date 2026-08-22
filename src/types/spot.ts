@@ -151,6 +151,7 @@ export interface ISpotDetailRequest {
 }
 
 export interface ISpotListItem {
+  favoriteId?: string;
   contentid: string;
   contenttypeid?: string;
   title: string;
@@ -158,6 +159,9 @@ export interface ISpotListItem {
   firstimage?: string;
   mapx?: string;
   mapy?: string;
+  lclsSystm1?: string;
+  lclsSystm2?: string;
+  lclsSystm3?: string;
   lclsSystm2Nm?: string;
   lDongRegnCd?: string;
   lDongSignguCd?: string;

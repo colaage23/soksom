@@ -3,6 +3,7 @@ import { Heart, MoveRight } from "lucide-react";
 import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
 import type { ISpotListItem } from "../../../types/spot";
 import FallBackImage from "../../../assets/fallback.png";
+import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
 
 interface ISpotCardProps {
   spot: ISpotListItem;
@@ -17,11 +18,13 @@ const SpotCard = ({
   onClick,
   onArrowClick,
 }: ISpotCardProps) => {
-  const { likedSpotMap, toggleLikedSpot } = useLikedSpotStore();
+  const likedSpotMap = useLikedSpotStore((state) => state.likedSpotMap);
+  const { toggleFavorite, isPending } = useToggleFavorite();
 
   if (!spot) return null;
 
-  const isLiked = Boolean(likedSpotMap[spot.contentid]);
+  const likedSpot = likedSpotMap[spot.contentid];
+  const isLiked = Boolean(likedSpot);
 
   return (
     <SpotCardContainer $isActive={isActive} onClick={onClick}>
@@ -29,9 +32,10 @@ const SpotCard = ({
         <SpotImage src={spot.firstimage || FallBackImage} alt={spot.title} />
         <IconButton
           $active={isLiked}
+          disabled={isPending}
           onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
             e.stopPropagation();
-            toggleLikedSpot(spot);
+            toggleFavorite(spot, likedSpot?.favoriteId);
           }}
         >
           <LikeIcon $active={isLiked} />

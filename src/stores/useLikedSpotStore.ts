@@ -3,25 +3,29 @@ import type { ISpotListItem } from "../types/spot";
 
 interface ISpotLike {
   likedSpotMap: Record<string, ISpotListItem>;
-  toggleLikedSpot: (spot: ISpotListItem) => void;
+  addLikedSpot: (spot: ISpotListItem, favoriteId: string) => void;
+  removeLikedSpot: (contentId: string) => void;
   hydrateLikedSpots: (spots: ISpotListItem[]) => void;
 }
 
 export const useLikedSpotStore = create<ISpotLike>((set) => ({
   likedSpotMap: {},
 
-  toggleLikedSpot: (spot) =>
+  addLikedSpot: (spot, favoriteId) =>
+    set((state) => ({
+      likedSpotMap: {
+        ...state.likedSpotMap,
+        [spot.contentid]: { ...spot, favoriteId },
+      },
+    })),
+
+  removeLikedSpot: (contentId) =>
     set((state) => {
       const next = { ...state.likedSpotMap };
-      if (next[spot.contentid]) {
-        delete next[spot.contentid];
-      } else {
-        next[spot.contentid] = spot;
-      }
+      delete next[contentId];
       return { likedSpotMap: next };
     }),
 
-  // 서버 즐겨찾기 목록으로 로컬 상태를 통째로 교체(초기 동기화용)
   hydrateLikedSpots: (spots) =>
     set(() => ({
       likedSpotMap: spots.reduce<Record<string, ISpotListItem>>((acc, spot) => {
