@@ -4,18 +4,12 @@ import { useLikedSpotStore } from "../../stores/useLikedSpotStore";
 
 export const useSyncLikedSpots = () => {
   const { data } = useGetFavoriteSpots();
-  const setLikedSpots = useLikedSpotStore((state) => state.setLikedSpots);
+  const hydrateLikedSpots = useLikedSpotStore(
+    (state) => state.hydrateLikedSpots,
+  );
 
   useEffect(() => {
     if (!data) return;
-
-    const map = data.reduce<Record<string, string>>((acc, spot) => {
-      if (spot.favoriteId) {
-        acc[spot.contentid] = spot.favoriteId;
-      }
-      return acc;
-    }, {});
-
-    setLikedSpots(map);
-  }, [data, setLikedSpots]);
+    hydrateLikedSpots(data);
+  }, [data, hydrateLikedSpots]);
 };

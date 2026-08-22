@@ -1,6 +1,4 @@
-import axios from "axios";
 import { axiosInstance } from "../axiosInstance";
-import type { ISearchSpotResponse } from "../../types/spot";
 
 export interface IFavoriteSpot {
   favoriteId?: string;
@@ -17,6 +15,8 @@ export interface IFavoriteSpot {
   lclsSystm1Nm?: string;
   lclsSystm2Nm?: string;
   lclsSystm3Nm?: string;
+  lDongRegnCd?: string;
+  lDongSignguCd?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -37,8 +37,8 @@ interface IRawFavoriteSpot {
   address?: string;
   addr1?: string;
   addr2?: string;
-  lDongRegnCd?: string;
-  lDongSignguCd?: string;
+  ldongRegnCd?: string;
+  ldongSignguCd?: string;
   lclsSystm1?: string;
   lclsSystm1Nm?: string;
   lclsSystm2?: string;
@@ -84,8 +84,8 @@ const normalizeFavoriteSpot = (spot: IRawFavoriteSpot): IFavoriteSpot => ({
   title: spot.spotName ?? spot.title ?? "이름 없는 장소",
   addr1: spot.address ?? spot.addr1 ?? "",
   addr2:
-    spot.lDongRegnCd && spot.lDongSignguCd
-      ? `${spot.lDongRegnCd} ${spot.lDongSignguCd}`
+    spot.ldongRegnCd && spot.ldongSignguCd
+      ? `${spot.ldongRegnCd} ${spot.ldongSignguCd}`
       : spot.addr2,
   firstimage: spot.thumbnail ?? spot.firstimage,
   mapx:
@@ -105,6 +105,9 @@ const normalizeFavoriteSpot = (spot: IRawFavoriteSpot): IFavoriteSpot => ({
   lclsSystm1Nm: spot.lclsSystm1 ?? spot.lclsSystm1Nm,
   lclsSystm2Nm: spot.lclsSystm2 ?? spot.lclsSystm2Nm,
   lclsSystm3Nm: spot.lclsSystm3 ?? spot.lclsSystm3Nm,
+
+  lDongRegnCd: spot.ldongRegnCd,
+  lDongSignguCd: spot.ldongSignguCd,
   createdAt: spot.createdAt,
   updatedAt: spot.updatedAt,
 });
@@ -152,90 +155,3 @@ export const getFavoriteSpots = async ({
     throw new Error("Fail to fetch Favorite Spots.", { cause: error });
   }
 };
-
-export interface IAddFavoritePayload {
-  contentId: string;
-  contentTypeId?: string;
-  spotName: string;
-  address: string;
-  ldongRegnCd?: string;
-  ldongSignguCd?: string;
-  lclsSystm1?: string;
-  lclsSystm2?: string;
-  lclsSystm3?: string;
-  latitude?: number;
-  longitude?: number;
-  thumbnail?: string;
-  congestion?: {
-    cnctrRate: string;
-    baseYmd: string;
-    areaCd: string;
-    areaNm: string;
-    signguCd: string;
-    signguNm: string;
-    tatsNm: string;
-  };
-}
-
-interface IAddFavoriteResponse {
-  success: boolean;
-  message?: string;
-  data: string | number;
-}
-
-export const addFavorite = async (
-  payload: IAddFavoritePayload,
-): Promise<string> => {
-  try {
-    const response = await axiosInstance.post<IAddFavoriteResponse>(
-      "/favorite",
-      payload,
-    );
-    return String(response.data.data);
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error("Add Favorite Error:", error.response?.data);
-      console.error("Status:", error.response?.status);
-      console.error("Request payload:", error.config?.data);
-    }
-    throw new Error("Fail to add Favorite.", { cause: error });
-  }
-};
-
-export const removeFavorite = async (favoriteId: string): Promise<void> => {
-  try {
-    await axiosInstance.delete(`/favorite/${favoriteId}`);
-  } catch (error) {
-    console.error("Remove Favorite Error: ", error);
-    throw new Error("Fail to remove Favorite.", { cause: error });
-  }
-};
-
-// SpotCard(ISearchSpotResponse) -> POST 요청 바디 변환
-export const toAddFavoritePayload = (
-  spot: ISearchSpotResponse,
-): IAddFavoritePayload => ({
-  contentId: spot.contentid,
-  contentTypeId: spot.contenttypeid ?? "",
-  spotName: spot.title,
-  address: spot.addr1 ?? "",
-  ldongRegnCd: spot.lDongRegnCd ?? "",
-  ldongSignguCd: spot.lDongSignguCd ?? "",
-  thumbnail: spot.firstimage ?? "",
-  latitude: spot.mapy ? Number(spot.mapy) : 0,
-  longitude: spot.mapx ? Number(spot.mapx) : 0,
-  lclsSystm1: spot.lclsSystm1Nm ?? "",
-  lclsSystm2: spot.lclsSystm2Nm ?? "",
-  lclsSystm3: spot.lclsSystm3Nm ?? "",
-  congestion: spot.congestion
-    ? {
-        cnctrRate: spot.congestion.cnctrRate,
-        baseYmd: spot.congestion.baseYmd,
-        areaCd: spot.congestion.areaCd,
-        areaNm: spot.congestion.areaNm,
-        signguCd: spot.congestion.signguCd,
-        signguNm: spot.congestion.signguNm,
-        tatsNm: spot.congestion.tatsNm,
-      }
-    : undefined,
-});
