@@ -18,7 +18,6 @@ import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
 import { useWayPointStore } from "../../../stores/useWayPointStore";
 import { useGetSpotDetail } from "../../../hooks/spot/useGetSpotDetail";
 import type { ISpotDetailInfo } from "../../../types/spot";
-import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
 import {
   getCongestionLevel,
   getCongestionStyle,
@@ -43,8 +42,9 @@ const ROOM_AMENITIES: { key: keyof ISpotDetailInfo; label: string }[] = [
 
 const SpotDetail = () => {
   const { setDetailSpot, selectedSpot } = useSpotStore();
-  const likedSpotMap = useLikedSpotStore((state) => state.likedSpotMap);
-  const { toggleFavorite, isPending: isFavoritePending } = useToggleFavorite();
+  const { likedSpotMap, toggleLikedSpot } = useLikedSpotStore();
+  const isLiked = Boolean(selectedSpot && likedSpotMap[selectedSpot.contentid]);
+
   const { toggleWayPoint, isSelected } = useWayPointStore();
 
   const { data: spotDetail } = useGetSpotDetail({
@@ -128,24 +128,13 @@ const SpotDetail = () => {
 
           <RightGroup>
             <IconButton
-              $active={Boolean(
-                selectedSpot && likedSpotMap[selectedSpot.contentid],
-              )}
-              disabled={isFavoritePending}
-              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+              $active={isLiked}
+              onClick={(e) => {
                 e.stopPropagation();
-                if (!selectedSpot) return;
-                toggleFavorite(
-                  selectedSpot,
-                  likedSpotMap[selectedSpot.contentid],
-                );
+                if (selectedSpot) toggleLikedSpot(selectedSpot);
               }}
             >
-              <LikeIcon
-                $active={Boolean(
-                  selectedSpot && likedSpotMap[selectedSpot.contentid],
-                )}
-              />
+              <LikeIcon $active={isLiked} />
             </IconButton>
           </RightGroup>
         </SpotActions>
