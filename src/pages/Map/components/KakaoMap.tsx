@@ -72,8 +72,8 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
   const currentDaySpots =
     expandedDay !== null ? (wayPoint[expandedDay] ?? []) : [];
 
-  const lat = selectedSpot ? parseFloat(selectedSpot.mapy) : 33.34714;
-  const lng = selectedSpot ? parseFloat(selectedSpot.mapx) : 126.41986;
+  const lat = selectedSpot?.mapy ? parseFloat(selectedSpot.mapy) : 33.34714;
+  const lng = selectedSpot?.mapx ? parseFloat(selectedSpot.mapx) : 126.41986;
 
   useEffect(() => {
     const map = mapRef.current;
