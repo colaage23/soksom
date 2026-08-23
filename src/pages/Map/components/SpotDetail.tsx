@@ -6,6 +6,7 @@ import {
   Clock,
   Globe,
   Heart,
+  LogIn,
   MoveLeft,
   Phone,
   Sparkles,
@@ -24,6 +25,8 @@ import {
 } from "../../../constants/congestion.utils";
 import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
 import FallBackImage from "../../../assets/fallback.png";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../../stores/auth/authStore";
 
 const ROOM_AMENITIES: { key: keyof ISpotDetailInfo; label: string }[] = [
   { key: "roomaircondition", label: "에어컨" },
@@ -43,6 +46,10 @@ const ROOM_AMENITIES: { key: keyof ISpotDetailInfo; label: string }[] = [
 ];
 
 const SpotDetail = () => {
+  const navigate = useNavigate();
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const isLoggedIn = Boolean(accessToken);
+
   const { setDetailSpot, selectedSpot } = useSpotStore();
   const { likedSpotMap } = useLikedSpotStore();
   const { toggleFavorite, isPending: isFavoritePending } = useToggleFavorite();
@@ -100,6 +107,10 @@ const SpotDetail = () => {
   const isRoomInfo = spotDetail?.info?.some((item) => !!item.roomtitle);
 
   const handleAddToPlan = () => {
+    if (!isLoggedIn) {
+      handleGoToLogin();
+      return;
+    }
     if (selectedSpot) toggleWayPoint(selectedSpot);
   };
 
@@ -120,6 +131,10 @@ const SpotDetail = () => {
   const clampedPosition =
     displayRate !== null ? Math.min(95, Math.max(5, displayRate)) : null;
 
+  const handleGoToLogin = () => {
+    navigate("/auth");
+  };
+
   return (
     <SpotDetailContainer>
       <SpotHeaderWrapper>
@@ -139,6 +154,10 @@ const SpotDetail = () => {
               disabled={isFavoritePending}
               onClick={(e) => {
                 e.stopPropagation();
+                if (!isLoggedIn) {
+                  handleGoToLogin();
+                  return;
+                }
                 if (selectedSpot)
                   toggleFavorite(selectedSpot, likedSpot?.favoriteId);
               }}
@@ -435,7 +454,11 @@ const SpotDetail = () => {
 
       <FixedButtonWrapper>
         <AddToPlanButton onClick={handleAddToPlan}>
-          {selectedSpot && isSelected(selectedSpot) ? (
+          {!isLoggedIn ? (
+            <>
+              <LoginIcon /> 로그인 후 일정에 추가하기
+            </>
+          ) : selectedSpot && isSelected(selectedSpot) ? (
             <>
               <CheckIcon /> 일정에 추가되었습니다
             </>
@@ -985,6 +1008,13 @@ const CheckIcon = styled(Check)`
   height: 16px;
   stroke: currentColor;
   stroke-width: 2.5;
+`;
+
+const LoginIcon = styled(LogIn)`
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
 `;
 
 const AddToPlanButton = styled.button`
