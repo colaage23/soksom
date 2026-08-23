@@ -65,6 +65,8 @@ const FavoritePlaces = () => {
         spot.createdAt?.slice(0, 10).replace(/-/g, ".") ?? "저장 완료",
       secondaryMeta: spot.tel ?? "연락처 정보 없음",
       icon: getFavoriteIcon(category),
+      contentId: spot.contentid,
+      thumbnail: spot.firstimage,
     };
   });
 

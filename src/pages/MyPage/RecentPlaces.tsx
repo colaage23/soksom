@@ -37,7 +37,6 @@ const RecentPlaces = () => {
   ).length;
   const stats = [
     { label: "최근 조회", value: `${recentSearchPlaces.length}곳` },
-    { label: "이번 달 조회", value: `${monthlyCount}곳` },
   ];
   const items: CollectionPageItem[] = recentSearchPlaces.map((place) => ({
     title: place.title,
@@ -52,6 +51,8 @@ const RecentPlaces = () => {
       place.createdAt?.slice(0, 10).replace(/-/g, ".") ?? "최근 조회",
     secondaryMeta: `기록 #${place.historyId}`,
     icon: getRecentPlaceIcon(place.title),
+    contentId: place.contentid,
+    thumbnail: place.firstimage,
   }));
 
   return (
