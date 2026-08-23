@@ -81,12 +81,14 @@ const Header = () => {
     <>
       <HeaderShell $isSolid={isSolid}>
         <HeaderInner>
-          <BrandBlock onClick={() => navigate("/")}>
-            <BrandImage src={SoksomLogo} alt="속솜" />
-            <BrandText $isSolid={isSolid}>
-              <h3>속솜</h3>
-            </BrandText>
-          </BrandBlock>
+          <div>
+            <BrandBlock onClick={() => navigate("/")}>
+              <BrandImage src={SoksomLogo} alt="속솜" />
+              <BrandText $isSolid={isSolid}>
+                <h3>속솜</h3>
+              </BrandText>
+            </BrandBlock>
+          </div>
 
           <DesktopNav aria-label="주요 메뉴">
             {navItems.map((item) => (

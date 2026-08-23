@@ -295,17 +295,18 @@ const HeroTitle = styled.h1`
 `;
 
 const HeroStats = styled.div<{ $columns: number }>`
-  display: grid;
-  grid-template-columns: repeat(${({ $columns }) => $columns}, minmax(0, 1fr));
+  display: flex;
+  justify-content: flex-end;
   gap: 12px;
 
   @media (max-width: 640px) {
-    grid-template-columns: 1fr;
+    flex-direction: column;
   }
 `;
 
 const StatCard = styled.article`
   display: grid;
+  width: 160px;
   gap: 8px;
   padding: 18px;
   border-radius: 22px;

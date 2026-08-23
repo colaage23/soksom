@@ -8,12 +8,14 @@ import {
   Trees,
   Waves,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../constants/colors";
 import { useGetFavoriteSpots } from "../../hooks/favorite/useGetFavoriteSpots";
 import { useGetRecentSearchPlaces } from "../../hooks/searchHistory/useGetRecentSearchPlaces";
+import { useGetTrips } from "../../hooks/trip/useGetTrips";
+import type { ITrip } from "../../types/trip";
 import { formatVisitDateLabel } from "./utils/placeDateLabel";
 
 const SIDEBAR_LIST_TOP = 96;
@@ -26,46 +28,6 @@ const sidebarSections = [
   { id: "trips", label: "여행 일정", icon: CalendarDays },
   //   { id: "taste", label: "여행 선호도 분석", icon: Sparkles },
 ] as const;
-
-const itinerarySteps = [
-  "09:00 치유의 숲",
-  "11:30 비밀의 정원 카페",
-  "14:00 사려니 숲길",
-];
-
-const upcomingTrips = [
-  {
-    title: "애월 해안가 정적인 여행",
-    date: "2026.07.04 - 2026.07.04",
-    spots: "3개 장소",
-    level: "보통",
-    icon: Waves,
-  },
-  {
-    title: "오설록 인근 비밀 정원 투어",
-    date: "2026.07.12 - 2026.07.13",
-    spots: "5개 장소",
-    level: "여유로움",
-    icon: Trees,
-  },
-];
-
-const pastTrips = [
-  {
-    title: "우도 해안 드라이브",
-    date: "2026.05.11 - 2026.05.11",
-    spots: "4개 장소",
-    level: "여유로움",
-    icon: Waves,
-  },
-  {
-    title: "비자림 아침 산책",
-    date: "2026.04.20 - 2026.04.20",
-    spots: "2개 장소",
-    level: "보통",
-    icon: Trees,
-  },
-];
 
 const getFavoriteIcon = (category?: string) => {
   const normalizedCategory = category?.toLowerCase() ?? "";
@@ -117,12 +79,94 @@ const getRecentPlaceIcon = (title: string) => {
   return MapPinned;
 };
 
+const parseTripDate = (value?: string) => {
+  if (!value) return null;
+
+  const normalized = value.slice(0, 10).replace(/\./g, "-");
+  const parsedDate = new Date(normalized);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return null;
+  }
+
+  parsedDate.setHours(0, 0, 0, 0);
+  return parsedDate;
+};
+
+const formatTripDateRange = (startDate: string, endDate: string) => {
+  const startLabel = startDate
+    ? startDate.slice(0, 10).replace(/-/g, ".")
+    : "날짜 미정";
+  const endLabel = endDate
+    ? endDate.slice(0, 10).replace(/-/g, ".")
+    : startLabel;
+
+  return `${startLabel} - ${endLabel}`;
+};
+
+const getTripDayCount = (startDate: string, endDate: string) => {
+  const start = parseTripDate(startDate);
+  const end = parseTripDate(endDate);
+
+  if (!start || !end) {
+    return null;
+  }
+
+  const diffTime = end.getTime() - start.getTime();
+  return Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+};
+
+const getTripIcon = (trip: ITrip) => {
+  const category = trip.details
+    .flatMap((detail) => [
+      detail.lclsSystm3Nm,
+      detail.lclsSystm2Nm,
+      detail.lclsSystm1Nm,
+    ])
+    .find(Boolean);
+
+  if (category) {
+    return getFavoriteIcon(category);
+  }
+
+  const firstTitle = trip.details.find((detail) => detail.title)?.title;
+  if (firstTitle) {
+    return getRecentPlaceIcon(firstTitle);
+  }
+
+  return MapPinned;
+};
+
+const getTripTone = (trip: ITrip) => {
+  const dayCount = getTripDayCount(trip.startDate, trip.endDate) ?? 1;
+  return trip.details.length / dayCount <= 2 ? "여유로움" : "보통";
+};
+
+const getTripTimelineSteps = (trip: ITrip) =>
+  [...trip.details]
+    .sort(
+      (left, right) =>
+        Number(left.visitOrder || 0) - Number(right.visitOrder || 0),
+    )
+    .slice(0, 4)
+    .map((detail, index) => {
+      const orderLabel = detail.visitOrder
+        ? `${detail.visitOrder}순위`
+        : `${index + 1}번째`;
+      return `${orderLabel} ${detail.title}`;
+    });
+
 const Mypage = () => {
   const navigate = useNavigate();
   const { data: favoriteSpots = [], isLoading: isFavoriteLoading } =
     useGetFavoriteSpots();
   const { data: recentSearchPlaces = [], isLoading: isRecentLoading } =
     useGetRecentSearchPlaces();
+  const {
+    data: tripList,
+    isLoading: isTripLoading,
+    isError: isTripError,
+  } = useGetTrips({ pageNo: 1, numOfRows: 20 });
   const previewRecentPlaces = recentSearchPlaces.slice(0, 2);
   const previewFavoriteSpots = favoriteSpots.slice(0, 3);
   const [selectedSection, setSelectedSection] =
@@ -186,11 +230,68 @@ const Mypage = () => {
     };
   }, []);
 
-  const showCurrentTrip = selectedTripFilter === "전체";
+  const sortedTrips = useMemo(() => {
+    const trips = tripList?.content ?? [];
+
+    return [...trips].sort((left, right) => {
+      const leftTime =
+        parseTripDate(left.startDate)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+      const rightTime =
+        parseTripDate(right.startDate)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+      return leftTime - rightTime;
+    });
+  }, [tripList?.content]);
+
+  const { currentTrip, upcomingTrips, pastTrips } = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const current: ITrip[] = [];
+    const upcoming: ITrip[] = [];
+    const past: ITrip[] = [];
+
+    sortedTrips.forEach((trip) => {
+      const start = parseTripDate(trip.startDate);
+      const end = parseTripDate(trip.endDate) ?? start;
+
+      if (!start || !end) {
+        upcoming.push(trip);
+        return;
+      }
+
+      if (end.getTime() < today.getTime()) {
+        past.push(trip);
+        return;
+      }
+
+      if (
+        start.getTime() <= today.getTime() &&
+        end.getTime() >= today.getTime()
+      ) {
+        current.push(trip);
+        return;
+      }
+
+      upcoming.push(trip);
+    });
+
+    return {
+      currentTrip: current[0] ?? null,
+      upcomingTrips: upcoming,
+      pastTrips: [...past].sort((left, right) => {
+        const leftTime = parseTripDate(left.endDate)?.getTime() ?? 0;
+        const rightTime = parseTripDate(right.endDate)?.getTime() ?? 0;
+        return rightTime - leftTime;
+      }),
+    };
+  }, [sortedTrips]);
+
+  const showCurrentTrip = selectedTripFilter === "전체" && Boolean(currentTrip);
   const visibleTrips =
     selectedTripFilter === "지난 여행" ? pastTrips : upcomingTrips;
   const showAddTripCard = selectedTripFilter !== "지난 여행";
   const selectedTripFilterIndex = tripFilterOptions.indexOf(selectedTripFilter);
+  const currentTripSteps = currentTrip ? getTripTimelineSteps(currentTrip) : [];
 
   return (
     <PageShell>
@@ -392,21 +493,38 @@ const Mypage = () => {
                 </SegmentedTabs>
               </SectionHeader>
 
-              {showCurrentTrip && (
+              {showCurrentTrip && currentTrip && (
                 <CurrentTripCard>
                   <CurrentTripHeader>
                     <StatusPill $variant="solid">진행 중</StatusPill>
-                    <CurrentTripTitle>서귀포 숲길 비밀 산책</CurrentTripTitle>
+                    <CurrentTripTitle>{currentTrip.tripName}</CurrentTripTitle>
                     <CurrentTripDate>
-                      2026.06.28 - 2026.06.30 (3일)
+                      {formatTripDateRange(
+                        currentTrip.startDate,
+                        currentTrip.endDate,
+                      )}
+                      {(() => {
+                        const dayCount = getTripDayCount(
+                          currentTrip.startDate,
+                          currentTrip.endDate,
+                        );
+                        return dayCount ? ` (${dayCount}일)` : "";
+                      })()}
                     </CurrentTripDate>
                   </CurrentTripHeader>
                   <CurrentTripFooter>
-                    <CurrentTripMeta>총 6개의 장소</CurrentTripMeta>
-                    <CurrentTripMeta>평균 혼잡도: 여유</CurrentTripMeta>
+                    <CurrentTripMeta>
+                      총 {currentTrip.details.length}개의 장소
+                    </CurrentTripMeta>
+                    <CurrentTripMeta>
+                      {currentTrip.isAiRoute === "Y" ||
+                      currentTrip.isAiRoute === "true"
+                        ? "AI 추천 일정"
+                        : "직접 만든 일정"}
+                    </CurrentTripMeta>
                   </CurrentTripFooter>
                   <TimelineRow>
-                    {itinerarySteps.map((step) => (
+                    {currentTripSteps.map((step) => (
                       <TimelineChip key={step}>{step}</TimelineChip>
                     ))}
                   </TimelineRow>
@@ -414,27 +532,52 @@ const Mypage = () => {
               )}
 
               <UpcomingGrid>
-                {visibleTrips.map((trip, index) => {
-                  const Icon = trip.icon;
+                {isTripLoading && (
+                  <TripEmptyCard>여행 일정을 불러오는 중입니다.</TripEmptyCard>
+                )}
+                {isTripError && !isTripLoading && (
+                  <TripEmptyCard>
+                    여행 일정을 불러오지 못했습니다.
+                  </TripEmptyCard>
+                )}
+                {!isTripLoading &&
+                  !isTripError &&
+                  visibleTrips.map((trip, index) => {
+                    const Icon = getTripIcon(trip);
+                    const tripTone = getTripTone(trip);
 
-                  return (
-                    <UpcomingCard key={trip.title}>
-                      <UpcomingVisual $index={index}>
-                        <LevelBadge
-                          $variant={trip.level === "여유로움" ? "calm" : "warm"}
-                        >
-                          {trip.level}
-                        </LevelBadge>
-                      </UpcomingVisual>
-                      <UpcomingBody>
-                        <Icon size={28} />
-                        <UpcomingTitle>{trip.title}</UpcomingTitle>
-                        <UpcomingMeta>{trip.date}</UpcomingMeta>
-                        <UpcomingMeta>{trip.spots}</UpcomingMeta>
-                      </UpcomingBody>
-                    </UpcomingCard>
-                  );
-                })}
+                    return (
+                      <UpcomingCard key={trip.tripId}>
+                        <UpcomingVisual $index={index}>
+                          <LevelBadge
+                            $variant={tripTone === "여유로움" ? "calm" : "warm"}
+                          >
+                            {tripTone}
+                          </LevelBadge>
+                        </UpcomingVisual>
+                        <UpcomingBody>
+                          <Icon size={28} />
+                          <UpcomingTitle>{trip.tripName}</UpcomingTitle>
+                          <UpcomingMeta>
+                            {formatTripDateRange(trip.startDate, trip.endDate)}
+                          </UpcomingMeta>
+                          <UpcomingMeta>
+                            {trip.details.length}개 장소
+                          </UpcomingMeta>
+                        </UpcomingBody>
+                      </UpcomingCard>
+                    );
+                  })}
+
+                {!isTripLoading &&
+                  !isTripError &&
+                  visibleTrips.length === 0 && (
+                    <TripEmptyCard>
+                      {selectedTripFilter === "지난 여행"
+                        ? "지난 여행 일정이 없습니다."
+                        : "예정된 여행 일정이 없습니다."}
+                    </TripEmptyCard>
+                  )}
 
                 {showAddTripCard && (
                   <AddTripCard type="button">
@@ -982,6 +1125,18 @@ const UpcomingGrid = styled.div`
   @media (max-width: 960px) {
     grid-template-columns: 1fr;
   }
+`;
+
+const TripEmptyCard = styled.article`
+  grid-column: 1 / -1;
+  padding: 28px 24px;
+  border-radius: 24px;
+  border: 1px dashed rgba(36, 149, 155, 0.22);
+  background: rgba(255, 255, 255, 0.72);
+  color: #607069;
+  font-size: 0.94rem;
+  font-weight: 600;
+  text-align: center;
 `;
 
 const UpcomingCard = styled.article`
