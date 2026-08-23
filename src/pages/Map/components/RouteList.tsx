@@ -103,10 +103,17 @@ const RouteList = () => {
   };
 
   const handleOpenModal = () => {
+    const startDate = formatDate(dateRange.startDate);
+    const endDate = formatDate(dateRange.endDate);
     const totalSpotCount = wayPoint.reduce((sum, day) => sum + day.length, 0);
 
     if (totalSpotCount === 0) {
       alert("일정에 관광지를 먼저 담아주세요.");
+      return;
+    }
+
+    if (!startDate || !endDate) {
+      alert("여행 날짜를 먼저 선택해주세요.");
       return;
     }
 
@@ -116,11 +123,6 @@ const RouteList = () => {
   const handleGenerateSchedule = (tripName: string) => {
     const startDate = formatDate(dateRange.startDate);
     const endDate = formatDate(dateRange.endDate);
-
-    if (!startDate || !endDate) {
-      alert("여행 날짜를 먼저 선택해주세요.");
-      return;
-    }
 
     const details = toTripDetails(wayPoint, startDate);
 
