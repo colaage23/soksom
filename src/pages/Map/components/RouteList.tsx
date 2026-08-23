@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import { useEffect, useMemo, useState } from "react";
-import { Wand } from "lucide-react";
+import { LogIn, Wand } from "lucide-react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import PoolWayPointList from "./PoolWayPointList";
@@ -14,6 +14,8 @@ import TripInfoCard from "./TripInfoCard";
 import { useCreateTrip } from "../../../hooks/trip/useCreateTrip";
 import toTripDetails from "../../../utils/toTripDetails";
 import TripNameModal from "./TripNameModal";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../../stores/auth/authStore";
 
 // 카카오모빌리티 응답에서 우리가 실제로 쓰는 부분만 느슨하게 타입 지정
 interface KakaoDirectionRoute {
@@ -23,6 +25,10 @@ interface KakaoDirectionRoute {
 }
 
 const RouteList = () => {
+  const navigate = useNavigate();
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const isLoggedIn = Boolean(accessToken);
+
   const {
     pool,
     wayPoint,
@@ -100,6 +106,10 @@ const RouteList = () => {
     const mm = String(date.getMonth() + 1).padStart(2, "0");
     const dd = String(date.getDate()).padStart(2, "0");
     return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const handleGoToLogin = () => {
+    navigate("/auth");
   };
 
   const handleOpenModal = () => {
@@ -188,10 +198,17 @@ const RouteList = () => {
       </RouteListScroll>
 
       <RouteListContent>
-        <GenerateScheduleButton onClick={handleOpenModal}>
-          <WandIcon />
-          일정 생성하기
-        </GenerateScheduleButton>
+        {isLoggedIn ? (
+          <GenerateScheduleButton onClick={handleOpenModal}>
+            <WandIcon />
+            일정 생성하기
+          </GenerateScheduleButton>
+        ) : (
+          <LoginRequiredButton onClick={handleGoToLogin}>
+            <LoginIcon />
+            로그인 후 일정 만들러 가기
+          </LoginRequiredButton>
+        )}
       </RouteListContent>
 
       <TripNameModal
@@ -279,7 +296,39 @@ const GenerateScheduleButton = styled.button`
   }
 `;
 
+const LoginRequiredButton = styled.button`
+  height: 44px;
+  width: 100%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+
+  outline: none;
+  border: 1px solid #0c9799;
+  border-radius: 9999px;
+
+  background-color: #fdfcf8;
+
+  color: #0c9799;
+  font-size: 0.875rem;
+  font-weight: 500;
+
+  &:hover {
+    background-color: #e5faf8;
+    cursor: pointer;
+  }
+`;
+
 const WandIcon = styled(Wand)`
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2.2;
+`;
+
+const LoginIcon = styled(LogIn)`
   width: 16px;
   height: 16px;
   stroke: currentColor;
