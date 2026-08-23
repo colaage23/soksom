@@ -8,9 +8,10 @@ import {
 import { getMarkerSrc, getNumberMarkerSrc } from "../../../utils/marker";
 import { useSpotStore } from "../../../stores/useSpotStore";
 import { useEffect, useRef, useState } from "react";
-import { Minus, Plus, RotateCw } from "lucide-react";
+import { Minus, Plus, Road, RotateCw } from "lucide-react";
 import { useDirectionStore } from "../../../stores/useDirectionStore";
 import { useWayPointStore } from "../../../stores/useWayPointStore";
+import { getCongestionStyle } from "../../../constants/congestion.utils";
 
 interface IKakaoMapProps {
   mode: "explore" | "route";
@@ -35,6 +36,9 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
   const [level, setLevel] = useState(9);
 
   const [hoveredSpot, setHoveredSpot] = useState<string | null>(null);
+
+  // 교통정보 표시 여부
+  const [showTraffic, setShowTraffic] = useState(false);
 
   const getMarkerSize = (mapLevel: number) => {
     const minLevel = 1;
@@ -68,8 +72,8 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
   const currentDaySpots =
     expandedDay !== null ? (wayPoint[expandedDay] ?? []) : [];
 
-  const lat = selectedSpot ? parseFloat(selectedSpot.mapy) : 33.34714;
-  const lng = selectedSpot ? parseFloat(selectedSpot.mapx) : 126.41986;
+  const lat = selectedSpot?.mapy ? parseFloat(selectedSpot.mapy) : 33.34714;
+  const lng = selectedSpot?.mapx ? parseFloat(selectedSpot.mapx) : 126.41986;
 
   useEffect(() => {
     const map = mapRef.current;
@@ -99,6 +103,25 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
     handleUserMapMove();
   };
 
+  // 교통정보 레이어 on/off
+  const handleToggleTraffic = () => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    // react-kakao-maps-sdk 타입에 TRAFFIC 관련 정의가 없는 경우가 있어 any로 캐스팅
+    const kakaoMap = map as unknown as {
+      addOverlayMapTypeId: (id: unknown) => void;
+      removeOverlayMapTypeId: (id: unknown) => void;
+    };
+
+    if (showTraffic) {
+      kakaoMap.removeOverlayMapTypeId(kakao.maps.MapTypeId.TRAFFIC);
+    } else {
+      kakaoMap.addOverlayMapTypeId(kakao.maps.MapTypeId.TRAFFIC);
+    }
+    setShowTraffic((prev) => !prev);
+  };
+
   const routePath =
     directions?.routes?.[0]?.sections
       ?.flatMap((section) => section.roads)
@@ -121,29 +144,35 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
         onZoomChanged={handleZoomChanged}
       >
         {mode === "explore" &&
-          visibleSpots.map((spot) => (
-            <MapMarker
-              key={spot.contentid}
-              position={{
-                lat: Number(spot.mapy),
-                lng: Number(spot.mapx),
-              }}
-              image={{
-                src: getMarkerSrc("#000000", spot.contenttypeid),
-                size: { width: markerSize, height: markerSize },
-                options: {
-                  offset: { x: markerSize / 2, y: markerSize / 1.5 },
-                },
-              }}
-              clickable={true}
-              onClick={() => {
-                setSelectedSpot(spot);
-                setDetailSpot(spot);
-              }}
-              onMouseOver={() => setHoveredSpot(spot.contentid)}
-              onMouseOut={() => setHoveredSpot(null)}
-            />
-          ))}
+          visibleSpots.map((spot) => {
+            const congestionColor = getCongestionStyle(
+              spot.congestion?.cnctrRate ?? null,
+            ).bgColor;
+
+            return (
+              <MapMarker
+                key={spot.contentid}
+                position={{
+                  lat: Number(spot.mapy),
+                  lng: Number(spot.mapx),
+                }}
+                image={{
+                  src: getMarkerSrc(congestionColor, spot.contenttypeid),
+                  size: { width: markerSize, height: markerSize },
+                  options: {
+                    offset: { x: markerSize / 2, y: markerSize / 1.5 },
+                  },
+                }}
+                clickable={true}
+                onClick={() => {
+                  setSelectedSpot(spot);
+                  setDetailSpot(spot);
+                }}
+                onMouseOver={() => setHoveredSpot(spot.contentid)}
+                onMouseOut={() => setHoveredSpot(null)}
+              />
+            );
+          })}
 
         {mode === "route" &&
           currentDaySpots.map((point, idx) => (
@@ -172,6 +201,10 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
             const spot = spots.find((s) => s.contentid === hoveredSpot);
             if (!spot) return null;
 
+            const congestionColor = getCongestionStyle(
+              spot.congestion?.cnctrRate ?? null,
+            ).bgColor;
+
             return (
               <CustomOverlayMap
                 position={{
@@ -180,7 +213,9 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
                 }}
                 yAnchor={-0.5}
               >
-                <MarkerLabel>{spot.title}</MarkerLabel>
+                <MarkerLabel $bgColor={congestionColor}>
+                  {spot.title}
+                </MarkerLabel>
               </CustomOverlayMap>
             );
           })()}
@@ -244,15 +279,25 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
           <ZoomOutIcon />
         </ZoomOutButton>
       </ZoomButtonContainer>
+
+      <TrafficButton
+        type="button"
+        onClick={handleToggleTraffic}
+        $active={showTraffic}
+        aria-pressed={showTraffic}
+        aria-label="실시간 교통정보 표시 전환"
+      >
+        <RoadIcon $active={showTraffic} />
+      </TrafficButton>
     </MapContainer>
   );
 };
 
-const MarkerLabel = styled.div`
+const MarkerLabel = styled.div<{ $bgColor: string }>`
   padding: 4px 10px;
 
   border-radius: 8px;
-  background-color: #1b2024;
+  background-color: ${({ $bgColor }) => $bgColor};
 
   color: #fdfcf8;
   font-size: 0.75rem;
@@ -352,6 +397,45 @@ const ZoomOutButton = styled.button`
   &:hover {
     background-color: #f7f5ef;
   }
+`;
+
+// 교통정보 토글 버튼 (줌 버튼 아래에 위치)
+const TrafficButton = styled.button<{ $active: boolean }>`
+  position: absolute;
+  top: 116px;
+  right: 16px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 40px;
+  height: 40px;
+
+  border: none;
+  border-radius: 16px;
+
+  background-color: ${({ $active }) => ($active ? "#0c9799" : "#fdfcf8")};
+  box-shadow: 0 0px 4px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+
+  transition: background-color 0.15s ease;
+
+  z-index: 10;
+
+  &:hover {
+    background-color: ${({ $active }) => ($active ? "#0a8385" : "#f7f5ef")};
+  }
+`;
+
+const RoadIcon = styled(Road)<{ $active: boolean }>`
+  width: 16px;
+  height: 16px;
+
+  stroke: ${({ $active }) => ($active ? "#fff" : "#1b2024")};
+  fill: none;
+
+  stroke-width: 2;
 `;
 
 const SearchHereButton = styled.button<{

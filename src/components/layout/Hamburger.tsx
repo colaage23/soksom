@@ -5,6 +5,7 @@ import colors from "../../constants/colors";
 import { navItems } from "../../constants/navItems";
 import { useAuthStore } from "../../stores/auth/authStore";
 import { useGetUserInfo } from "../../hooks/auth/useGetUserInfo";
+import { useWayPointStore } from "../../stores/useWayPointStore";
 
 type HamburgerProps = {
   isOpen: boolean;
@@ -34,6 +35,9 @@ const Hamburger = ({ isOpen, onClose }: HamburgerProps) => {
     clearAuth();
     handleClose();
     navigate("/");
+
+    useWayPointStore.getState().resetWayPoint();
+    useWayPointStore.persist.clearStorage();
   };
 
   return (

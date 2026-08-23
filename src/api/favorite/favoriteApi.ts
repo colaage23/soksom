@@ -1,3 +1,5 @@
+import axios from "axios";
+import type { ISpotListItem } from "../../types/spot";
 import { axiosInstance } from "../axiosInstance";
 
 export interface IFavoriteSpot {
@@ -12,9 +14,14 @@ export interface IFavoriteSpot {
   mapy?: string;
   tel?: string;
   overview?: string;
+  lclsSystm1?: string;
+  lclsSystm2?: string;
+  lclsSystm3?: string;
   lclsSystm1Nm?: string;
   lclsSystm2Nm?: string;
   lclsSystm3Nm?: string;
+  lDongRegnCd?: string;
+  lDongSignguCd?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -38,11 +45,9 @@ interface IRawFavoriteSpot {
   ldongRegnCd?: string;
   ldongSignguCd?: string;
   lclsSystm1?: string;
-  lclsSystm1Nm?: string;
   lclsSystm2?: string;
-  lclsSystm2Nm?: string;
   lclsSystm3?: string;
-  lclsSystm3Nm?: string;
+  lclsSystm2Nm?: string;
   latitude?: number | string;
   mapy?: number | string;
   longitude?: number | string;
@@ -100,9 +105,13 @@ const normalizeFavoriteSpot = (spot: IRawFavoriteSpot): IFavoriteSpot => ({
         : undefined,
   tel: spot.tel,
   overview: spot.overview,
-  lclsSystm1Nm: spot.lclsSystm1 ?? spot.lclsSystm1Nm,
-  lclsSystm2Nm: spot.lclsSystm2 ?? spot.lclsSystm2Nm,
-  lclsSystm3Nm: spot.lclsSystm3 ?? spot.lclsSystm3Nm,
+  lclsSystm1: spot.lclsSystm1,
+  lclsSystm2: spot.lclsSystm2,
+  lclsSystm3: spot.lclsSystm3,
+  lclsSystm2Nm: spot.lclsSystm2Nm,
+
+  lDongRegnCd: spot.ldongRegnCd,
+  lDongSignguCd: spot.ldongSignguCd,
   createdAt: spot.createdAt,
   updatedAt: spot.updatedAt,
 });
@@ -164,6 +173,15 @@ export interface IAddFavoritePayload {
   latitude?: number;
   longitude?: number;
   thumbnail?: string;
+  congestion?: {
+    cnctrRate: string;
+    baseYmd: string;
+    areaCd: string;
+    areaNm: string;
+    signguCd: string;
+    signguNm: string;
+    tatsNm: string;
+  };
 }
 
 interface IAddFavoriteResponse {
@@ -182,7 +200,11 @@ export const addFavorite = async (
     );
     return String(response.data.data);
   } catch (error) {
-    console.error("Add Favorite Error: ", error);
+    if (axios.isAxiosError(error)) {
+      console.error("Add Favorite Error:", error.response?.data);
+      console.error("Status:", error.response?.status);
+      console.error("Request payload:", error.config?.data);
+    }
     throw new Error("Fail to add Favorite.", { cause: error });
   }
 };
@@ -196,29 +218,31 @@ export const removeFavorite = async (favoriteId: string): Promise<void> => {
   }
 };
 
-// SpotCard(ISearchSpotResponse) -> POST 요청 바디 변환
-export const toAddFavoritePayload = (spot: {
-  contentid: string;
-  contenttypeid?: string;
-  title: string;
-  addr1?: string;
-  firstimage?: string;
-  mapx?: string;
-  mapy?: string;
-  lclsSystm1Nm?: string;
-  lclsSystm2Nm?: string;
-  lclsSystm3Nm?: string;
-}): IAddFavoritePayload => ({
+// ISpotListItem -> POST 요청 바디 변환
+export const toAddFavoritePayload = (
+  spot: ISpotListItem,
+): IAddFavoritePayload => ({
   contentId: spot.contentid,
   contentTypeId: spot.contenttypeid ?? "",
   spotName: spot.title,
   address: spot.addr1 ?? "",
-  ldongRegnCd: "",
-  ldongSignguCd: "",
+  ldongRegnCd: spot.lDongRegnCd ?? "",
+  ldongSignguCd: spot.lDongSignguCd ?? "",
   thumbnail: spot.firstimage ?? "",
   latitude: spot.mapy ? Number(spot.mapy) : 0,
   longitude: spot.mapx ? Number(spot.mapx) : 0,
-  lclsSystm1: spot.lclsSystm1Nm ?? "",
-  lclsSystm2: spot.lclsSystm2Nm ?? "",
-  lclsSystm3: spot.lclsSystm3Nm ?? "",
+  lclsSystm1: spot.lclsSystm1 ?? "",
+  lclsSystm2: spot.lclsSystm2 ?? "",
+  lclsSystm3: spot.lclsSystm3 ?? "",
+  congestion: spot.congestion
+    ? {
+        cnctrRate: spot.congestion.cnctrRate,
+        baseYmd: spot.congestion.baseYmd,
+        areaCd: spot.congestion.areaCd,
+        areaNm: spot.congestion.areaNm,
+        signguCd: spot.congestion.signguCd,
+        signguNm: spot.congestion.signguNm,
+        tatsNm: spot.congestion.tatsNm ?? spot.title,
+      }
+    : undefined,
 });

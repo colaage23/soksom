@@ -1,12 +1,16 @@
 import styled from "styled-components";
 import { Heart, MoveRight } from "lucide-react";
 import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
-import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
-import type { ISearchSpotResponse } from "../../../types/spot";
+import type { ISpotListItem } from "../../../types/spot";
 import FallBackImage from "../../../assets/fallback.png";
+import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
+import {
+  getCongestionLevel,
+  getCongestionStyle,
+} from "../../../constants/congestion.utils";
 
 interface ISpotCardProps {
-  spot: ISearchSpotResponse;
+  spot: ISpotListItem;
   isActive: boolean;
   onClick: () => void;
   onArrowClick: () => void;
@@ -23,8 +27,12 @@ const SpotCard = ({
 
   if (!spot) return null;
 
-  const favoriteId = likedSpotMap[spot.contentid];
-  const isLiked = Boolean(favoriteId);
+  const likedSpot = likedSpotMap[spot.contentid];
+  const isLiked = Boolean(likedSpot);
+
+  const rawRate = spot.congestion?.cnctrRate ?? null;
+  const congestionLevel = getCongestionLevel(rawRate);
+  const status = getCongestionStyle(rawRate);
 
   return (
     <SpotCardContainer $isActive={isActive} onClick={onClick}>
@@ -35,7 +43,7 @@ const SpotCard = ({
           disabled={isPending}
           onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
             e.stopPropagation();
-            toggleFavorite(spot, favoriteId);
+            toggleFavorite(spot, likedSpot?.favoriteId);
           }}
         >
           <LikeIcon $active={isLiked} />
@@ -50,6 +58,34 @@ const SpotCard = ({
         </SubInfoText>
 
         <SpotName>{spot.title}</SpotName>
+
+        {rawRate !== null ? (
+          <CongestionBox>
+            <CongestionProgressBar>
+              <CongestionProgressFill
+                style={{
+                  backgroundColor: status.bgColor,
+                  width: `${status.progress}%`,
+                }}
+              />
+            </CongestionProgressBar>
+            <CongestionBadge
+              style={{
+                backgroundColor:
+                  congestionLevel === "혼잡"
+                    ? status.bgColor
+                    : `${status.bgColor}65`,
+                color: status.color,
+              }}
+            >
+              {status.label}
+            </CongestionBadge>
+          </CongestionBox>
+        ) : (
+          <CongestionBox>
+            <NoCongestionBadge>혼잡도 정보 없음</NoCongestionBadge>
+          </CongestionBox>
+        )}
       </SpotInfoBox>
 
       <ArrowButton
@@ -206,42 +242,52 @@ const SpotName = styled.h4`
   font-weight: 500;
 `;
 
-// const CongestionBox = styled.div`
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
-//   gap: 8px;
+const CongestionBox = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
 
-//   margin: 6px 0 0;
-// `;
+  margin: 6px 0 0;
+`;
 
-// const CongestionProgressBar = styled.div`
-//   height: 4px;
-//   width: 64px;
+const CongestionProgressBar = styled.div`
+  height: 4px;
+  width: 64px;
 
-//   border-radius: 30px;
+  border-radius: 30px;
 
-//   background-color: #eae6dd;
-// `;
+  background-color: #eae6dd;
+`;
 
-// const CongestionProgressFill = styled.div`
-//   height: 4px;
+const CongestionProgressFill = styled.div`
+  height: 4px;
 
-//   border-radius: 30px;
-// `;
+  border-radius: 30px;
+`;
 
-// const CongestionBadge = styled.div`
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
+const CongestionBadge = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
-//   padding: 4px 8px;
+  padding: 4px 8px;
 
-//   border-radius: 30px;
+  border-radius: 30px;
 
-//   color: #20201f;
-//   font-size: 0.6875rem;
-//   font-weight: 500;
-// `;
+  color: #20201f;
+  font-size: 0.6875rem;
+  font-weight: 500;
+`;
+const NoCongestionBadge = styled.span`
+  padding: 3px 8px;
+
+  border-radius: 30px;
+  background-color: #f0efe9;
+
+  color: #9a958a;
+  font-size: 0.625rem;
+  font-weight: 500;
+`;
 
 export default SpotCard;

@@ -3,39 +3,38 @@ import {
   addFavorite,
   removeFavorite,
   toAddFavoritePayload,
-  type IAddFavoritePayload,
 } from "../../api/favorite/favoriteApi";
 import { useLikedSpotStore } from "../../stores/useLikedSpotStore";
+import type { ISpotListItem } from "../../types/spot";
 
 export const useToggleFavorite = () => {
   const queryClient = useQueryClient();
   const { addLikedSpot, removeLikedSpot } = useLikedSpotStore();
 
   const addMutation = useMutation({
-    mutationFn: (payload: IAddFavoritePayload) => addFavorite(payload),
-    onSuccess: (favoriteId, payload) => {
-      addLikedSpot(payload.contentId, favoriteId);
-      queryClient.invalidateQueries({ queryKey: ["favorite-spots"] });
-    },
+    mutationFn: (spot: ISpotListItem) =>
+      addFavorite(toAddFavoritePayload(spot)),
   });
 
   const removeMutation = useMutation({
-    mutationFn: (params: { favoriteId: string; contentId: string }) =>
-      removeFavorite(params.favoriteId),
-    onSuccess: (_data, params) => {
-      removeLikedSpot(params.contentId);
-      queryClient.invalidateQueries({ queryKey: ["favorite-spots"] });
-    },
+    mutationFn: (favoriteId: string) => removeFavorite(favoriteId),
   });
 
-  const toggleFavorite = (
-    spot: Parameters<typeof toAddFavoritePayload>[0],
-    favoriteId?: string,
-  ) => {
+  const toggleFavorite = (spot: ISpotListItem, favoriteId?: string) => {
     if (favoriteId) {
-      removeMutation.mutate({ favoriteId, contentId: spot.contentid });
+      removeMutation.mutate(favoriteId, {
+        onSuccess: () => {
+          removeLikedSpot(spot.contentid);
+          queryClient.invalidateQueries({ queryKey: ["favorite-spots"] });
+        },
+      });
     } else {
-      addMutation.mutate(toAddFavoritePayload(spot));
+      addMutation.mutate(spot, {
+        onSuccess: (newFavoriteId) => {
+          addLikedSpot(spot, newFavoriteId);
+          queryClient.invalidateQueries({ queryKey: ["favorite-spots"] });
+        },
+      });
     }
   };
 

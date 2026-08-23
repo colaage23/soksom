@@ -11,12 +11,13 @@ import { axiosInstance } from "../axiosInstance";
 export const getSpotsByKeyword = async ({
   pageNo,
   keyword,
+  baseYmd,
 }: ISearchByKeywordRequest): Promise<ISearchSpotResponse[]> => {
   try {
     const response = await axios.get<{ data: ISearchSpotResponse[] }>(
       "/api/search/keyword",
       {
-        params: { pageNo, keyword },
+        params: { pageNo, keyword, baseYmd },
       },
     );
     return response.data.data;
@@ -31,12 +32,13 @@ export const getSpotsByLocation = async ({
   mapX,
   mapY,
   radius,
+  baseYmd,
 }: ISearchByLocationRequest): Promise<ISearchSpotResponse[]> => {
   try {
     const response = await axios.get<{ data: ISearchSpotResponse[] }>(
       "/api/search/location",
       {
-        params: { pageNo, mapX, mapY, radius },
+        params: { pageNo, mapX, mapY, radius, baseYmd },
       },
     );
     return response.data.data;
@@ -49,11 +51,24 @@ export const getSpotsByLocation = async ({
 export const getSpotDetail = async ({
   contentid,
   contenttypeid,
+  spotName,
+  areaCd,
+  signguCd,
+  baseYmd,
 }: ISpotDetailRequest): Promise<ISpotDetailResponse> => {
   try {
     const response = await axiosInstance.get<{ data: ISpotDetailResponse }>(
       "/detail",
-      { params: { contentid, contenttypeid } },
+      {
+        params: {
+          contentid,
+          contenttypeid,
+          spotName,
+          areaCd,
+          signguCd,
+          baseYmd,
+        },
+      },
     );
 
     return response.data.data;

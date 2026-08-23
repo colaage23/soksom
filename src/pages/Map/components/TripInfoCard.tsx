@@ -2,11 +2,13 @@ import { useState } from "react";
 import styled from "styled-components";
 import { ChevronDown, CalendarDays, RotateCcw } from "lucide-react";
 import DateRangeCalendar from "./DateRangeCalendar";
-import { useTripInfoStore } from "../../../stores/useTripInfoStore";
 import { useWayPointStore } from "../../../stores/useWayPointStore";
 
-const formatDate = (date: Date | null) =>
-  date ? `${date.getMonth() + 1}.${date.getDate()}` : null;
+const formatDate = (date: Date | string | null) => {
+  if (!date) return null;
+  const d = date instanceof Date ? date : new Date(date);
+  return `${d.getMonth() + 1}.${d.getDate()}`;
+};
 
 // 시작일~종료일(당일 포함) 사이 일수를 계산해서 일차 수로 사용
 const getDayCountFromRange = (start: Date, end: Date) => {
@@ -16,8 +18,7 @@ const getDayCountFromRange = (start: Date, end: Date) => {
 
 const TripInfoCard = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { dateRange, setDateRange } = useTripInfoStore();
-  const { setDayCount } = useWayPointStore();
+  const { setDayCount, dateRange, setDateRange } = useWayPointStore();
 
   const summary = [
     dateRange.startDate && dateRange.endDate

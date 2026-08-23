@@ -1,6 +1,7 @@
 export interface ISearchByKeywordRequest {
-  pageNo: number;
   keyword: string;
+  pageNo: number;
+  baseYmd?: string;
 }
 
 export interface ISearchByLocationRequest {
@@ -8,6 +9,7 @@ export interface ISearchByLocationRequest {
   mapX: string; // 경도 = longitude
   mapY: string; // 위도 = latitude
   radius: string;
+  baseYmd?: string;
 }
 export interface ISearchSpotResponse {
   contentid: string; // id
@@ -23,6 +25,31 @@ export interface ISearchSpotResponse {
   lclsSystm1Nm: string; // 대분류
   lclsSystm2Nm: string; // 중분류
   lclsSystm3Nm: string; // 소분류
+  lDongRegnCd: string;
+  lDongSignguCd: string;
+  congestion: ICongestion;
+}
+
+export interface ITripSpotResponse {
+  contentid: string; // id
+  contenttypeid: string; // 관광 타입
+  zipcode: string; // 우편번호
+  addr1: string; // 주소
+  addr2: string; // 상세 주소
+  firstimage: string;
+  mapx: string;
+  mapy: string;
+  tel: string;
+  title: string; // 제목
+  lclsSystm1: string; // 대분류
+  lclsSystm2: string; // 중분류
+  lclsSystm3: string; // 소분류
+  lclsSystm1Nm: string; // 대분류 이름
+  lclsSystm2Nm: string; // 중분류 이름
+  lclsSystm3Nm: string; // 소분류 이름
+  lDongRegnCd: string;
+  lDongSignguCd: string;
+  congestion: ICongestion;
 }
 
 export interface ISpotDetailCommon {
@@ -60,6 +87,16 @@ export interface ISpotDetailImage {
   originimgurl?: string;
   serialnum?: string;
   smallimageurl?: string;
+}
+
+export interface ICongestion {
+  cnctrRate: string;
+  baseYmd: string;
+  areaCd: string;
+  areaNm: string;
+  signguCd: string;
+  signguNm: string;
+  tatsNm: string;
 }
 
 export interface ISpotDetailInfo {
@@ -123,9 +160,32 @@ export interface ISpotDetailResponse {
   intro: ISpotDetailIntro;
   info: ISpotDetailInfo[];
   image: ISpotDetailImage[];
+  congestion: ICongestion;
 }
 
 export interface ISpotDetailRequest {
   contentid: string;
   contenttypeid?: string;
+  spotName?: string;
+  areaCd?: string;
+  signguCd?: string;
+  baseYmd?: string;
+}
+
+export interface ISpotListItem {
+  favoriteId?: string;
+  contentid: string;
+  contenttypeid?: string;
+  title: string;
+  addr1: string;
+  firstimage?: string;
+  mapx?: string;
+  mapy?: string;
+  lclsSystm1?: string;
+  lclsSystm2?: string;
+  lclsSystm3?: string;
+  lclsSystm2Nm?: string;
+  lDongRegnCd?: string;
+  lDongSignguCd?: string;
+  congestion?: ICongestion | null;
 }
