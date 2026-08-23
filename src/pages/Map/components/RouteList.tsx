@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Wand } from "lucide-react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -11,9 +11,6 @@ import { useWayPointStore } from "../../../stores/useWayPointStore";
 import { useDirectionWithFallback } from "../../../hooks/useDirectionWithFallback";
 import { useDirectionStore } from "../../../stores/useDirectionStore";
 import TripInfoCard from "./TripInfoCard";
-import { useCreateTrip } from "../../../hooks/trip/useCreateTrip";
-import toTripDetails from "../../../utils/toTripDetails";
-import TripNameModal from "./TripNameModal";
 
 // 카카오모빌리티 응답에서 우리가 실제로 쓰는 부분만 느슨하게 타입 지정
 interface KakaoDirectionRoute {
@@ -23,15 +20,8 @@ interface KakaoDirectionRoute {
 }
 
 const RouteList = () => {
-  const {
-    pool,
-    wayPoint,
-    dayCount,
-    expandedDay,
-    setExpandedDay,
-    resetWayPoint,
-    dateRange,
-  } = useWayPointStore();
+  const { pool, wayPoint, dayCount, expandedDay, setExpandedDay } =
+    useWayPointStore();
   const { setDirections } = useDirectionStore();
 
   const { fetchDirectionWithFallback, data } = useDirectionWithFallback();
@@ -91,63 +81,6 @@ const RouteList = () => {
       .map((s) => ({ distance: s.distance, duration: s.duration }));
   }, [route]);
 
-  const { mutate: createTripMutate, isPending: isCreating } = useCreateTrip();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const formatDate = (date: Date | null): string => {
-    if (!date) return "";
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, "0");
-    const dd = String(date.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  };
-
-  const handleOpenModal = () => {
-    const startDate = formatDate(dateRange.startDate);
-    const endDate = formatDate(dateRange.endDate);
-    const totalSpotCount = wayPoint.reduce((sum, day) => sum + day.length, 0);
-
-    if (totalSpotCount === 0) {
-      alert("일정에 관광지를 먼저 담아주세요.");
-      return;
-    }
-
-    if (!startDate || !endDate) {
-      alert("여행 날짜를 먼저 선택해주세요.");
-      return;
-    }
-
-    setIsModalOpen(true);
-  };
-
-  const handleGenerateSchedule = (tripName: string) => {
-    const startDate = formatDate(dateRange.startDate);
-    const endDate = formatDate(dateRange.endDate);
-
-    const details = toTripDetails(wayPoint, startDate);
-
-    createTripMutate(
-      {
-        tripName,
-        startDate,
-        endDate,
-        isAiRoute: "N",
-        details,
-      },
-      {
-        onSuccess: (tripId) => {
-          console.log("여행 생성 완료:", tripId);
-          setIsModalOpen(false);
-          resetWayPoint();
-          alert("일정이 생성되었어요.");
-        },
-        onError: () => {
-          alert("일정 생성에 실패했습니다.");
-        },
-      },
-    );
-  };
-
   return (
     <RouteListContainer>
       <RouteListScroll>
@@ -188,18 +121,11 @@ const RouteList = () => {
       </RouteListScroll>
 
       <RouteListContent>
-        <GenerateScheduleButton onClick={handleOpenModal}>
+        <GenerateScheduleButton>
           <WandIcon />
           일정 생성하기
         </GenerateScheduleButton>
       </RouteListContent>
-
-      <TripNameModal
-        isOpen={isModalOpen}
-        isSubmitting={isCreating}
-        onClose={() => setIsModalOpen(false)}
-        onConfirm={handleGenerateSchedule}
-      />
     </RouteListContainer>
   );
 };

@@ -3,10 +3,10 @@ import { Inbox } from "lucide-react";
 import { useDrop } from "react-dnd";
 import WayPointItem, { type DragItem } from "./WayPointItem";
 import { POOL_DAY, useWayPointStore } from "../../../stores/useWayPointStore";
-import type { ISpotListItem } from "../../../types/spot";
+import type { ISearchSpotResponse } from "../../../types/spot";
 
 interface PoolWayPointListProps {
-  spots: ISpotListItem[];
+  spots: ISearchSpotResponse[];
 }
 
 const PoolWayPointList = ({ spots }: PoolWayPointListProps) => {

@@ -37,6 +37,7 @@ const ExploreList = () => {
     searchCenter,
     setVisibleSpots,
   } = useSpotStore();
+  const likedSpotMap = useLikedSpotStore((state) => state.likedSpotMap);
   const { searchKeyword, setSearchKeyword, addRecentSearch } =
     useSearchKeywordStore();
   const keywordFromUrl = searchParams.get("keyword") ?? "";
@@ -47,6 +48,8 @@ const ExploreList = () => {
 
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const [prevKeywordFromUrl, setPrevKeywordFromUrl] = useState(keywordFromUrl);
 
   const syncKeyword = (nextKeyword: string) => {
     const normalizedKeyword = nextKeyword.trim();
@@ -75,14 +78,14 @@ const ExploreList = () => {
     }
   };
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+  if (keywordFromUrl !== prevKeywordFromUrl) {
+    setPrevKeywordFromUrl(keywordFromUrl);
     setInputKeyword(keywordFromUrl);
 
-    if (searchKeyword === keywordFromUrl) return;
-
-    setSearchKeyword(keywordFromUrl);
-  }, [keywordFromUrl, searchKeyword, setSearchKeyword]);
+    if (searchKeyword !== keywordFromUrl) {
+      setSearchKeyword(keywordFromUrl);
+    }
+  }
 
   const {
     data: keywordData,
@@ -130,37 +133,31 @@ const ExploreList = () => {
     () => keywordData?.pages.flatMap((page) => page).filter(Boolean) ?? [],
     [keywordData],
   );
+
   const spots = useMemo(
     () => locationData?.pages.flatMap((page) => page).filter(Boolean) ?? [],
     [locationData],
   );
 
-  const isCurrentLoading =
-    selectedCategory === "MY"
-      ? false
-      : searchKeyword
-        ? keywordLoading
-        : isLoading;
-  const isCurrentError =
-    selectedCategory === "MY" ? false : searchKeyword ? keywordError : isError;
+  const isCurrentLoading = searchKeyword ? keywordLoading : isLoading;
+  const isCurrentError = searchKeyword ? keywordError : isError;
 
   const categories = Object.keys(CATEGORY_TYPE_MAP); // 또는 그냥 기존 배열 재사용
   const visibleCategories = isExpanded ? categories : categories.slice(0, 5);
 
   const displaySpots = useMemo(
-    () => (searchKeyword ? spotsByKeyword : spots),
+    () => (searchKeyword ? (spotsByKeyword ?? []) : (spots ?? [])),
     [searchKeyword, spotsByKeyword, spots],
   );
-
-  const likedSpotMap = useLikedSpotStore((state) => state.likedSpotMap);
-  const likedSpots = useMemo(() => Object.values(likedSpotMap), [likedSpotMap]);
-
   const filteredSpots = useMemo(() => {
-    if (selectedCategory === "MY") return likedSpots;
+    if (selectedCategory === "MY")
+      return displaySpots.filter((spot) =>
+        Boolean(likedSpotMap[spot.contentid]),
+      );
     const typeId = CATEGORY_TYPE_MAP[selectedCategory];
     if (!typeId) return displaySpots;
     return displaySpots.filter((spot) => spot?.contenttypeid === typeId);
-  }, [displaySpots, selectedCategory, likedSpots]);
+  }, [displaySpots, selectedCategory, likedSpotMap]);
 
   useEffect(() => {
     setVisibleSpots(filteredSpots);
@@ -231,7 +228,7 @@ const ExploreList = () => {
             )}
             {category}
             {category === "MY" && (
-              <LikeCountChip>{likedSpots.length}</LikeCountChip>
+              <LikeCountChip>{Object.keys(likedSpotMap).length}</LikeCountChip>
             )}
           </CategoryChip>
         ))}

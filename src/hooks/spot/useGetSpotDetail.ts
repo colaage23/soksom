@@ -5,30 +5,10 @@ import type { ISpotDetailRequest } from "../../types/spot";
 export const useGetSpotDetail = ({
   contentid,
   contenttypeid,
-  spotName,
-  areaCd,
-  signguCd,
-  baseYmd,
 }: ISpotDetailRequest) => {
   return useQuery({
-    queryKey: [
-      "spot-detail",
-      contentid,
-      contenttypeid,
-      spotName,
-      areaCd,
-      signguCd,
-      baseYmd,
-    ],
-    queryFn: () =>
-      getSpotDetail({
-        contentid,
-        contenttypeid,
-        spotName,
-        areaCd,
-        signguCd,
-        baseYmd,
-      }),
+    queryKey: ["spot-detail", contentid, contenttypeid],
+    queryFn: () => getSpotDetail({ contentid, contenttypeid }),
     staleTime: 1000 * 60 * 60 * 3, // 3시간
     gcTime: 1000 * 60 * 60 * 3,
   });

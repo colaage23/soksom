@@ -3,13 +3,13 @@ import { ChevronDown } from "lucide-react";
 import { useDrop } from "react-dnd";
 import WayPointItem, { type DragItem } from "./WayPointItem";
 import { useWayPointStore } from "../../../stores/useWayPointStore";
-import type { ISpotListItem } from "../../../types/spot";
+import type { ISearchSpotResponse } from "../../../types/spot";
 import type { RouteSection } from "./RouteLegConnector";
 import RouteLegConnector from "./RouteLegConnector";
 
 interface DayCardProps {
   dayIdx: number;
-  spots: ISpotListItem[];
+  spots: ISearchSpotResponse[];
   isExpanded: boolean;
   onToggle: () => void;
   // 이 일차의 구간별 경로 정보. spots[i] -> spots[i+1] 구간에 대응 (spots.length - 1개)

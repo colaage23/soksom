@@ -18,12 +18,7 @@ import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
 import { useWayPointStore } from "../../../stores/useWayPointStore";
 import { useGetSpotDetail } from "../../../hooks/spot/useGetSpotDetail";
 import type { ISpotDetailInfo } from "../../../types/spot";
-import {
-  getCongestionLevel,
-  getCongestionStyle,
-} from "../../../constants/congestion.utils";
 import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
-import FallBackImage from "../../../assets/fallback.png";
 
 const ROOM_AMENITIES: { key: keyof ISpotDetailInfo; label: string }[] = [
   { key: "roomaircondition", label: "에어컨" },
@@ -44,21 +39,13 @@ const ROOM_AMENITIES: { key: keyof ISpotDetailInfo; label: string }[] = [
 
 const SpotDetail = () => {
   const { setDetailSpot, selectedSpot } = useSpotStore();
-  const { likedSpotMap } = useLikedSpotStore();
+  const likedSpotMap = useLikedSpotStore((state) => state.likedSpotMap);
   const { toggleFavorite, isPending: isFavoritePending } = useToggleFavorite();
-  const likedSpot = selectedSpot
-    ? likedSpotMap[selectedSpot.contentid]
-    : undefined;
-  const isLiked = Boolean(likedSpot);
-
   const { toggleWayPoint, isSelected } = useWayPointStore();
 
   const { data: spotDetail } = useGetSpotDetail({
     contentid: selectedSpot?.contentid ?? "",
     contenttypeid: selectedSpot?.contenttypeid,
-    spotName: selectedSpot?.title,
-    areaCd: selectedSpot?.lDongRegnCd,
-    signguCd: selectedSpot?.lDongSignguCd,
   });
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -103,30 +90,10 @@ const SpotDetail = () => {
     if (selectedSpot) toggleWayPoint(selectedSpot);
   };
 
-  const rawRate =
-    spotDetail?.congestion?.cnctrRate ??
-    selectedSpot?.congestion?.cnctrRate ??
-    null;
-
-  const displayRate =
-    rawRate !== null && rawRate !== undefined
-      ? Math.round(parseFloat(String(rawRate)))
-      : null;
-
-  const congestionLevel = getCongestionLevel(rawRate);
-
-  const status = getCongestionStyle(rawRate);
-
-  const clampedPosition =
-    displayRate !== null ? Math.min(95, Math.max(5, displayRate)) : null;
-
   return (
     <SpotDetailContainer>
       <SpotHeaderWrapper>
-        <SpotImage
-          draggable={false}
-          src={spotDetail?.common?.firstimage || FallBackImage}
-        />
+        <SpotImage draggable={false} src={spotDetail?.common?.firstimage} />
 
         <SpotActions>
           <IconButton onClick={() => setDetailSpot(null)}>
@@ -135,15 +102,24 @@ const SpotDetail = () => {
 
           <RightGroup>
             <IconButton
-              $active={isLiked}
+              $active={Boolean(
+                selectedSpot && likedSpotMap[selectedSpot.contentid],
+              )}
               disabled={isFavoritePending}
-              onClick={(e) => {
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                 e.stopPropagation();
-                if (selectedSpot)
-                  toggleFavorite(selectedSpot, likedSpot?.favoriteId);
+                if (!selectedSpot) return;
+                toggleFavorite(
+                  selectedSpot,
+                  likedSpotMap[selectedSpot.contentid],
+                );
               }}
             >
-              <LikeIcon $active={isLiked} />
+              <LikeIcon
+                $active={Boolean(
+                  selectedSpot && likedSpotMap[selectedSpot.contentid],
+                )}
+              />
             </IconButton>
           </RightGroup>
         </SpotActions>
@@ -155,56 +131,37 @@ const SpotDetail = () => {
       </SpotHeaderWrapper>
 
       <SpotContent>
-        {rawRate !== null ? (
-          <CongestionBox>
-            <CongestionTitle>
-              <span>혼잡도</span>
-              <CongestionBadge
-                style={{
-                  backgroundColor:
-                    congestionLevel === "혼잡"
-                      ? status.bgColor
-                      : `${status.bgColor}65`,
-                  color: status.color,
-                }}
-              >
-                {status.label}
-              </CongestionBadge>
-            </CongestionTitle>
+        {/* <CongestionBox>
+          <CongestionTitle>
+            <span>혼잡도</span>
+            <CongestionBadge
+              style={{
+                backgroundColor:
+                  spotDetail?.congestion === "혼잡"
+                    ? status.bgColor
+                    : `${status.bgColor}65`,
+                color: status.color,
+              }}
+            >
+              {status.label}
+            </CongestionBadge>
+          </CongestionTitle>
+          <CongestionProgressBar>
+            <CongestionProgressFill
+              style={{
+                backgroundColor: status.bgColor,
+                width: `${status.progress}%`,
+              }}
+            />
+          </CongestionProgressBar>
 
-            <ProgressBarWrapper>
-              {clampedPosition !== null && (
-                <RateIndicator
-                  $position={clampedPosition}
-                  $color={status.bgColor}
-                >
-                  <RateLabel $color={status.bgColor}>{displayRate}%</RateLabel>
-                  <RateArrow $color={status.bgColor} />
-                </RateIndicator>
-              )}
+          <CongestionText>
+            <span>0%</span>
+            <span>100%</span>
+          </CongestionText>
 
-              <CongestionProgressBar>
-                <CongestionProgressFill
-                  style={{
-                    backgroundColor: status.bgColor,
-                    width: `${displayRate}%`,
-                  }}
-                />
-              </CongestionProgressBar>
-            </ProgressBarWrapper>
-
-            <CongestionText>
-              <span>0%</span>
-              <span>100%</span>
-            </CongestionText>
-
-            <CongestionDescription>{status.description}</CongestionDescription>
-          </CongestionBox>
-        ) : (
-          <NoCongestionText>
-            ※ 혼잡도 정보를 제공하지 않는 관광지입니다.
-          </NoCongestionText>
-        )}
+          <CongestionDescription>{status.description}</CongestionDescription>
+        </CongestionBox> */}
 
         <OverviewBox>
           <OverviewTitle>상세 정보</OverviewTitle>
@@ -611,137 +568,83 @@ const FixedButtonWrapper = styled.div`
   background-color: #fdfcf8;
 `;
 
-const CongestionBox = styled.div`
-  width: 100%;
+// const CongestionBox = styled.div`
+//   width: 100%;
 
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: space-between;
+//   display: flex;
+//   flex-direction: column;
+//   justify-content: center;
+//   align-items: space-between;
 
-  padding: 16px;
-  margin: 0 0 20px;
+//   padding: 16px;
+//   margin: 0 0 20px;
 
-  border: 1px solid #f5f3eb;
-  border-radius: 16px;
-`;
+//   border: 1px solid #f5f3eb;
+//   border-radius: 16px;
+// `;
 
-const CongestionTitle = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+// const CongestionTitle = styled.div`
+//   display: flex;
+//   justify-content: space-between;
+//   align-items: center;
 
-  margin: 0 0 12px;
+//   margin: 0 0 12px;
 
-  color: #2e3339;
-  font-size: 0.75rem;
-  font-weight: 500;
-`;
+//   color: #2e3339;
+//   font-size: 0.75rem;
+//   font-weight: 500;
+// `;
 
-const CongestionBadge = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
+// const CongestionBadge = styled.div`
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
 
-  padding: 4px 8px;
+//   padding: 4px 8px;
 
-  border-radius: 30px;
+//   border-radius: 30px;
 
-  color: #20201f;
-  font-size: 0.75rem;
-  font-weight: 500;
-`;
+//   color: #20201f;
+//   font-size: 0.75rem;
+//   font-weight: 500;
+// `;
 
-const CongestionProgressBar = styled.div`
-  height: 8px;
-  width: 100%;
+// const CongestionProgressBar = styled.div`
+//   height: 8px;
+//   width: 100%;
 
-  border-radius: 30px;
+//   border-radius: 30px;
 
-  background-color: #eae6dd;
-`;
+//   background-color: #eae6dd;
+// `;
 
-const ProgressBarWrapper = styled.div`
-  position: relative;
-  width: 100%;
-  margin-top: 24px;
-`;
+// const CongestionProgressFill = styled.div`
+//   height: 8px;
 
-const RateIndicator = styled.div<{ $position: number; $color: string }>`
-  position: absolute;
-  bottom: 100%;
-  left: ${({ $position }) => $position}%;
-  transform: translateX(-50%);
+//   border-radius: 30px;
+// `;
 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+// const CongestionText = styled.div`
+//   display: flex;
+//   justify-content: space-between;
+//   align-items: center;
 
-  margin-bottom: 2px;
+//   margin: 8px 0 0;
 
-  pointer-events: none;
-`;
+//   color: #6c727a;
+//   font-size: 0.75rem;
+// `;
 
-const RateLabel = styled.span<{ $color: string }>`
-  color: ${({ $color }) => $color};
-  font-size: 0.75rem;
-  font-weight: 700;
+// const CongestionDescription = styled.p`
+//   display: flex;
+//   justify-content: start;
+//   align-items: center;
 
-  white-space: nowrap;
-`;
+//   margin: 12px 0 0;
 
-const RateArrow = styled.div<{ $color: string }>`
-  width: 0;
-  height: 0;
-
-  margin-top: 2px;
-
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 6px solid ${({ $color }) => $color};
-`;
-
-const NoCongestionText = styled.p`
-  width: 100%;
-
-  margin: 0 0 12px;
-  padding: 4px 6px;
-
-  border-radius: 16px;
-
-  color: #6c727a;
-  font-size: 0.8125rem;
-
-  text-align: center;
-`;
-
-const CongestionProgressFill = styled.div`
-  height: 8px;
-
-  border-radius: 30px;
-`;
-
-const CongestionText = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  margin: 8px 0 0;
-
-  color: #6c727a;
-  font-size: 0.75rem;
-`;
-
-const CongestionDescription = styled.p`
-  display: flex;
-  justify-content: start;
-  align-items: center;
-
-  margin: 12px 0 0;
-
-  color: #484e54;
-  font-size: 0.75rem;
-`;
+//   color: #484e54;
+//   font-size: 0.75rem;
+// `;
 
 const OverviewBox = styled.div`
   display: flex;

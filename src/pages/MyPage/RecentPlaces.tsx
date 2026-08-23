@@ -31,6 +31,7 @@ const RecentPlaces = () => {
     isLoading,
     isError,
   } = useGetRecentSearchPlaces();
+
   const stats = [
     { label: "최근 조회", value: `${recentSearchPlaces.length}곳` },
   ];
