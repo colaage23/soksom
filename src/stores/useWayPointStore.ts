@@ -179,6 +179,18 @@ export const useWayPointStore = create<IWayPoint>()(
         dayCount: state.dayCount,
         dateRange: state.dateRange,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.dateRange) {
+          state.dateRange = {
+            startDate: state.dateRange.startDate
+              ? new Date(state.dateRange.startDate)
+              : null,
+            endDate: state.dateRange.endDate
+              ? new Date(state.dateRange.endDate)
+              : null,
+          };
+        }
+      },
     },
   ),
 );
