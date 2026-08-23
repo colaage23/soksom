@@ -17,7 +17,9 @@ export interface IFavoriteSpot {
   lclsSystm1?: string;
   lclsSystm2?: string;
   lclsSystm3?: string;
+  lclsSystm1Nm?: string;
   lclsSystm2Nm?: string;
+  lclsSystm3Nm?: string;
   lDongRegnCd?: string;
   lDongSignguCd?: string;
   createdAt?: string;

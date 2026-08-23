@@ -31,10 +31,10 @@ const RecentPlaces = () => {
     isLoading,
     isError,
   } = useGetRecentSearchPlaces();
-  const currentMonth = new Date().toISOString().slice(0, 7);
-  const monthlyCount = recentSearchPlaces.filter((place) =>
-    place.createdAt?.startsWith(currentMonth),
-  ).length;
+  // const currentMonth = new Date().toISOString().slice(0, 7);
+  // const monthlyCount = recentSearchPlaces.filter((place) =>
+  //   place.createdAt?.startsWith(currentMonth),
+  // ).length;
   const stats = [
     { label: "최근 조회", value: `${recentSearchPlaces.length}곳` },
   ];
