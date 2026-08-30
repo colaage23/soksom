@@ -199,7 +199,8 @@ const InsightSection = () => {
                   style={{ animationDelay: `${index * 0.3}s` }}
                 >
                   <MarkerLabel $bgColor={spot.bgColor}>
-                    {spot.name} · {spot.isLoading ? "-" : `${spot.value}%`}
+                    {spot.name} ·{" "}
+                    {spot.isLoading ? "-" : `${Math.floor(+spot.value)}%`}
                   </MarkerLabel>
                   <MarkerPin
                     src={getHomeMarkerSrc(spot.bgColor)}
