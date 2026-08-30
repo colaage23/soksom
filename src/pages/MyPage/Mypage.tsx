@@ -2,6 +2,7 @@ import {
   CalendarDays,
   ChevronRight,
   Compass,
+  Ellipsis,
   Heart,
   LogOut,
   MapPinned,
@@ -15,7 +16,11 @@ import colors from "../../constants/colors";
 import { useGetFavoriteSpots } from "../../hooks/favorite/useGetFavoriteSpots";
 import { useToggleFavorite } from "../../hooks/favorite/useToggleFavorite";
 import { useGetRecentSearchPlaces } from "../../hooks/searchHistory/useGetRecentSearchPlaces";
-import { useGetTrips } from "../../hooks/trip/useGetTrips";
+import {
+  useGetNextTrips,
+  useGetPreviousTrips,
+  useGetTrips,
+} from "../../hooks/trip/useGetTrips";
 import type { ITrip } from "../../types/trip";
 import { formatVisitDateLabel } from "./utils/placeDateLabel";
 
@@ -164,11 +169,22 @@ const Mypage = () => {
     useGetFavoriteSpots();
   const { data: recentSearchPlaces = [], isLoading: isRecentLoading } =
     useGetRecentSearchPlaces();
+  const tripListParams = { pageNo: 1, numOfRows: 20 };
   const {
     data: tripList,
-    isLoading: isTripLoading,
-    isError: isTripError,
-  } = useGetTrips({ pageNo: 1, numOfRows: 20 });
+    isLoading: isAllTripLoading,
+    isError: isAllTripError,
+  } = useGetTrips(tripListParams);
+  const {
+    data: nextTripList,
+    isLoading: isNextTripLoading,
+    isError: isNextTripError,
+  } = useGetNextTrips(tripListParams);
+  const {
+    data: previousTripList,
+    isLoading: isPreviousTripLoading,
+    isError: isPreviousTripError,
+  } = useGetPreviousTrips(tripListParams);
   const previewRecentPlaces = recentSearchPlaces.slice(0, 2);
   const previewFavoriteSpots = favoriteSpots.slice(0, 3);
   const [selectedSection, setSelectedSection] =
@@ -244,56 +260,84 @@ const Mypage = () => {
     });
   }, [tripList?.content]);
 
-  const { currentTrip, upcomingTrips, pastTrips } = useMemo(() => {
+  const currentTrips = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const current: ITrip[] = [];
-    const upcoming: ITrip[] = [];
-    const past: ITrip[] = [];
-
-    sortedTrips.forEach((trip) => {
+    return sortedTrips.filter((trip) => {
       const start = parseTripDate(trip.startDate);
       const end = parseTripDate(trip.endDate) ?? start;
 
-      if (!start || !end) {
-        upcoming.push(trip);
-        return;
-      }
-
-      if (end.getTime() < today.getTime()) {
-        past.push(trip);
-        return;
-      }
-
-      if (
+      return Boolean(
+        start &&
+        end &&
         start.getTime() <= today.getTime() &&
-        end.getTime() >= today.getTime()
-      ) {
-        current.push(trip);
-        return;
-      }
-
-      upcoming.push(trip);
+        end.getTime() >= today.getTime(),
+      );
     });
+  }, [sortedTrips]);
 
-    return {
-      currentTrip: current[0] ?? null,
-      upcomingTrips: upcoming,
-      pastTrips: [...past].sort((left, right) => {
+  const upcomingTrips = useMemo(
+    () =>
+      [...(nextTripList?.content ?? [])].sort((left, right) => {
+        const leftTime =
+          parseTripDate(left.startDate)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+        const rightTime =
+          parseTripDate(right.startDate)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+        return leftTime - rightTime;
+      }),
+    [nextTripList?.content],
+  );
+
+  const pastTrips = useMemo(
+    () =>
+      [...(previousTripList?.content ?? [])].sort((left, right) => {
         const leftTime = parseTripDate(left.endDate)?.getTime() ?? 0;
         const rightTime = parseTripDate(right.endDate)?.getTime() ?? 0;
         return rightTime - leftTime;
       }),
-    };
-  }, [sortedTrips]);
+    [previousTripList?.content],
+  );
 
-  const showCurrentTrip = selectedTripFilter === "전체" && Boolean(currentTrip);
+  const showCurrentTrips =
+    selectedTripFilter === "전체" && currentTrips.length > 0;
   const visibleTrips =
     selectedTripFilter === "지난 여행" ? pastTrips : upcomingTrips;
-  const showAddTripCard = selectedTripFilter !== "지난 여행";
+  const isTripLoading =
+    selectedTripFilter === "전체"
+      ? isAllTripLoading || isNextTripLoading || isPreviousTripLoading
+      : selectedTripFilter === "지난 여행"
+        ? isPreviousTripLoading
+        : isNextTripLoading;
+  const isTripError =
+    selectedTripFilter === "전체"
+      ? isAllTripError || isNextTripError || isPreviousTripError
+      : selectedTripFilter === "지난 여행"
+        ? isPreviousTripError
+        : isNextTripError;
   const selectedTripFilterIndex = tripFilterOptions.indexOf(selectedTripFilter);
-  const currentTripSteps = currentTrip ? getTripTimelineSteps(currentTrip) : [];
+  const renderTripCard = (trip: ITrip, index: number) => {
+    const Icon = getTripIcon(trip);
+    const tripTone = getTripTone(trip);
+
+    return (
+      <UpcomingCard key={trip.tripId}>
+        <UpcomingVisual $index={index}>
+          <LevelBadge $variant={tripTone === "여유로움" ? "calm" : "warm"}>
+            {tripTone}
+          </LevelBadge>
+        </UpcomingVisual>
+        <UpcomingBody>
+          <Icon size={28} />
+          <UpcomingTitle>{trip.tripName}</UpcomingTitle>
+          <UpcomingMeta>
+            {formatTripDateRange(trip.startDate, trip.endDate)}
+          </UpcomingMeta>
+          <UpcomingMeta>{trip.details.length}개 장소</UpcomingMeta>
+        </UpcomingBody>
+      </UpcomingCard>
+    );
+  };
 
   return (
     <PageShell>
@@ -506,43 +550,46 @@ const Mypage = () => {
                 </SegmentedTabs>
               </SectionHeader>
 
-              {showCurrentTrip && currentTrip && (
-                <CurrentTripCard>
-                  <CurrentTripHeader>
-                    <StatusPill $variant="solid">진행 중</StatusPill>
-                    <CurrentTripTitle>{currentTrip.tripName}</CurrentTripTitle>
-                    <CurrentTripDate>
-                      {formatTripDateRange(
-                        currentTrip.startDate,
-                        currentTrip.endDate,
-                      )}
-                      {(() => {
-                        const dayCount = getTripDayCount(
+              {showCurrentTrips &&
+                currentTrips.map((currentTrip) => (
+                  <CurrentTripCard key={currentTrip.tripId}>
+                    <CurrentTripHeader>
+                      <StatusPill $variant="solid">진행 중</StatusPill>
+                      <CurrentTripTitle>
+                        {currentTrip.tripName}
+                      </CurrentTripTitle>
+                      <CurrentTripDate>
+                        {formatTripDateRange(
                           currentTrip.startDate,
                           currentTrip.endDate,
-                        );
-                        return dayCount ? ` (${dayCount}일)` : "";
-                      })()}
-                    </CurrentTripDate>
-                  </CurrentTripHeader>
-                  <CurrentTripFooter>
-                    <CurrentTripMeta>
-                      총 {currentTrip.details.length}개의 장소
-                    </CurrentTripMeta>
-                    <CurrentTripMeta>
-                      {currentTrip.isAiRoute === "Y" ||
-                      currentTrip.isAiRoute === "true"
-                        ? "AI 추천 일정"
-                        : "직접 만든 일정"}
-                    </CurrentTripMeta>
-                  </CurrentTripFooter>
-                  <TimelineRow>
-                    {currentTripSteps.map((step) => (
-                      <TimelineChip key={step}>{step}</TimelineChip>
-                    ))}
-                  </TimelineRow>
-                </CurrentTripCard>
-              )}
+                        )}
+                        {(() => {
+                          const dayCount = getTripDayCount(
+                            currentTrip.startDate,
+                            currentTrip.endDate,
+                          );
+                          return dayCount ? ` (${dayCount}일)` : "";
+                        })()}
+                      </CurrentTripDate>
+                    </CurrentTripHeader>
+                    <CurrentTripFooter>
+                      <CurrentTripMeta>
+                        총 {currentTrip.details.length}개의 장소
+                      </CurrentTripMeta>
+                      <CurrentTripMeta>
+                        {currentTrip.isAiRoute === "Y" ||
+                        currentTrip.isAiRoute === "true"
+                          ? "AI 추천 일정"
+                          : "직접 만든 일정"}
+                      </CurrentTripMeta>
+                    </CurrentTripFooter>
+                    <TimelineRow>
+                      {getTripTimelineSteps(currentTrip).map((step) => (
+                        <TimelineChip key={step}>{step}</TimelineChip>
+                      ))}
+                    </TimelineRow>
+                  </CurrentTripCard>
+                ))}
 
               <UpcomingGrid>
                 {isTripLoading && (
@@ -553,51 +600,77 @@ const Mypage = () => {
                     여행 일정을 불러오지 못했습니다.
                   </TripEmptyCard>
                 )}
-                {!isTripLoading &&
-                  !isTripError &&
-                  visibleTrips.map((trip, index) => {
-                    const Icon = getTripIcon(trip);
-                    const tripTone = getTripTone(trip);
-
-                    return (
-                      <UpcomingCard key={trip.tripId}>
-                        <UpcomingVisual $index={index}>
-                          <LevelBadge
-                            $variant={tripTone === "여유로움" ? "calm" : "warm"}
+                {selectedTripFilter === "전체" &&
+                  !isTripLoading &&
+                  !isTripError && (
+                    <>
+                      <TripGroupTitle>진행 예정</TripGroupTitle>
+                      <TripGroupGrid $hasMore={upcomingTrips.length > 3}>
+                        {upcomingTrips.length > 0 ? (
+                          upcomingTrips
+                            .slice(0, 3)
+                            .map((trip, index) => renderTripCard(trip, index))
+                        ) : (
+                          <AddTripCard type="button">
+                            <AddCircle>+</AddCircle>
+                            일정 추가하기
+                          </AddTripCard>
+                        )}
+                        {upcomingTrips.length > 3 && (
+                          <TripGroupMoreButton
+                            type="button"
+                            title="진행 예정 전체 보기"
+                            aria-label="진행 예정 전체 보기"
+                            onClick={() => setSelectedTripFilter("진행 예정")}
                           >
-                            {tripTone}
-                          </LevelBadge>
-                        </UpcomingVisual>
-                        <UpcomingBody>
-                          <Icon size={28} />
-                          <UpcomingTitle>{trip.tripName}</UpcomingTitle>
-                          <UpcomingMeta>
-                            {formatTripDateRange(trip.startDate, trip.endDate)}
-                          </UpcomingMeta>
-                          <UpcomingMeta>
-                            {trip.details.length}개 장소
-                          </UpcomingMeta>
-                        </UpcomingBody>
-                      </UpcomingCard>
-                    );
-                  })}
+                            <Ellipsis size={17} />
+                          </TripGroupMoreButton>
+                        )}
+                      </TripGroupGrid>
 
+                      {pastTrips.length > 0 && (
+                        <>
+                          <TripGroupTitle>지난 여행</TripGroupTitle>
+                          <TripGroupGrid $hasMore={pastTrips.length > 3}>
+                            {pastTrips
+                              .slice(0, 3)
+                              .map((trip, index) =>
+                                renderTripCard(trip, index),
+                              )}
+                            {pastTrips.length > 3 && (
+                              <TripGroupMoreButton
+                                type="button"
+                                title="지난 여행 전체 보기"
+                                aria-label="지난 여행 전체 보기"
+                                onClick={() =>
+                                  setSelectedTripFilter("지난 여행")
+                                }
+                              >
+                                <Ellipsis size={17} />
+                              </TripGroupMoreButton>
+                            )}
+                          </TripGroupGrid>
+                        </>
+                      )}
+                    </>
+                  )}
                 {!isTripLoading &&
                   !isTripError &&
-                  visibleTrips.length === 0 && (
-                    <TripEmptyCard>
-                      {selectedTripFilter === "지난 여행"
-                        ? "지난 여행 일정이 없습니다."
-                        : "예정된 여행 일정이 없습니다."}
-                    </TripEmptyCard>
+                  selectedTripFilter !== "전체" &&
+                  visibleTrips.map((trip, index) =>
+                    renderTripCard(trip, index),
                   )}
 
-                {showAddTripCard && (
-                  <AddTripCard type="button">
-                    <AddCircle>+</AddCircle>
-                    일정 추가하기
-                  </AddTripCard>
-                )}
+                {!isTripLoading &&
+                  !isTripError &&
+                  selectedTripFilter !== "전체" &&
+                  selectedTripFilter === "진행 예정" &&
+                  visibleTrips.length === 0 && (
+                    <AddTripCard type="button">
+                      <AddCircle>+</AddCircle>
+                      일정 추가하기
+                    </AddTripCard>
+                  )}
               </UpcomingGrid>
             </SectionBlock>
 
@@ -1156,6 +1229,46 @@ const UpcomingGrid = styled.div`
 
   @media (max-width: 960px) {
     grid-template-columns: 1fr;
+  }
+`;
+
+const TripGroupTitle = styled.h4`
+  grid-column: 1 / -1;
+  margin: 8px 0 0;
+  color: #52615a;
+  font-size: 0.95rem;
+  font-weight: 800;
+`;
+
+const TripGroupGrid = styled.div<{ $hasMore: boolean }>`
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: ${({ $hasMore }) =>
+    $hasMore ? "repeat(3, minmax(0, 1fr)) 34px" : "repeat(3, minmax(0, 1fr))"};
+  align-items: center;
+  gap: 14px;
+
+  @media (max-width: 960px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const TripGroupMoreButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid rgba(36, 149, 155, 0.14);
+  border-radius: 50%;
+  background: #f4f8f5;
+  color: ${colors.main};
+  cursor: pointer;
+  justify-self: center;
+
+  &:hover {
+    background: rgba(36, 149, 155, 0.1);
   }
 `;
 

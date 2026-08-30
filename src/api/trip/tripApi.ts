@@ -105,13 +105,12 @@ const normalizeTrip = (trip: IRawTrip): ITrip => ({
     : [],
 });
 
-export const getTrips = async ({
-  spotName,
-  pageNo = 1,
-  numOfRows = 20,
-}: ITripListParams = {}): Promise<ITripListResult> => {
+const getTripsByPath = async (
+  path: "/trip" | "/trip/next" | "/trip/pre",
+  { spotName, pageNo = 1, numOfRows = 20 }: ITripListParams = {},
+): Promise<ITripListResult> => {
   try {
-    const { data } = await axiosInstance.get<ITripListResponse>("/trip", {
+    const { data } = await axiosInstance.get<ITripListResponse>(path, {
       params: {
         ...(spotName ? { spotName } : {}),
         pageNo,
@@ -136,6 +135,15 @@ export const getTrips = async ({
     throw new Error("Fail to fetch trips.", { cause: error });
   }
 };
+
+export const getTrips = (params?: ITripListParams) =>
+  getTripsByPath("/trip", params);
+
+export const getNextTrips = (params?: ITripListParams) =>
+  getTripsByPath("/trip/next", params);
+
+export const getPreviousTrips = (params?: ITripListParams) =>
+  getTripsByPath("/trip/pre", params);
 
 export interface ICreateTripDetailPayload {
   contentid: string;
