@@ -1,69 +1,99 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import colors from "../../../constants/colors";
 import {
-  homeSectionDescription,
   homeSectionEyebrow,
   homeSectionTitle,
 } from "../styles/homeSectionStyles.ts";
 import { CustomOverlayMap, Map } from "react-kakao-maps-sdk";
-import { congestionStyle } from "../../Map/mock.ts";
 import { getMarkerSrc } from "../../../utils/marker.ts";
+import { useGetSpotsDetail } from "../../../hooks/spot/useGetSpotsDetail";
+import type { ISpotDetailRequest } from "../../../types/spot";
+import { getCongestionStyle } from "../../../constants/congestion.utils";
 
 const filterTabs = ["지금", "내일 오전"] as const;
 
-const insights = [
+const insightSpots: (Omit<ISpotDetailRequest, "baseYmd"> & {
+  name: string;
+  latitude: number;
+  longitude: number;
+})[] = [
   {
     name: "성산일출봉",
-    value: 92,
-    status: "혼잡",
-    tone: "busy",
-    latitude: 33.4589,
-    longitude: 126.9425,
+    contentid: "126435",
+    contenttypeid: "12",
+    spotName: "성산일출봉",
+    areaCd: "50",
+    signguCd: "130",
+    latitude: 33.4580801942,
+    longitude: 126.9415003865,
   },
   {
-    name: "한라산 어리목",
-    value: 54,
-    status: "보통",
-    tone: "normal",
-    latitude: 33.3928,
-    longitude: 126.4949,
+    name: "산굼부리",
+    contentid: "126474",
+    contenttypeid: "12",
+    spotName: "산굼부리",
+    areaCd: "50",
+    signguCd: "110",
+    latitude: 33.4323127375,
+    longitude: 126.6928183084,
   },
   {
     name: "협재해수욕장",
-    value: 88,
-    status: "혼잡",
-    tone: "busy",
-    latitude: 33.3945,
-    longitude: 126.2395,
+    contentid: "127490",
+    contenttypeid: "12",
+    spotName: "협재해수욕장",
+    areaCd: "50",
+    signguCd: "110",
+    latitude: 33.393776477,
+    longitude: 126.239441896,
   },
   {
     name: "비자림",
-    value: 32,
-    status: "여유",
-    tone: "calm",
-    latitude: 33.4913,
-    longitude: 126.8098,
+    contentid: "126472",
+    contenttypeid: "12",
+    spotName: "비자림",
+    areaCd: "50",
+    signguCd: "110",
+    latitude: 33.4862219608,
+    longitude: 126.8074760594,
   },
   {
     name: "쇠소깍",
-    value: 28,
-    status: "여유",
-    tone: "calm",
-    latitude: 33.252,
-    longitude: 126.6226,
+    contentid: "129617",
+    contenttypeid: "12",
+    spotName: "쇠소깍",
+    areaCd: "50",
+    signguCd: "130",
+    latitude: 33.254275717,
+    longitude: 126.6224173342,
   },
   {
     name: "월정리해변",
-    value: 57,
-    status: "보통",
-    tone: "normal",
-    latitude: 33.5563,
-    longitude: 126.7958,
+    contentid: "1918639",
+    contenttypeid: "12",
+    spotName: "월정리해변",
+    areaCd: "50",
+    signguCd: "110",
+    latitude: 33.5550461413,
+    longitude: 126.7982299577,
   },
-] as const;
+];
+
+const getYmd = (date: Date) => {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${yyyy}${mm}${dd}`;
+};
+
+const getTomorrowYmd = () => {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return getYmd(tomorrow);
+};
 
 type FilterTabLabel = (typeof filterTabs)[number];
 
@@ -72,6 +102,42 @@ const InsightSection = () => {
   const [selectedTab, setSelectedTab] = useState<FilterTabLabel>("지금");
   const mapRef = useRef<kakao.maps.Map>(null);
 
+  const insightRequests = useMemo<
+    (ISpotDetailRequest & {
+      name: string;
+      latitude: number;
+      longitude: number;
+    })[]
+  >(
+    () =>
+      insightSpots.map((spot) => ({
+        ...spot,
+        ...(selectedTab === "내일 오전" ? { baseYmd: getTomorrowYmd() } : {}),
+      })),
+    [selectedTab],
+  );
+
+  const spotDetailResults = useGetSpotsDetail(insightRequests);
+
+  const liveInsights = useMemo(
+    () =>
+      insightRequests.map((spot, index) => {
+        const result = spotDetailResults[index];
+        const cnctrRate = result?.data?.congestion?.cnctrRate ?? null;
+        const style = getCongestionStyle(cnctrRate);
+
+        return {
+          ...spot,
+          value: cnctrRate ?? 0,
+          status: style.label,
+          bgColor: style.bgColor,
+          textColor: style.color,
+          isLoading: result?.isLoading ?? false,
+        };
+      }),
+    [insightRequests, spotDetailResults],
+  );
+
   useEffect(() => {
     let resizeObserver: ResizeObserver | null = null;
     let cleanupResize: (() => void) | null = null;
@@ -79,7 +145,6 @@ const InsightSection = () => {
     const setup = () => {
       const map = mapRef.current;
       if (!map) {
-        // 아직 map이 안 잡혔으면 다음 프레임에 재시도
         requestAnimationFrame(setup);
         return;
       }
@@ -124,32 +189,27 @@ const InsightSection = () => {
             disableDoubleClickZoom={true}
             ref={mapRef}
           >
-            {insights.map((spot, index) => (
+            {liveInsights.map((spot, index) => (
               <CustomOverlayMap
                 key={spot.name}
-                position={{
-                  lat: spot.latitude,
-                  lng: spot.longitude,
-                }}
+                position={{ lat: spot.latitude, lng: spot.longitude }}
                 yAnchor={1}
               >
                 <MarkerFloatWrapper
                   style={{ animationDelay: `${index * 0.3}s` }}
                 >
-                  <MarkerLabel $bgColor={congestionStyle[spot.status].bgColor}>
-                    {spot.name} · {spot.value}%
+                  <MarkerLabel $bgColor={spot.bgColor}>
+                    {spot.name} · {spot.isLoading ? "-" : `${spot.value}%`}
                   </MarkerLabel>
                   <MarkerPin
-                    src={getMarkerSrc(
-                      `${congestionStyle[spot.status].bgColor}`,
-                    )}
-                    $bgColor={congestionStyle[spot.status].bgColor}
+                    src={getMarkerSrc(spot.bgColor)}
+                    $bgColor={spot.bgColor}
                   />
                 </MarkerFloatWrapper>
               </CustomOverlayMap>
             ))}
           </Map>
-          {/* 수정 필요 */}
+
           <Legend>
             <LegendTitle>혼잡도</LegendTitle>
             <LegendItems>
@@ -171,8 +231,7 @@ const InsightSection = () => {
 
         <InsightContent>
           <LiveRow>
-            {/* 수정 필요 */}
-            <LiveBadge></LiveBadge>
+            <LiveBadge />
             <LiveStatus>
               <StatusPulse />
               실시간 업데이트
@@ -184,8 +243,6 @@ const InsightSection = () => {
             <br />
             <AccentText>붐비는지</AccentText> 한눈에.
           </InsightTitle>
-
-          <InsightDescription></InsightDescription>
 
           <FilterTabs>
             {filterTabs.map((tab) => (
@@ -202,17 +259,29 @@ const InsightSection = () => {
           </FilterTabs>
 
           <RankList>
-            {insights.map((item) => (
+            {liveInsights.map((item) => (
               <RankRow key={item.name}>
                 <PlaceInfo>
-                  <LegendDot $tone={item.tone} />
+                  <ColorDot style={{ background: item.bgColor }} />
                   <span>{item.name}</span>
                 </PlaceInfo>
                 <BarArea>
                   <ProgressTrack>
-                    <ProgressFill $tone={item.tone} $value={item.value} />
+                    <ProgressFill
+                      style={{
+                        width: `${item.isLoading ? 0 : item.value}%`,
+                        background: item.bgColor,
+                      }}
+                    />
                   </ProgressTrack>
-                  <StatusBadge $tone={item.tone}>{item.status}</StatusBadge>
+                  <StatusBadge
+                    style={{
+                      background: item.bgColor,
+                      color: item.textColor,
+                    }}
+                  >
+                    {item.isLoading ? "조회중" : item.status}
+                  </StatusBadge>
                 </BarArea>
               </RankRow>
             ))}
@@ -396,12 +465,6 @@ const AccentText = styled.span`
   font-family: Gowun Batang;
 `;
 
-const InsightDescription = styled.p`
-  ${homeSectionDescription};
-  margin-bottom: 28px;
-  color: #627076;
-`;
-
 const FilterTabs = styled.div`
   display: inline-flex;
   gap: 8px;
@@ -443,6 +506,13 @@ const RankRow = styled.div`
   }
 `;
 
+const ColorDot = styled.span`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+`;
+
 const PlaceInfo = styled.div`
   display: inline-flex;
   align-items: center;
@@ -473,40 +543,15 @@ const ProgressTrack = styled.div`
   overflow: hidden;
 `;
 
-const ProgressFill = styled.div<{
-  $tone: "busy" | "normal" | "calm";
-  $value: number;
-}>`
-  width: ${({ $value }) => `${$value}%`};
+const ProgressFill = styled.div`
   height: 100%;
   border-radius: inherit;
-  background: ${({ $tone }) => {
-    switch ($tone) {
-      case "calm":
-        return "#5e9768";
-      case "normal":
-        return "#ffa46f";
-      default:
-        return "#ff7028";
-    }
-  }};
 `;
 
-const StatusBadge = styled.span<{ $tone: "busy" | "normal" | "calm" }>`
+const StatusBadge = styled.span`
   min-width: 44px;
   padding: 6px 10px;
   border-radius: 999px;
-  background: ${({ $tone }) => {
-    switch ($tone) {
-      case "calm":
-        return "#d8ead9";
-      case "normal":
-        return "#ffd6c0";
-      default:
-        return "#ff8b4a";
-    }
-  }};
-  color: ${({ $tone }) => ($tone === "busy" ? "#fffaf4" : "#5a412a")};
   font-size: 0.8rem;
   font-weight: 800;
   text-align: center;
