@@ -13,6 +13,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../constants/colors";
+import { useGetUserInfo } from "../../hooks/auth/useGetUserInfo";
 import { useGetFavoriteSpots } from "../../hooks/favorite/useGetFavoriteSpots";
 import { useToggleFavorite } from "../../hooks/favorite/useToggleFavorite";
 import { useGetRecentSearchPlaces } from "../../hooks/searchHistory/useGetRecentSearchPlaces";
@@ -21,6 +22,8 @@ import {
   useGetPreviousTrips,
   useGetTrips,
 } from "../../hooks/trip/useGetTrips";
+import { useAuthStore } from "../../stores/auth/authStore";
+import { useWayPointStore } from "../../stores/useWayPointStore";
 import type { ITrip } from "../../types/trip";
 import { formatVisitDateLabel } from "./utils/placeDateLabel";
 
@@ -164,6 +167,8 @@ const getTripTimelineSteps = (trip: ITrip) =>
 
 const Mypage = () => {
   const navigate = useNavigate();
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+  const { data: userInfo } = useGetUserInfo();
   const { toggleFavorite, isPending: isFavoritePending } = useToggleFavorite();
   const { data: favoriteSpots = [], isLoading: isFavoriteLoading } =
     useGetFavoriteSpots();
@@ -206,6 +211,13 @@ const Mypage = () => {
     document
       .getElementById(`mypage-${sectionId}`)
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleLogout = () => {
+    clearAuth();
+    useWayPointStore.getState().resetWayPoint();
+    useWayPointStore.persist.clearStorage();
+    navigate("/");
   };
 
   useEffect(() => {
@@ -345,9 +357,22 @@ const Mypage = () => {
         <DashboardGrid>
           <Sidebar ref={sidebarRef}>
             <ProfileCard>
-              <AvatarCircle>김</AvatarCircle>
-              <ProfileName>김여행</ProfileName>
-              <ProfileEmail>travel@email.com</ProfileEmail>
+              <AvatarCircle>
+                {userInfo?.img ? (
+                  <ProfileImage
+                    src={userInfo.img}
+                    alt={`${userInfo.nickname || userInfo.name || "사용자"} 프로필`}
+                  />
+                ) : (
+                  (userInfo?.nickname || userInfo?.name || "?")
+                    .trim()
+                    .charAt(0) || "?"
+                )}
+              </AvatarCircle>
+              <ProfileName>
+                {userInfo?.nickname || userInfo?.name || "-"}
+              </ProfileName>
+              <ProfileEmail>{userInfo?.email || "-"}</ProfileEmail>
             </ProfileCard>
             <SidebarListSlot
               ref={sidebarListSlotRef}
@@ -375,7 +400,11 @@ const Mypage = () => {
                   );
                 })}
 
-                <SidebarLogout type="button" $active={false}>
+                <SidebarLogout
+                  type="button"
+                  $active={false}
+                  onClick={handleLogout}
+                >
                   <LogOut size={17} />
                   <span>로그아웃</span>
                 </SidebarLogout>
@@ -760,6 +789,7 @@ const AvatarCircle = styled.div`
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   width: 62px;
   height: 62px;
   border-radius: 999px;
@@ -767,6 +797,12 @@ const AvatarCircle = styled.div`
   color: white;
   font-size: 2rem;
   font-weight: 700;
+`;
+
+const ProfileImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 `;
 
 const ProfileName = styled.h2`
