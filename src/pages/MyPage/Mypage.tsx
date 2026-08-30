@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../constants/colors";
 import { useGetFavoriteSpots } from "../../hooks/favorite/useGetFavoriteSpots";
+import { useToggleFavorite } from "../../hooks/favorite/useToggleFavorite";
 import { useGetRecentSearchPlaces } from "../../hooks/searchHistory/useGetRecentSearchPlaces";
 import { useGetTrips } from "../../hooks/trip/useGetTrips";
 import type { ITrip } from "../../types/trip";
@@ -158,6 +159,7 @@ const getTripTimelineSteps = (trip: ITrip) =>
 
 const Mypage = () => {
   const navigate = useNavigate();
+  const { toggleFavorite, isPending: isFavoritePending } = useToggleFavorite();
   const { data: favoriteSpots = [], isLoading: isFavoriteLoading } =
     useGetFavoriteSpots();
   const { data: recentSearchPlaces = [], isLoading: isRecentLoading } =
@@ -445,7 +447,18 @@ const Mypage = () => {
                           >
                             {category}
                           </LevelBadge>
-                          <Heart size={18} fill="#111" color="#111" />
+                          <FavoriteToggleButton
+                            type="button"
+                            disabled={isFavoritePending || !place.favoriteId}
+                            aria-label={`${place.title} 즐겨찾기 해제`}
+                            onClick={() => {
+                              if (place.favoriteId) {
+                                toggleFavorite(place, place.favoriteId);
+                              }
+                            }}
+                          >
+                            <Heart size={18} fill="currentColor" />
+                          </FavoriteToggleButton>
                         </FavoriteVisual>
                         <FavoriteBody>
                           <Icon size={30} />
@@ -973,6 +986,25 @@ const FavoriteVisual = styled.div<{ $index: number }>`
     $index % 2 === 0
       ? "linear-gradient(135deg, rgba(36, 149, 155, 0.18), rgba(36, 149, 155, 0.06))"
       : "linear-gradient(135deg, rgba(182, 224, 190, 0.55), rgba(248, 251, 245, 0.95))"};
+`;
+
+const FavoriteToggleButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #111;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.5;
+  }
 `;
 
 const FavoriteBody = styled.div`
