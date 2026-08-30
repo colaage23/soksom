@@ -189,3 +189,28 @@ export const createTrip = async (
     throw new Error("Fail to create Trip.", { cause: error });
   }
 };
+
+interface ITripDetailResponse {
+  success?: boolean;
+  message?: string;
+  data?: IRawTrip;
+}
+
+export const getTripDetail = async (
+  tripId: number | string,
+): Promise<ITrip> => {
+  try {
+    const { data } = await axiosInstance.get<ITripDetailResponse>(
+      `/trip/${tripId}`,
+    );
+
+    if (!data.data) {
+      throw new Error("No trip data returned.");
+    }
+
+    return normalizeTrip(data.data);
+  } catch (error) {
+    console.error("Fetch Trip Detail Error:", error);
+    throw new Error("Fail to fetch trip detail.", { cause: error });
+  }
+};
