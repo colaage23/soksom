@@ -8,7 +8,7 @@ import {
   homeSectionTitle,
 } from "../styles/homeSectionStyles.ts";
 import { CustomOverlayMap, Map } from "react-kakao-maps-sdk";
-import { getMarkerSrc } from "../../../utils/marker.ts";
+import { getHomeMarkerSrc } from "../../../utils/marker.ts";
 import { useGetSpotsDetail } from "../../../hooks/spot/useGetSpotsDetail";
 import type { ISpotDetailRequest } from "../../../types/spot";
 import { getCongestionStyle } from "../../../constants/congestion.utils";
@@ -202,7 +202,7 @@ const InsightSection = () => {
                     {spot.name} · {spot.isLoading ? "-" : `${spot.value}%`}
                   </MarkerLabel>
                   <MarkerPin
-                    src={getMarkerSrc(spot.bgColor)}
+                    src={getHomeMarkerSrc(spot.bgColor)}
                     $bgColor={spot.bgColor}
                   />
                 </MarkerFloatWrapper>
