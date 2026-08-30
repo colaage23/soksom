@@ -433,18 +433,6 @@ const SpotImage = styled.div<{ $image: string }>`
   }
 `;
 
-const SpotBadge = styled.span`
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: #e8f3e7;
-  color: #4d7f58;
-  font-size: 0.75rem;
-  font-weight: 700;
-`;
-
 const FavoriteButton = styled.button`
   position: absolute;
   right: 14px;
