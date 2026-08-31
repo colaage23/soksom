@@ -1,5 +1,8 @@
 import { Compass, MapPinned, Trees, Waves } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { removeFavorite } from "../../api/favorite/favoriteApi";
 import { useGetFavoriteSpots } from "../../hooks/favorite/useGetFavoriteSpots";
+import { useLikedSpotStore } from "../../stores/useLikedSpotStore";
 import PlaceCollectionPage, {
   type CollectionPageItem,
 } from "./components/PlaceCollectionPage";
@@ -35,11 +38,33 @@ const getFavoriteIcon = (category?: string) => {
 };
 
 const FavoritePlaces = () => {
+  const queryClient = useQueryClient();
+  const removeLikedSpot = useLikedSpotStore((state) => state.removeLikedSpot);
   const {
     data: favoriteSpots = [],
     isLoading,
     isError,
   } = useGetFavoriteSpots();
+  const removeMutation = useMutation({
+    mutationFn: removeFavorite,
+    onSuccess: (_, favoriteId) => {
+      const removedSpot = favoriteSpots.find(
+        (spot) => spot.favoriteId === favoriteId,
+      );
+
+      if (removedSpot) {
+        removeLikedSpot(removedSpot.contentid);
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["favorite-spots"] });
+    },
+  });
+
+  const handleFavoriteClick = (item: CollectionPageItem) => {
+    if (item.favoriteId) {
+      removeMutation.mutate(item.favoriteId);
+    }
+  };
 
   const items: CollectionPageItem[] = favoriteSpots.map((spot) => {
     const category =
@@ -66,6 +91,7 @@ const FavoritePlaces = () => {
       secondaryMeta: spot.tel ?? "연락처 정보 없음",
       icon: getFavoriteIcon(category),
       contentId: spot.contentid,
+      favoriteId: spot.favoriteId,
       thumbnail: spot.firstimage,
     };
   });
@@ -89,6 +115,8 @@ const FavoritePlaces = () => {
           : "저장된 즐겨찾기 장소가 없습니다."
       }
       isLoading={isLoading}
+      onFavoriteClick={handleFavoriteClick}
+      isFavoritePending={removeMutation.isPending}
     />
   );
 };
