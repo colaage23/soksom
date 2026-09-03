@@ -16,6 +16,12 @@ import { insightSpots } from "../../../constants/insightSpots.ts";
 
 const filterTabs = ["지금", "내일 오전"] as const;
 
+const getMapLevel = () => {
+  if (typeof window === "undefined") return 10;
+  if (window.innerWidth <= 640) return 11;
+  return 10;
+};
+
 const getYmd = (date: Date) => {
   const yyyy = date.getFullYear();
   const mm = String(date.getMonth() + 1).padStart(2, "0");
@@ -34,6 +40,7 @@ type FilterTabLabel = (typeof filterTabs)[number];
 const InsightSection = () => {
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState<FilterTabLabel>("지금");
+  const [mapLevel, setMapLevel] = useState(getMapLevel);
   const mapRef = useRef<kakao.maps.Map>(null);
 
   const insightRequests = useMemo<
@@ -71,6 +78,12 @@ const InsightSection = () => {
       }),
     [insightRequests, spotDetailResults],
   );
+
+  useEffect(() => {
+    const handleResize = () => setMapLevel(getMapLevel());
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     let resizeObserver: ResizeObserver | null = null;
@@ -115,7 +128,7 @@ const InsightSection = () => {
             id="home-kakao-map"
             center={{ lat: 33.34214, lng: 126.571986 }}
             style={{ width: "100%", height: "100%" }}
-            level={10}
+            level={mapLevel}
             draggable={false}
             zoomable={false}
             scrollwheel={false}
@@ -545,9 +558,17 @@ const MarkerPin = styled.img<{ $bgColor: string }>`
   border-radius: 50%;
 
   box-shadow: 0 6px 8px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 640px) {
+    width: 22px;
+    height: 22px;
+  }
 `;
 
 const MarkerLabel = styled.div<{ $bgColor: string }>`
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 4px 8px;
   background-color: ${({ $bgColor }) => `${$bgColor}`};
   border-radius: 6px;
@@ -556,4 +577,9 @@ const MarkerLabel = styled.div<{ $bgColor: string }>`
   font-weight: 600;
   white-space: nowrap;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+  @media (max-width: 640px) {
+    padding: 3px 6px;
+    font-size: 0.5625rem;
+  }
 `;
