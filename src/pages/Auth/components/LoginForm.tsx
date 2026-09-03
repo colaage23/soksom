@@ -8,6 +8,7 @@ import { useLogin } from "../../../hooks/auth/useAuth";
 import { useNavigate } from "react-router-dom";
 import FindPasswordModal from "../../../components/modal/FindPasswordModal";
 import { getSocialAuthUrl } from "../../../utils/socialAuth";
+import { useToast } from "../../../hooks/common/useToast";
 
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
@@ -15,10 +16,11 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isFindPasswordModalOpen, setIsFindPasswordModalOpen] = useState(false);
-
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
+
+  const showToast = useToast();
 
   const [errors, setErrors] = useState({
     email: "",
@@ -58,10 +60,10 @@ const LoginForm = () => {
       {
         onSuccess: () => {
           navigate("/");
-          alert("로그인이 완료되었습니다.");
+          showToast("로그인이 완료되었습니다.", "success");
         },
         onError: () => {
-          alert("로그인에 실패했습니다.");
+          showToast("로그인에 실패했습니다.", "error");
         },
       },
     );

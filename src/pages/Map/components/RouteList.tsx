@@ -16,6 +16,7 @@ import toTripDetails from "../../../utils/toTripDetails";
 import TripNameModal from "./TripNameModal";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../../stores/auth/authStore";
+import { useToast } from "../../../hooks/common/useToast";
 
 // 카카오모빌리티 응답에서 우리가 실제로 쓰는 부분만 느슨하게 타입 지정
 interface KakaoDirectionRoute {
@@ -28,6 +29,7 @@ const RouteList = () => {
   const navigate = useNavigate();
   const accessToken = useAuthStore((state) => state.accessToken);
   const isLoggedIn = Boolean(accessToken);
+  const showToast = useToast();
 
   const {
     pool,
@@ -115,15 +117,28 @@ const RouteList = () => {
   const handleOpenModal = () => {
     const startDate = formatDate(dateRange.startDate);
     const endDate = formatDate(dateRange.endDate);
-    const totalSpotCount = wayPoint.reduce((sum, day) => sum + day.length, 0);
 
-    if (totalSpotCount === 0) {
-      alert("일정에 관광지를 먼저 담아주세요.");
+    if (!startDate || !endDate) {
+      showToast("여행 날짜를 먼저 선택해주세요.", "info");
       return;
     }
 
-    if (!startDate || !endDate) {
-      alert("여행 날짜를 먼저 선택해주세요.");
+    const totalSpotCount = wayPoint.reduce((sum, day) => sum + day.length, 0);
+
+    if (totalSpotCount === 0) {
+      showToast("일정에 관광지를 먼저 담아주세요.", "info");
+      return;
+    }
+
+    const emptyDayIndexes = Array.from({ length: dayCount })
+      .map((_, dayIdx) => dayIdx)
+      .filter((dayIdx) => (wayPoint[dayIdx] ?? []).length === 0);
+
+    if (emptyDayIndexes.length > 0) {
+      const emptyDayLabels = emptyDayIndexes
+        .map((idx) => `${idx + 1}일차`)
+        .join(", ");
+      showToast(`${emptyDayLabels}에 관광지를 담아주세요.`, "info");
       return;
     }
 
@@ -149,10 +164,10 @@ const RouteList = () => {
           console.log("여행 생성 완료:", tripId);
           setIsModalOpen(false);
           resetWayPoint();
-          alert("일정이 생성되었어요.");
+          showToast("일정이 생성되었어요.", "success");
         },
         onError: () => {
-          alert("일정 생성에 실패했습니다.");
+          showToast("일정 생성에 실패했습니다.", "error");
         },
       },
     );

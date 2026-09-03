@@ -4,6 +4,7 @@ import styled, { keyframes } from "styled-components";
 import { axiosInstance } from "../../../api/axiosInstance";
 import SoksomLogo from "../../../../public/logo.svg";
 import { useAuthStore } from "../../../stores/auth/authStore";
+import { useToast } from "../../../hooks/common/useToast";
 
 const SocialCallback = () => {
   const [searchParams] = useSearchParams();
@@ -11,6 +12,7 @@ const SocialCallback = () => {
   const [error, setError] = useState(false);
   const hasRequested = useRef(false);
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
+  const showToast = useToast();
 
   useEffect(() => {
     const code = searchParams.get("code");
@@ -33,8 +35,10 @@ const SocialCallback = () => {
         localStorage.setItem("soksomRefreshToken", data.refreshToken);
 
         navigate("/", { replace: true });
-        alert("소셜 로그인이 완료되었습니다.");
+        showToast("로그인이 완료되었습니다.", "success");
       } catch (err) {
+        showToast("로그인에 실패했습니다.", "error");
+
         console.error("소셜 로그인 실패", err);
         setError(true);
       }
