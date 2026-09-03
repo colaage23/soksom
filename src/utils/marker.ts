@@ -1,8 +1,6 @@
 import landmarkSvg from "lucide-static/icons/landmark.svg?raw";
 import partyPopperSvg from "lucide-static/icons/party-popper.svg?raw";
-import bedDoubleSvg from "lucide-static/icons/bed-double.svg?raw";
 import shoppingBagSvg from "lucide-static/icons/shopping-bag.svg?raw";
-import utensilsCrossedSvg from "lucide-static/icons/utensils-crossed.svg?raw";
 import { Camera, SportShoe } from "lucide-static";
 
 const extractIconInner = (raw: string) =>
@@ -13,9 +11,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   "14": extractIconInner(landmarkSvg), // 문화시설
   "15": extractIconInner(partyPopperSvg), // 행사
   "28": extractIconInner(SportShoe), // 레포츠
-  "32": extractIconInner(bedDoubleSvg), // 숙박
   "38": extractIconInner(shoppingBagSvg), // 쇼핑
-  "39": extractIconInner(utensilsCrossedSvg), // 음식점
 };
 
 export const getMarkerSrc = (color: string, contenttypeid?: string) => {
