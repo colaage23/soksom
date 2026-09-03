@@ -11,6 +11,7 @@ import { useState, type FormEvent } from "react";
 import styled from "styled-components";
 import { useSignup } from "../../../hooks/auth/useAuth";
 import { useAuthStore } from "../../../stores/auth/authStore";
+import { useToast } from "../../../hooks/common/useToast";
 
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
@@ -23,6 +24,8 @@ const SignupForm = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+
+  const showToast = useToast();
 
   const { setMode } = useAuthStore();
 
@@ -85,11 +88,11 @@ const SignupForm = () => {
       },
       {
         onSuccess: () => {
-          alert("회원가입이 완료되었습니다.");
+          showToast("회원가입이 완료되었습니다.", "success");
           setMode("login");
         },
         onError: () => {
-          alert("회원가입에 실패했습니다.");
+          showToast("회원가입에 실패했습니다.", "error");
         },
       },
     );
