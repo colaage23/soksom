@@ -1,5 +1,6 @@
 import { Compass, Ellipsis, MapPinned, Trees, Waves } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../../constants/colors";
 import {
@@ -139,6 +140,7 @@ const getTripTimelineSteps = (trip: ITrip) =>
     });
 
 export const TripScheduleSection = () => {
+  const navigate = useNavigate();
   const [selectedTripFilter, setSelectedTripFilter] =
     useState<(typeof tripFilterOptions)[number]>("전체");
   const tripListParams = { pageNo: 1, numOfRows: 20 };
@@ -324,7 +326,7 @@ export const TripScheduleSection = () => {
                   .slice(0, 3)
                   .map((trip, index) => renderTripCard(trip, index))
               ) : (
-                <AddTripCard type="button">
+                <AddTripCard type="button" onClick={() => navigate("/map")}>
                   <AddCircle>+</AddCircle>
                   일정 추가하기
                 </AddTripCard>
@@ -373,7 +375,7 @@ export const TripScheduleSection = () => {
           selectedTripFilter !== "전체" &&
           selectedTripFilter === "진행 예정" &&
           visibleTrips.length === 0 && (
-            <AddTripCard type="button">
+            <AddTripCard type="button" onClick={() => navigate("/map")}>
               <AddCircle>+</AddCircle>
               일정 추가하기
             </AddTripCard>
