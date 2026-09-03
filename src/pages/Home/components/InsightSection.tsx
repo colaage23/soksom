@@ -12,75 +12,9 @@ import { getHomeMarkerSrc } from "../../../utils/marker.ts";
 import { useGetSpotsDetail } from "../../../hooks/spot/useGetSpotsDetail";
 import type { ISpotDetailRequest } from "../../../types/spot";
 import { getCongestionStyle } from "../../../constants/congestion.utils";
+import { insightSpots } from "../../../constants/insightSpots.ts";
 
 const filterTabs = ["지금", "내일 오전"] as const;
-
-const insightSpots: (Omit<ISpotDetailRequest, "baseYmd"> & {
-  name: string;
-  latitude: number;
-  longitude: number;
-})[] = [
-  {
-    name: "성산일출봉",
-    contentid: "126435",
-    contenttypeid: "12",
-    spotName: "성산일출봉",
-    areaCd: "50",
-    signguCd: "130",
-    latitude: 33.4580801942,
-    longitude: 126.9415003865,
-  },
-  {
-    name: "산굼부리",
-    contentid: "126474",
-    contenttypeid: "12",
-    spotName: "산굼부리",
-    areaCd: "50",
-    signguCd: "110",
-    latitude: 33.4323127375,
-    longitude: 126.6928183084,
-  },
-  {
-    name: "협재해수욕장",
-    contentid: "127490",
-    contenttypeid: "12",
-    spotName: "협재해수욕장",
-    areaCd: "50",
-    signguCd: "110",
-    latitude: 33.393776477,
-    longitude: 126.239441896,
-  },
-  {
-    name: "비자림",
-    contentid: "126472",
-    contenttypeid: "12",
-    spotName: "비자림",
-    areaCd: "50",
-    signguCd: "110",
-    latitude: 33.4862219608,
-    longitude: 126.8074760594,
-  },
-  {
-    name: "쇠소깍",
-    contentid: "129617",
-    contenttypeid: "12",
-    spotName: "쇠소깍",
-    areaCd: "50",
-    signguCd: "130",
-    latitude: 33.254275717,
-    longitude: 126.6224173342,
-  },
-  {
-    name: "월정리해변",
-    contentid: "1918639",
-    contenttypeid: "12",
-    spotName: "월정리해변",
-    areaCd: "50",
-    signguCd: "110",
-    latitude: 33.5550461413,
-    longitude: 126.7982299577,
-  },
-];
 
 const getYmd = (date: Date) => {
   const yyyy = date.getFullYear();
