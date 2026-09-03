@@ -191,13 +191,9 @@ const HotPlaceSection = () => {
               >
                 <PlaceImage $image={place.image} $featured={isFeatured}>
                   <CardTop>
-                    <TagPill $tone={place.tone}>
-                      {selectedFilter === "숨은 명소" ? (
-                        <Leaf size={15} />
-                      ) : (
-                        <Flame size={15} />
-                      )}
-                      <span style={{ color: "black" }}>{place.tag}</span>
+                    <TagPill $tone={"hot"}>
+                      <Flame size={15} />
+                      <span style={{ color: "black" }}>핫플레이스</span>
                     </TagPill>
                     <CrowdBadge>{place.occupancy}</CrowdBadge>
                   </CardTop>
