@@ -16,6 +16,7 @@ export type CollectionPageItem = {
   secondaryMeta: string;
   icon: React.ComponentType<{ size?: number }>;
   contentId?: string;
+  favoriteId?: string;
   thumbnail?: string;
 };
 
@@ -33,6 +34,8 @@ type PlaceCollectionPageProps = {
   formatDateLabel?: (dateText: string) => string;
   isLoading?: boolean;
   emptyMessage?: string;
+  onFavoriteClick?: (item: CollectionPageItem) => void;
+  isFavoritePending?: boolean;
 };
 
 const PlaceCollectionPage = ({
@@ -44,6 +47,8 @@ const PlaceCollectionPage = ({
   formatDateLabel,
   isLoading = false,
   emptyMessage = "표시할 장소가 없습니다.",
+  onFavoriteClick,
+  isFavoritePending = false,
 }: PlaceCollectionPageProps) => {
   const navigate = useNavigate();
 
@@ -127,9 +132,6 @@ const PlaceCollectionPage = ({
               return (
                 <PlaceCard key={item.title}>
                   <PlaceVisual $index={index}>
-                    <PlaceBadge $variant={item.badgeVariant}>
-                      {item.badge}
-                    </PlaceBadge>
                     {item.thumbnail ? (
                       <PlaceImage src={item.thumbnail} alt={item.title} />
                     ) : (
@@ -152,6 +154,8 @@ const PlaceCollectionPage = ({
                         <FavoriteButton
                           type="button"
                           $active={Boolean(item.isFavorite)}
+                          disabled={isFavoritePending}
+                          onClick={() => onFavoriteClick?.(item)}
                           aria-label={
                             item.isFavorite
                               ? `${item.title} 즐겨찾기 해제`
@@ -460,6 +464,11 @@ const FavoriteButton = styled.button<{ $active: boolean }>`
   color: ${({ $active }) => ($active ? "#d4536a" : "#8a9791")};
   box-shadow: 0 10px 18px rgba(35, 49, 44, 0.06);
   cursor: pointer;
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
 `;
 
 const PlaceSummary = styled.p`

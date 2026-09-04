@@ -1,4 +1,6 @@
 import { Compass, MapPinned, Trees, Waves } from "lucide-react";
+import { useGetFavoriteSpots } from "../../hooks/favorite/useGetFavoriteSpots";
+import { useToggleFavorite } from "../../hooks/favorite/useToggleFavorite";
 import { useGetRecentSearchPlaces } from "../../hooks/searchHistory/useGetRecentSearchPlaces";
 import { formatVisitDateLabel } from "./utils/placeDateLabel";
 import PlaceCollectionPage, {
@@ -26,30 +28,50 @@ const getRecentPlaceIcon = (title: string) => {
 };
 
 const RecentPlaces = () => {
+  const { data: favoriteSpots = [] } = useGetFavoriteSpots();
+  const { toggleFavorite, isPending: isFavoritePending } = useToggleFavorite();
   const {
     data: recentSearchPlaces = [],
     isLoading,
     isError,
   } = useGetRecentSearchPlaces();
+  const favoriteIdByContentId = new Map(
+    favoriteSpots.map((spot) => [spot.contentid, spot.favoriteId]),
+  );
   const stats = [
     { label: "최근 조회", value: `${recentSearchPlaces.length}곳` },
   ];
-  const items: CollectionPageItem[] = recentSearchPlaces.map((place) => ({
-    title: place.title,
-    date: place.createdAt?.slice(0, 10).replace(/-/g, ".") ?? "최근 조회",
-    region: place.addr1 || "주소 정보 없음",
-    summary: `${place.title} 장소를 최근 조회했습니다.`,
-    badge: "최근 조회",
-    badgeVariant: "calm",
-    isFavorite: false,
-    tags: [place.contenttypeid ? `#${place.contenttypeid}` : "#recent"],
-    primaryMeta:
-      place.createdAt?.slice(0, 10).replace(/-/g, ".") ?? "최근 조회",
-    secondaryMeta: `기록 #${place.historyId}`,
-    icon: getRecentPlaceIcon(place.title),
-    contentId: place.contentid,
-    thumbnail: place.firstimage,
-  }));
+  const items: CollectionPageItem[] = recentSearchPlaces.map((place) => {
+    const favoriteId = favoriteIdByContentId.get(place.contentid);
+
+    return {
+      title: place.title,
+      date: place.createdAt?.slice(0, 10).replace(/-/g, ".") ?? "최근 조회",
+      region: place.addr1 || "주소 정보 없음",
+      summary: `${place.title} 장소를 최근 조회했습니다.`,
+      badge: "최근 조회",
+      badgeVariant: "calm",
+      isFavorite: Boolean(favoriteId),
+      tags: [place.contenttypeid ? `#${place.contenttypeid}` : "#recent"],
+      primaryMeta:
+        place.createdAt?.slice(0, 10).replace(/-/g, ".") ?? "최근 조회",
+      secondaryMeta: `기록 #${place.historyId}`,
+      icon: getRecentPlaceIcon(place.title),
+      contentId: place.contentid,
+      favoriteId,
+      thumbnail: place.firstimage,
+    };
+  });
+
+  const handleFavoriteClick = (item: CollectionPageItem) => {
+    const place = recentSearchPlaces.find(
+      (recentPlace) => recentPlace.contentid === item.contentId,
+    );
+
+    if (place) {
+      toggleFavorite(place, item.favoriteId);
+    }
+  };
 
   return (
     <PlaceCollectionPage
@@ -65,6 +87,8 @@ const RecentPlaces = () => {
           : "최근 조회한 장소가 없습니다."
       }
       formatDateLabel={formatVisitDateLabel}
+      onFavoriteClick={handleFavoriteClick}
+      isFavoritePending={isFavoritePending}
     />
   );
 };

@@ -8,6 +8,7 @@ import { useLogin } from "../../../hooks/auth/useAuth";
 import { useNavigate } from "react-router-dom";
 import FindPasswordModal from "../../../components/modal/FindPasswordModal";
 import { getSocialAuthUrl } from "../../../utils/socialAuth";
+import { useToast } from "../../../hooks/common/useToast";
 
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
@@ -15,17 +16,18 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isFindPasswordModalOpen, setIsFindPasswordModalOpen] = useState(false);
-
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
+
+  const showToast = useToast();
 
   const [errors, setErrors] = useState({
     email: "",
     password: "",
   });
 
-  const { mutate: loginMutate, isPending } = useLogin();
+  const { mutateAsync: loginMutateAsync, isPending } = useLogin();
 
   const validate = () => {
     const newErrors = {
@@ -40,31 +42,23 @@ const LoginForm = () => {
     return newErrors;
   };
 
-  const handleLogin = (e: FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const newErrors = validate();
     setErrors(newErrors);
 
     const hasError = Object.values(newErrors).some((error) => error !== "");
-
     if (hasError) return;
 
-    loginMutate(
-      {
-        email,
-        password,
-      },
-      {
-        onSuccess: () => {
-          navigate("/");
-          alert("로그인이 완료되었습니다.");
-        },
-        onError: () => {
-          alert("로그인에 실패했습니다.");
-        },
-      },
-    );
+    try {
+      await loginMutateAsync({ email, password });
+      showToast("로그인이 완료되었습니다.", "success");
+      navigate("/");
+    } catch (error) {
+      showToast("로그인에 실패했습니다.", "error");
+      console.error(error);
+    }
   };
 
   return (

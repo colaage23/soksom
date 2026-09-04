@@ -405,6 +405,7 @@ const UserDropdown = styled.div`
   right: 0;
 
   min-width: 220px;
+  max-width: 260px;
 
   display: flex;
   flex-direction: column;
@@ -442,6 +443,7 @@ const ProfileTextBox = styled.div`
   gap: 2px;
 
   min-width: 0;
+  flex: 1;
 `;
 
 const ProfileNickname = styled.span`
