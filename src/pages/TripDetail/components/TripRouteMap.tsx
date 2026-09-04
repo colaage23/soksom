@@ -6,15 +6,23 @@ import type { ITripDetail } from "../../../types/trip";
 interface Props {
   places: ITripDetail[];
   dayColor?: string;
+  congestionColors?: string[]; // places와 같은 순서, 각 장소의 혼잡도 색
 }
 
-const TripRouteMap = ({ places, dayColor = "#0c9799" }: Props) => {
-  const validPlaces = useMemo(
-    () => places.filter((p) => p.mapx && p.mapy),
-    [places],
+const TripRouteMap = ({
+  places,
+  dayColor = "#0c9799",
+  congestionColors,
+}: Props) => {
+  const validEntries = useMemo(
+    () =>
+      places
+        .map((p, idx) => ({ place: p, color: congestionColors?.[idx] }))
+        .filter((entry) => entry.place.mapx && entry.place.mapy),
+    [places, congestionColors],
   );
 
-  if (validPlaces.length === 0) {
+  if (validEntries.length === 0) {
     return (
       <MapBox>
         <EmptyState>위치 정보가 없어요</EmptyState>
@@ -22,9 +30,9 @@ const TripRouteMap = ({ places, dayColor = "#0c9799" }: Props) => {
     );
   }
 
-  const path = validPlaces.map((p) => ({
-    lat: Number(p.mapy),
-    lng: Number(p.mapx),
+  const path = validEntries.map(({ place }) => ({
+    lat: Number(place.mapy),
+    lng: Number(place.mapx),
   }));
 
   const center = path[Math.floor(path.length / 2)];
@@ -40,10 +48,12 @@ const TripRouteMap = ({ places, dayColor = "#0c9799" }: Props) => {
       >
         {path.map((position, index) => (
           <CustomOverlayMap
-            key={validPlaces[index].detailId}
+            key={validEntries[index].place.detailId}
             position={position}
           >
-            <MarkerBadge $color={dayColor}>{index + 1}</MarkerBadge>
+            <MarkerBadge $color={validEntries[index].color ?? dayColor}>
+              {index + 1}
+            </MarkerBadge>
           </CustomOverlayMap>
         ))}
 
