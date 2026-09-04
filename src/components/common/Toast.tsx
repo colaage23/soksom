@@ -55,6 +55,8 @@ const ToastItem = ({
 const Toast = () => {
   const toasts = useToastStore((state) => state.toasts);
 
+  console.log("🔔 Toast 렌더링, toasts:", toasts);
+
   if (toasts.length === 0) return null;
 
   return (
