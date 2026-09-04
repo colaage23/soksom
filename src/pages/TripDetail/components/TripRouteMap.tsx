@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import styled from "styled-components";
 import { CustomOverlayMap, Map, Polyline } from "react-kakao-maps-sdk";
 import type { ITripDetail } from "../../../types/trip";
@@ -6,7 +6,7 @@ import type { ITripDetail } from "../../../types/trip";
 interface Props {
   places: ITripDetail[];
   dayColor?: string;
-  congestionColors?: string[]; // places와 같은 순서, 각 장소의 혼잡도 색
+  congestionColors?: string[];
 }
 
 const TripRouteMap = ({
@@ -14,6 +14,8 @@ const TripRouteMap = ({
   dayColor = "#0c9799",
   congestionColors,
 }: Props) => {
+  const mapRef = useRef<kakao.maps.Map>(null);
+
   const validEntries = useMemo(
     () =>
       places
@@ -22,6 +24,24 @@ const TripRouteMap = ({
     [places, congestionColors],
   );
 
+  const path = useMemo(
+    () =>
+      validEntries.map(({ place }) => ({
+        lat: Number(place.mapy),
+        lng: Number(place.mapx),
+      })),
+    [validEntries],
+  );
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || path.length < 2) return;
+
+    const bounds = new kakao.maps.LatLngBounds();
+    path.forEach((p) => bounds.extend(new kakao.maps.LatLng(p.lat, p.lng)));
+    map.setBounds(bounds);
+  }, [path]);
+
   if (validEntries.length === 0) {
     return (
       <MapBox>
@@ -29,11 +49,6 @@ const TripRouteMap = ({
       </MapBox>
     );
   }
-
-  const path = validEntries.map(({ place }) => ({
-    lat: Number(place.mapy),
-    lng: Number(place.mapx),
-  }));
 
   const center = path[Math.floor(path.length / 2)];
 
@@ -45,6 +60,7 @@ const TripRouteMap = ({
         level={7}
         zoomable={false}
         draggable={false}
+        ref={mapRef}
       >
         {path.map((position, index) => (
           <CustomOverlayMap
