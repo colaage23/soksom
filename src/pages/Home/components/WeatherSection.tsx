@@ -14,6 +14,7 @@ import colors from "../../../constants/colors";
 import { useJejuWeather } from "../../../hooks/useJejuWeather";
 import { useGetFavoriteSpots } from "../../../hooks/favorite/useGetFavoriteSpots";
 import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
+import { useAuthStore } from "../../../stores/auth/authStore";
 import {
   homeSectionDescription,
   homeSectionEyebrow,
@@ -39,6 +40,7 @@ const weatherIconByCode = (weatherCode: number, size: number, isDay = true) => {
 
 const WeatherSection = () => {
   const navigate = useNavigate();
+  const accessToken = useAuthStore((state) => state.accessToken);
   const { data: weather, isLoading, isError } = useJejuWeather();
   const { data: favoriteSpots = [], isLoading: isFavoriteLoading } =
     useGetFavoriteSpots();
@@ -130,10 +132,30 @@ const WeatherSection = () => {
           </WeatherCard>
 
           <PlacesGrid>
-            {isFavoriteLoading ? (
+            {!accessToken ? (
+              <PlacesMessage>
+                <span>로그인하고 관심 관광지를 확인해 보세요.</span>
+                <PlacesMessageButton
+                  type="button"
+                  onClick={() => navigate("/auth")}
+                >
+                  로그인하기
+                  <ArrowUpRight size={16} />
+                </PlacesMessageButton>
+              </PlacesMessage>
+            ) : isFavoriteLoading ? (
               <PlacesMessage>관심 관광지를 불러오는 중이에요.</PlacesMessage>
             ) : places.length === 0 ? (
-              <PlacesMessage>아직 즐겨찾기한 관광지가 없어요.</PlacesMessage>
+              <PlacesMessage>
+                <span>아직 즐겨찾기한 관광지가 없어요.</span>
+                <PlacesMessageButton
+                  type="button"
+                  onClick={() => navigate("/map")}
+                >
+                  관광지 탐색하기
+                  <ArrowUpRight size={16} />
+                </PlacesMessageButton>
+              </PlacesMessage>
             ) : (
               places.map((place) => (
                 <SpotCard key={place.contentid}>
@@ -400,18 +422,34 @@ const PlacesGrid = styled.div`
   }
 `;
 
-const PlacesMessage = styled.p`
+const PlacesMessage = styled.div`
   grid-column: 1 / -1;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
   min-height: 320px;
-  margin: 0;
   padding: 24px;
   border-radius: 26px;
   background: rgba(255, 251, 245, 0.92);
   color: #7b746b;
   font-weight: 600;
   text-align: center;
+`;
+
+const PlacesMessageButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 20px;
+  background: #111111;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
 `;
 
 const SpotCard = styled.article`

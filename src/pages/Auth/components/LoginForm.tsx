@@ -27,7 +27,7 @@ const LoginForm = () => {
     password: "",
   });
 
-  const { mutate: loginMutate, isPending } = useLogin();
+  const { mutateAsync: loginMutateAsync, isPending } = useLogin();
 
   const validate = () => {
     const newErrors = {
@@ -42,31 +42,23 @@ const LoginForm = () => {
     return newErrors;
   };
 
-  const handleLogin = (e: FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const newErrors = validate();
     setErrors(newErrors);
 
     const hasError = Object.values(newErrors).some((error) => error !== "");
-
     if (hasError) return;
 
-    loginMutate(
-      {
-        email,
-        password,
-      },
-      {
-        onSuccess: () => {
-          navigate("/");
-          showToast("로그인이 완료되었습니다.", "success");
-        },
-        onError: () => {
-          showToast("로그인에 실패했습니다.", "error");
-        },
-      },
-    );
+    try {
+      await loginMutateAsync({ email, password });
+      showToast("로그인이 완료되었습니다.", "success");
+      navigate("/");
+    } catch (error) {
+      showToast("로그인에 실패했습니다.", "error");
+      console.error(error);
+    }
   };
 
   return (

@@ -45,7 +45,7 @@ const SocialCallback = () => {
     };
 
     login();
-  }, [searchParams, navigate, setAccessToken]);
+  }, [searchParams, navigate, setAccessToken, showToast]);
 
   if (error) {
     return (
