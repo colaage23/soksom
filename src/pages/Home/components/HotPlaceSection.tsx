@@ -306,17 +306,6 @@ const TagPill = styled.span<{ $tone: PlaceTone }>`
   gap: 6px;
 `;
 
-const CrowdBadge = styled.span`
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(34, 31, 26, 0.74);
-  color: #f5efe5;
-  font-size: 0.76rem;
-  font-weight: 600;
-`;
-
 const PlaceBody = styled.div<{ $featured?: boolean }>`
   display: flex;
   flex: 1;
