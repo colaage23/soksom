@@ -74,10 +74,10 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
 
   const lat = selectedSpot?.mapy
     ? parseFloat(selectedSpot.mapy)
-    : 33.50685000876393;
+    : 33.48685000876393;
   const lng = selectedSpot?.mapx
     ? parseFloat(selectedSpot.mapx)
-    : 126.49454720117006;
+    : 126.46454720117006;
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
