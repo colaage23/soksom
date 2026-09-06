@@ -33,7 +33,7 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
 
   const [showSearchHereButton, setShowSearchHereButton] = useState(false);
 
-  const [level, setLevel] = useState(9);
+  const [level, setLevel] = useState(7);
 
   const [hoveredSpot, setHoveredSpot] = useState<string | null>(null);
 
@@ -72,14 +72,17 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
   const currentDaySpots =
     expandedDay !== null ? (wayPoint[expandedDay] ?? []) : pool;
 
-  const lat = selectedSpot?.mapy ? parseFloat(selectedSpot.mapy) : 33.34714;
-  const lng = selectedSpot?.mapx ? parseFloat(selectedSpot.mapx) : 126.41986;
-
+  const lat = selectedSpot?.mapy
+    ? parseFloat(selectedSpot.mapy)
+    : 33.50685000876393;
+  const lng = selectedSpot?.mapx
+    ? parseFloat(selectedSpot.mapx)
+    : 126.49454720117006;
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
-    const nextLevel = selectedSpot ? 4 : 9;
+    const nextLevel = selectedSpot ? 4 : 7;
     map.setLevel(nextLevel);
     setLevel(nextLevel);
   }, [selectedSpot]);
@@ -136,7 +139,7 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
         id="kakao-map"
         center={{ lat, lng: selectedSpot?.mapy ? lng - 0.006 : lng }}
         style={{ width: "100%", height: "100%" }}
-        level={selectedSpot ? 4 : 9}
+        level={selectedSpot ? 4 : 7}
         zoomable={true}
         ref={mapRef}
         onDragEnd={handleUserMapMove}
