@@ -16,8 +16,6 @@ const CATEGORY_TYPE_MAP: Record<string, string | null> = {
   전체: null,
   MY: null,
   관광지: "12",
-  음식점: "39",
-  숙박: "32",
   쇼핑: "38",
   문화시설: "14",
   행사: "15",

@@ -18,7 +18,6 @@ import { useSpotStore } from "../../../stores/useSpotStore";
 import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
 import { useWayPointStore } from "../../../stores/useWayPointStore";
 import { useGetSpotDetail } from "../../../hooks/spot/useGetSpotDetail";
-import type { ISpotDetailInfo } from "../../../types/spot";
 import {
   getCongestionLevel,
   getCongestionStyle,
@@ -27,23 +26,6 @@ import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
 import FallBackImage from "../../../assets/fallback.png";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../../stores/auth/authStore";
-
-const ROOM_AMENITIES: { key: keyof ISpotDetailInfo; label: string }[] = [
-  { key: "roomaircondition", label: "에어컨" },
-  { key: "roomtv", label: "TV" },
-  { key: "roominternet", label: "인터넷" },
-  { key: "roombat", label: "욕조" }, // ⚠️ types/spot.ts엔 roombath가 아니라 roombat으로 정의돼 있어서 맞춰줌
-  { key: "roombathfacility", label: "욕실용품" },
-  { key: "roomhairdryer", label: "헤어드라이어" },
-  { key: "roomrefrigerator", label: "냉장고" },
-  { key: "roomcook", label: "취사시설" },
-  { key: "roomcable", label: "케이블TV" },
-  { key: "roomtable", label: "테이블" },
-  { key: "roomsofa", label: "소파" },
-  { key: "roompc", label: "PC" },
-  { key: "roomhometheater", label: "홈시어터" },
-  { key: "roomtoiletries", label: "세면도구" },
-];
 
 const SpotDetail = () => {
   const navigate = useNavigate();
@@ -75,7 +57,7 @@ const SpotDetail = () => {
   // const status = congestionStyle[spotDetail?.congestion];
   const isLongText = spotDetail?.common?.overview?.length > 80;
 
-  // 콘텐츠 타입(관광지/쇼핑/음식점 등)에 따라 intro 필드명이 다르게 내려와서 통일
+  // 콘텐츠 타입(관광지/쇼핑 등)에 따라 intro 필드명이 다르게 내려와서 통일
   const useTimeInfo = spotDetail?.intro?.usetime || spotDetail?.intro?.opentime;
   const parkingInfo =
     spotDetail?.intro?.parking || spotDetail?.intro?.parkingshopping;
@@ -332,79 +314,6 @@ const SpotDetail = () => {
             </InfoBox>
           )}
         </InfoContainer>
-
-        {spotDetail?.info?.length > 0 && isRoomInfo && (
-          <RoomListBox>
-            <OverviewTitle>객실 정보</OverviewTitle>
-            {spotDetail?.info.map((room, idx) => (
-              <RoomCard key={`${room.contentid}-${idx}`}>
-                {room.roomimg1 && (
-                  <RoomImage
-                    src={room.roomimg1}
-                    alt={room.roomimg1alt || room.roomtitle}
-                  />
-                )}
-
-                <RoomCardBody>
-                  <RoomTitle>{room.roomtitle}</RoomTitle>
-
-                  {(room.roomsize1 || room.roomsize2) && (
-                    <RoomMeta>
-                      {room.roomsize1 && `${room.roomsize1}평`}
-                      {room.roomsize1 && room.roomsize2 && " · "}
-                      {room.roomsize2 && `${room.roomsize2}㎡`}
-                    </RoomMeta>
-                  )}
-
-                  {(room.roombasecount || room.roommaxcount) && (
-                    <RoomMeta>
-                      기준 {room.roombasecount}명
-                      {room.roommaxcount &&
-                        room.roommaxcount !== room.roombasecount &&
-                        ` / 최대 ${room.roommaxcount}명`}
-                    </RoomMeta>
-                  )}
-
-                  <RoomAmenityList>
-                    {ROOM_AMENITIES.filter(({ key }) => room[key] === "Y").map(
-                      ({ key, label }) => (
-                        <AmenityChip key={key}>{label}</AmenityChip>
-                      ),
-                    )}
-                  </RoomAmenityList>
-
-                  {(room.roomoffseasonminfee1 ||
-                    room.roompeakseasonminfee1) && (
-                    <RoomFeeBox>
-                      {room.roomoffseasonminfee1 && (
-                        <RoomFeeRow>
-                          <RoomFeeLabel>비수기</RoomFeeLabel>
-                          <RoomFeeValue>
-                            {Number(room.roomoffseasonminfee1).toLocaleString()}
-                            원~
-                          </RoomFeeValue>
-                        </RoomFeeRow>
-                      )}
-                      {room.roompeakseasonminfee1 && (
-                        <RoomFeeRow>
-                          <RoomFeeLabel>성수기</RoomFeeLabel>
-                          <RoomFeeValue>
-                            {Number(
-                              room.roompeakseasonminfee1,
-                            ).toLocaleString()}
-                            원~
-                          </RoomFeeValue>
-                        </RoomFeeRow>
-                      )}
-                    </RoomFeeBox>
-                  )}
-
-                  {room.roomintro && <RoomIntro>{room.roomintro}</RoomIntro>}
-                </RoomCardBody>
-              </RoomCard>
-            ))}
-          </RoomListBox>
-        )}
 
         {spotDetail?.info?.length > 0 && !isRoomInfo && (
           <InfoListBox>
@@ -1080,115 +989,6 @@ const InfoListText = styled.p`
   a {
     color: #0c9799;
   }
-`;
-
-const RoomListBox = styled.div`
-  width: 100%;
-
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-
-  margin: 0 0 20px;
-`;
-
-const RoomCard = styled.div`
-  width: 100%;
-
-  display: flex;
-  flex-direction: column;
-
-  border: 1px solid #f5f3eb;
-  border-radius: 16px;
-
-  overflow: hidden;
-`;
-
-const RoomImage = styled.img`
-  width: 100%;
-  height: 140px;
-
-  display: block;
-  object-fit: cover;
-`;
-
-const RoomCardBody = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-
-  padding: 14px;
-`;
-
-const RoomTitle = styled.h4`
-  margin: 0;
-
-  color: #100c0d;
-  font-size: 0.9375rem;
-  font-weight: 700;
-`;
-
-const RoomMeta = styled.p`
-  margin: 0;
-
-  color: #6c727a;
-  font-size: 0.75rem;
-`;
-
-const RoomAmenityList = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-
-  margin-top: 2px;
-`;
-
-const AmenityChip = styled.span`
-  padding: 3px 8px;
-
-  border-radius: 9999px;
-  background-color: #edf7f6;
-
-  color: #097575;
-  font-size: 0.6875rem;
-  font-weight: 500;
-`;
-
-const RoomFeeBox = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-
-  margin-top: 6px;
-  padding-top: 10px;
-
-  border-top: 1px solid #f5f3eb;
-`;
-
-const RoomFeeRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const RoomFeeLabel = styled.span`
-  color: #6c727a;
-  font-size: 0.75rem;
-`;
-
-const RoomFeeValue = styled.span`
-  color: #100c0d;
-  font-size: 0.8125rem;
-  font-weight: 600;
-`;
-
-const RoomIntro = styled.p`
-  margin: 8px 0 0;
-
-  color: #a8a196;
-  font-size: 0.6875rem;
-  line-height: 1.4;
-  word-break: keep-all;
 `;
 
 export default SpotDetail;
