@@ -4,6 +4,9 @@ export interface IRecentSearchPlace {
   historyId: number;
   contentid: string;
   contenttypeid?: string;
+  lclsSystm1Nm: string;
+  lclsSystm2Nm: string;
+  lclsSystm3Nm: string;
   title: string;
   addr1: string;
   firstimage?: string;
@@ -16,6 +19,9 @@ interface IRawRecentSearchPlace {
   contentid?: string;
   contentTypeId?: string;
   contenttypeid?: string;
+  lclsSystm1Nm?: string;
+  lclsSystm2Nm?: string;
+  lclsSystm3Nm?: string;
   spotName?: string;
   title?: string;
   address?: string;
@@ -39,6 +45,9 @@ const normalizeRecentSearchPlace = (
   historyId: place.historyId,
   contentid: place.contentId ?? place.contentid ?? "",
   contenttypeid: place.contentTypeId ?? place.contenttypeid,
+  lclsSystm1Nm: place.lclsSystm1Nm ?? "",
+  lclsSystm2Nm: place.lclsSystm2Nm ?? "",
+  lclsSystm3Nm: place.lclsSystm3Nm ?? "",
   title: place.spotName ?? place.title ?? "이름 없는 장소",
   addr1: place.address ?? place.addr1 ?? "주소 정보 없음",
   firstimage: place.thumbnail ?? place.firstimage,

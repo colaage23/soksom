@@ -87,7 +87,6 @@ const HotPlaceSection = () => {
                         <Flame size={15} />
                         <span style={{ color: "black" }}>핫플레이스</span>
                       </TagPill>
-                      <CrowdBadge>인기 {place.hubRank}위</CrowdBadge>
                     </CardTop>
                   </PlaceImage>
 
