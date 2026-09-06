@@ -5,7 +5,7 @@ import colors from "../../constants/colors";
 import { navItems } from "../../constants/navItems";
 import { useAuthStore } from "../../stores/auth/authStore";
 import { useGetUserInfo } from "../../hooks/auth/useGetUserInfo";
-import { useWayPointStore } from "../../stores/useWayPointStore";
+import { useLogout } from "../../hooks/auth/useAuth";
 
 type HamburgerProps = {
   isOpen: boolean;
@@ -16,9 +16,10 @@ const Hamburger = ({ isOpen, onClose }: HamburgerProps) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
+  const logout = useLogout();
+
   const accessToken = useAuthStore((state) => state.accessToken);
   const isInitialized = useAuthStore((state) => state.isInitialized);
-  const clearAuth = useAuthStore((state) => state.clearAuth);
   const isLoggedIn = isInitialized && Boolean(accessToken);
 
   const { data: userInfo } = useGetUserInfo();
@@ -32,12 +33,9 @@ const Hamburger = ({ isOpen, onClose }: HamburgerProps) => {
   };
 
   const handleLogout = () => {
-    clearAuth();
+    logout();
     handleClose();
     navigate("/");
-
-    useWayPointStore.getState().resetWayPoint();
-    useWayPointStore.persist.clearStorage();
   };
 
   return (
