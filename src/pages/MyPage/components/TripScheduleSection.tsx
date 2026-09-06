@@ -1,5 +1,5 @@
-import { Compass, Ellipsis, MapPinned, Trees, Waves } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, Ellipsis } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../../constants/colors";
@@ -12,55 +12,11 @@ import type { ITrip } from "../../../types/trip";
 
 const tripFilterOptions = ["전체", "진행 예정", "지난 여행"] as const;
 
-const getFavoriteIcon = (category?: string) => {
-  const normalizedCategory = category?.toLowerCase() ?? "";
-
-  if (
-    normalizedCategory.includes("산") ||
-    normalizedCategory.includes("오름") ||
-    normalizedCategory.includes("레포츠")
-  ) {
-    return Compass;
-  }
-
-  if (
-    normalizedCategory.includes("숲") ||
-    normalizedCategory.includes("공원") ||
-    normalizedCategory.includes("자연")
-  ) {
-    return Trees;
-  }
-
-  if (
-    normalizedCategory.includes("해") ||
-    normalizedCategory.includes("바다") ||
-    normalizedCategory.includes("해변")
-  ) {
-    return Waves;
-  }
-
-  return MapPinned;
-};
-
-const getRecentPlaceIcon = (title: string) => {
-  if (title.includes("숲")) {
-    return Trees;
-  }
-
-  if (
-    title.includes("해") ||
-    title.includes("바다") ||
-    title.includes("해변")
-  ) {
-    return Waves;
-  }
-
-  if (title.includes("오름") || title.includes("산")) {
-    return Compass;
-  }
-
-  return MapPinned;
-};
+const temporaryTripImages = [
+  "https://images.unsplash.com/photo-1530789253388-582c481c54b0?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
+];
 
 const parseTripDate = (value?: string) => {
   if (!value) return null;
@@ -87,63 +43,26 @@ const formatTripDateRange = (startDate: string, endDate: string) => {
   return `${startLabel} - ${endLabel}`;
 };
 
-const getTripDayCount = (startDate: string, endDate: string) => {
-  const start = parseTripDate(startDate);
-  const end = parseTripDate(endDate);
+const getVisiblePages = (currentPage: number, totalPages: number) => {
+  const firstPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
+  const lastPage = Math.min(totalPages, firstPage + 4);
 
-  if (!start || !end) {
-    return null;
-  }
-
-  const diffTime = end.getTime() - start.getTime();
-  return Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  return Array.from(
+    { length: Math.max(0, lastPage - firstPage + 1) },
+    (_, index) => firstPage + index,
+  );
 };
-
-const getTripIcon = (trip: ITrip) => {
-  const category = trip.details
-    .flatMap((detail) => [
-      detail.lclsSystm3Nm,
-      detail.lclsSystm2Nm,
-      detail.lclsSystm1Nm,
-    ])
-    .find(Boolean);
-
-  if (category) {
-    return getFavoriteIcon(category);
-  }
-
-  const firstTitle = trip.details.find((detail) => detail.title)?.title;
-  if (firstTitle) {
-    return getRecentPlaceIcon(firstTitle);
-  }
-
-  return MapPinned;
-};
-
-const getTripTone = (trip: ITrip) => {
-  const dayCount = getTripDayCount(trip.startDate, trip.endDate) ?? 1;
-  return trip.details.length / dayCount <= 2 ? "여유로움" : "보통";
-};
-
-const getTripTimelineSteps = (trip: ITrip) =>
-  [...trip.details]
-    .sort(
-      (left, right) =>
-        Number(left.visitOrder || 0) - Number(right.visitOrder || 0),
-    )
-    .slice(0, 4)
-    .map((detail, index) => {
-      const orderLabel = detail.visitOrder
-        ? `${detail.visitOrder}순위`
-        : `${index + 1}번째`;
-      return `${orderLabel} ${detail.title}`;
-    });
 
 export const TripScheduleSection = () => {
   const navigate = useNavigate();
+  const currentTripCarouselRef = useRef<HTMLDivElement>(null);
   const [selectedTripFilter, setSelectedTripFilter] =
     useState<(typeof tripFilterOptions)[number]>("전체");
+  const [upcomingPage, setUpcomingPage] = useState(1);
+  const [pastPage, setPastPage] = useState(1);
   const tripListParams = { pageNo: 1, numOfRows: 20 };
+  const upcomingTripParams = { pageNo: upcomingPage, numOfRows: 9 };
+  const pastTripParams = { pageNo: pastPage, numOfRows: 9 };
   const {
     data: tripList,
     isLoading: isAllTripLoading,
@@ -153,12 +72,12 @@ export const TripScheduleSection = () => {
     data: nextTripList,
     isLoading: isNextTripLoading,
     isError: isNextTripError,
-  } = useGetNextTrips(tripListParams);
+  } = useGetNextTrips(upcomingTripParams);
   const {
     data: previousTripList,
     isLoading: isPreviousTripLoading,
     isError: isPreviousTripError,
-  } = useGetPreviousTrips(tripListParams);
+  } = useGetPreviousTrips(pastTripParams);
 
   const sortedTrips = useMemo(() => {
     const trips = tripList?.content ?? [];
@@ -228,21 +147,69 @@ export const TripScheduleSection = () => {
         ? isPreviousTripError
         : isNextTripError;
   const selectedTripFilterIndex = tripFilterOptions.indexOf(selectedTripFilter);
+  const selectedPage =
+    selectedTripFilter === "지난 여행" ? pastPage : upcomingPage;
+  const selectedTotalPages =
+    selectedTripFilter === "지난 여행"
+      ? (previousTripList?.totalPages ?? 0)
+      : (nextTripList?.totalPages ?? 0);
+
+  const handleFilterChange = (filter: (typeof tripFilterOptions)[number]) => {
+    setSelectedTripFilter(filter);
+
+    if (filter === "전체") {
+      setUpcomingPage(1);
+      setPastPage(1);
+    }
+    if (filter === "진행 예정") setUpcomingPage(1);
+    if (filter === "지난 여행") setPastPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > selectedTotalPages) return;
+
+    if (selectedTripFilter === "지난 여행") {
+      setPastPage(page);
+      return;
+    }
+
+    setUpcomingPage(page);
+  };
+
+  const handleCurrentTripSlide = (direction: -1 | 1) => {
+    const carousel = currentTripCarouselRef.current;
+    if (!carousel) return;
+
+    carousel.scrollBy({
+      left: direction * carousel.clientWidth,
+      behavior: "smooth",
+    });
+  };
 
   const renderTripCard = (trip: ITrip, index: number) => {
-    const Icon = getTripIcon(trip);
-    const tripTone = getTripTone(trip);
+    const tripImage =
+      trip.details.find((detail) => detail.firstimage)?.firstimage ??
+      temporaryTripImages[index % temporaryTripImages.length];
+    const handleMoveToTrip = () => navigate(`/trip/${trip.tripId}`);
 
     return (
-      <UpcomingCard key={trip.tripId}>
+      <UpcomingCard
+        key={trip.tripId}
+        role="link"
+        tabIndex={0}
+        onClick={handleMoveToTrip}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            handleMoveToTrip();
+          }
+        }}
+      >
         <UpcomingVisual $index={index}>
-          <LevelBadge $variant={tripTone === "여유로움" ? "calm" : "warm"}>
-            {tripTone}
-          </LevelBadge>
+          <UpcomingVisualTitle>{trip.tripName}</UpcomingVisualTitle>
         </UpcomingVisual>
+        <UpcomingImage src={tripImage} alt="" />
         <UpcomingBody>
-          <Icon size={28} />
-          <UpcomingTitle>{trip.tripName}</UpcomingTitle>
           <UpcomingMeta>
             {formatTripDateRange(trip.startDate, trip.endDate)}
           </UpcomingMeta>
@@ -263,7 +230,7 @@ export const TripScheduleSection = () => {
               key={filter}
               type="button"
               $active={selectedTripFilter === filter}
-              onClick={() => setSelectedTripFilter(filter)}
+              onClick={() => handleFilterChange(filter)}
             >
               {filter}
             </SegmentChip>
@@ -271,44 +238,34 @@ export const TripScheduleSection = () => {
         </SegmentedTabs>
       </SectionHeader>
 
-      {showCurrentTrips &&
-        currentTrips.map((currentTrip) => (
-          <CurrentTripCard key={currentTrip.tripId}>
-            <CurrentTripHeader>
-              <StatusPill $variant="solid">진행 중</StatusPill>
-              <CurrentTripTitle>{currentTrip.tripName}</CurrentTripTitle>
-              <CurrentTripDate>
-                {formatTripDateRange(
-                  currentTrip.startDate,
-                  currentTrip.endDate,
-                )}
-                {(() => {
-                  const dayCount = getTripDayCount(
-                    currentTrip.startDate,
-                    currentTrip.endDate,
-                  );
-                  return dayCount ? ` (${dayCount}일)` : "";
-                })()}
-              </CurrentTripDate>
-            </CurrentTripHeader>
-            <CurrentTripFooter>
-              <CurrentTripMeta>
-                총 {currentTrip.details.length}개의 장소
-              </CurrentTripMeta>
-              <CurrentTripMeta>
-                {currentTrip.isAiRoute === "Y" ||
-                currentTrip.isAiRoute === "true"
-                  ? "AI 추천 일정"
-                  : "직접 만든 일정"}
-              </CurrentTripMeta>
-            </CurrentTripFooter>
-            <TimelineRow>
-              {getTripTimelineSteps(currentTrip).map((step) => (
-                <TimelineChip key={step}>{step}</TimelineChip>
-              ))}
-            </TimelineRow>
-          </CurrentTripCard>
-        ))}
+      {showCurrentTrips && (
+        <CurrentTrips>
+          <CurrentTripsHeader>
+            <CurrentTripsTitle>진행 중</CurrentTripsTitle>
+            {currentTrips.length > 3 && (
+              <CarouselControls>
+                <CarouselButton
+                  type="button"
+                  aria-label="이전 진행 중 일정"
+                  onClick={() => handleCurrentTripSlide(-1)}
+                >
+                  <ChevronLeft size={17} />
+                </CarouselButton>
+                <CarouselButton
+                  type="button"
+                  aria-label="다음 진행 중 일정"
+                  onClick={() => handleCurrentTripSlide(1)}
+                >
+                  <ChevronRight size={17} />
+                </CarouselButton>
+              </CarouselControls>
+            )}
+          </CurrentTripsHeader>
+          <CurrentTripCarousel ref={currentTripCarouselRef}>
+            {currentTrips.map((trip, index) => renderTripCard(trip, index))}
+          </CurrentTripCarousel>
+        </CurrentTrips>
+      )}
 
       <UpcomingGrid>
         {isTripLoading && (
@@ -336,7 +293,7 @@ export const TripScheduleSection = () => {
                   type="button"
                   title="진행 예정 전체 보기"
                   aria-label="진행 예정 전체 보기"
-                  onClick={() => setSelectedTripFilter("진행 예정")}
+                  onClick={() => handleFilterChange("진행 예정")}
                 >
                   <Ellipsis size={17} />
                 </TripGroupMoreButton>
@@ -355,7 +312,7 @@ export const TripScheduleSection = () => {
                       type="button"
                       title="지난 여행 전체 보기"
                       aria-label="지난 여행 전체 보기"
-                      onClick={() => setSelectedTripFilter("지난 여행")}
+                      onClick={() => handleFilterChange("지난 여행")}
                     >
                       <Ellipsis size={17} />
                     </TripGroupMoreButton>
@@ -379,6 +336,42 @@ export const TripScheduleSection = () => {
               <AddCircle>+</AddCircle>
               일정 추가하기
             </AddTripCard>
+          )}
+
+        {!isTripLoading &&
+          !isTripError &&
+          selectedTripFilter !== "전체" &&
+          selectedTotalPages > 1 && (
+            <Pagination aria-label={`${selectedTripFilter} 페이지 이동`}>
+              <PageArrowButton
+                type="button"
+                aria-label="이전 페이지"
+                disabled={selectedPage === 1}
+                onClick={() => handlePageChange(selectedPage - 1)}
+              >
+                <ChevronLeft size={17} />
+              </PageArrowButton>
+              {getVisiblePages(selectedPage, selectedTotalPages).map((page) => (
+                <PageNumberButton
+                  key={page}
+                  type="button"
+                  $active={page === selectedPage}
+                  aria-label={`${page}페이지`}
+                  aria-current={page === selectedPage ? "page" : undefined}
+                  onClick={() => handlePageChange(page)}
+                >
+                  {page}
+                </PageNumberButton>
+              ))}
+              <PageArrowButton
+                type="button"
+                aria-label="다음 페이지"
+                disabled={selectedPage === selectedTotalPages}
+                onClick={() => handlePageChange(selectedPage + 1)}
+              >
+                <ChevronRight size={17} />
+              </PageArrowButton>
+            </Pagination>
           )}
       </UpcomingGrid>
     </SectionBlock>
@@ -418,45 +411,10 @@ const SectionTitle = styled.h3`
   font-weight: 800;
 `;
 
-const StatusPill = styled.span<{ $variant: "calm" | "warm" | "solid" }>`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: fit-content;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: ${({ $variant }) => {
-    if ($variant === "warm") return "rgba(255, 158, 88, 0.16)";
-    if ($variant === "solid") return colors.main;
-
-    return "rgba(36, 149, 155, 0.12)";
-  }};
-  color: ${({ $variant }) => {
-    if ($variant === "warm") return "#ef8a3d";
-    if ($variant === "solid") return "white";
-
-    return colors.main;
-  }};
-  font-size: 0.78rem;
-  font-weight: 800;
-`;
-
-const LevelBadge = styled.span<{ $variant: "calm" | "warm" }>`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: ${({ $variant }) =>
-    $variant === "warm" ? "#ffefe4" : "#e6f7f4"};
-  color: ${({ $variant }) => ($variant === "warm" ? "#ef8a3d" : colors.main)};
-  font-size: 0.76rem;
-  font-weight: 800;
-`;
-
 const SegmentedTabs = styled.div`
   position: relative;
-  display: inline-flex;
+  display: inline-grid;
+  grid-template-columns: repeat(3, minmax(80px, 1fr));
   align-items: center;
   flex: 0 0 auto;
   padding: 0px 4px;
@@ -479,8 +437,7 @@ const SegmentIndicator = styled.div<{ $selectedIndex: number }>`
 const SegmentChip = styled.button<{ $active?: boolean }>`
   position: relative;
   z-index: 1;
-  flex: 1;
-  min-width: 60px;
+  min-width: 0;
   padding: 12px 14px;
   border: 0;
   border-radius: 999px;
@@ -492,69 +449,64 @@ const SegmentChip = styled.button<{ $active?: boolean }>`
   cursor: pointer;
 `;
 
-const CurrentTripCard = styled.article`
-  overflow: hidden;
-  margin-bottom: 14px;
-  border-radius: 22px;
-  border: 1px solid rgba(36, 149, 155, 0.08);
-  background: white;
+const CurrentTrips = styled.div`
+  margin-bottom: 18px;
 `;
 
-const CurrentTripHeader = styled.div`
-  display: grid;
-  gap: 10px;
-  padding: 18px 18px 22px;
-  background: linear-gradient(145deg, #1e7e83, ${colors.main});
-  color: white;
-`;
-
-const CurrentTripTitle = styled.h4`
-  margin: 0;
-  font-size: 1.6rem;
-  font-family: Gowun Batang;
-`;
-
-const CurrentTripDate = styled.p`
-  margin: 0;
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 0.92rem;
-`;
-
-const CurrentTripFooter = styled.div`
+const CurrentTripsHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 16px 18px 12px;
-
-  @media (max-width: 640px) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+  margin-bottom: 10px;
 `;
 
-const CurrentTripMeta = styled.span`
-  color: #607069;
-  font-size: 0.92rem;
-  font-weight: 700;
+const CurrentTripsTitle = styled.h4`
+  margin: 0;
+  color: #52615a;
+  font-size: 0.95rem;
+  font-weight: 800;
 `;
 
-const TimelineRow = styled.div`
+const CarouselControls = styled.div`
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 0 18px 18px;
+  gap: 6px;
 `;
 
-const TimelineChip = styled.span`
+const CarouselButton = styled.button`
   display: inline-flex;
   align-items: center;
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: #f4f7f5;
-  color: #6d7873;
-  font-size: 0.84rem;
-  font-weight: 700;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid rgba(36, 149, 155, 0.14);
+  border-radius: 50%;
+  background: #f4f8f5;
+  color: ${colors.main};
+  cursor: pointer;
+`;
+
+const CurrentTripCarousel = styled.div`
+  display: grid;
+  grid-auto-columns: calc((100% - 28px) / 3);
+  grid-auto-flow: column;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  > * {
+    scroll-snap-align: start;
+  }
+
+  @media (max-width: 960px) {
+    grid-auto-columns: 100%;
+  }
 `;
 
 const UpcomingGrid = styled.div`
@@ -619,11 +571,58 @@ const TripEmptyCard = styled.article`
   text-align: center;
 `;
 
+const Pagination = styled.nav`
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+`;
+
+const PageButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(36, 149, 155, 0.14);
+  border-radius: 50%;
+  background: white;
+  color: #607069;
+  cursor: pointer;
+`;
+
+const PageArrowButton = styled(PageButton)`
+  color: ${colors.main};
+
+  &:disabled {
+    color: #bcc6c1;
+    cursor: not-allowed;
+  }
+`;
+
+const PageNumberButton = styled(PageButton)<{ $active: boolean }>`
+  border-color: ${({ $active }) =>
+    $active ? colors.main : "rgba(36, 149, 155, 0.14)"};
+  background: ${({ $active }) => ($active ? colors.main : "white")};
+  color: ${({ $active }) => ($active ? "white" : "#607069")};
+  font-size: 0.85rem;
+  font-weight: 700;
+`;
+
 const UpcomingCard = styled.article`
   overflow: hidden;
   border: 1px solid rgba(36, 149, 155, 0.08);
   border-radius: 20px;
   background: white;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid ${colors.main};
+    outline-offset: 2px;
+  }
 `;
 
 const UpcomingVisual = styled.div<{ $index: number }>`
@@ -636,6 +635,12 @@ const UpcomingVisual = styled.div<{ $index: number }>`
       : "linear-gradient(135deg, rgba(196, 239, 170, 0.6), rgba(248, 252, 244, 0.95))"};
 `;
 
+const UpcomingVisualTitle = styled.h4`
+  margin: 0;
+  color: #245f62;
+  font-size: 1rem;
+`;
+
 const UpcomingBody = styled.div`
   display: grid;
   gap: 8px;
@@ -643,10 +648,11 @@ const UpcomingBody = styled.div`
   color: ${colors.main};
 `;
 
-const UpcomingTitle = styled.h4`
-  margin: 0;
-  color: #24302a;
-  font-size: 1rem;
+const UpcomingImage = styled.img`
+  display: block;
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
 `;
 
 const UpcomingMeta = styled.p`

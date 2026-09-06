@@ -47,7 +47,9 @@ interface IRawFavoriteSpot {
   lclsSystm1?: string;
   lclsSystm2?: string;
   lclsSystm3?: string;
+  lclsSystm1Nm?: string;
   lclsSystm2Nm?: string;
+  lclsSystm3Nm?: string;
   latitude?: number | string;
   mapy?: number | string;
   longitude?: number | string;
@@ -108,8 +110,9 @@ const normalizeFavoriteSpot = (spot: IRawFavoriteSpot): IFavoriteSpot => ({
   lclsSystm1: spot.lclsSystm1,
   lclsSystm2: spot.lclsSystm2,
   lclsSystm3: spot.lclsSystm3,
+  lclsSystm1Nm: spot.lclsSystm1Nm,
   lclsSystm2Nm: spot.lclsSystm2Nm,
-
+  lclsSystm3Nm: spot.lclsSystm3Nm,
   lDongRegnCd: spot.ldongRegnCd,
   lDongSignguCd: spot.ldongSignguCd,
   createdAt: spot.createdAt,
