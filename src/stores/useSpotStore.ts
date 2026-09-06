@@ -1,12 +1,18 @@
 import { create } from "zustand";
-import type { Spot } from "../pages/Map/mock";
+import type { ISpotListItem } from "../types/spot";
 
 interface ISpotStore {
-  selectedSpot: Spot | null;
-  setSelectedSpot: (spot: Spot | null) => void;
+  selectedSpot: ISpotListItem | null;
+  setSelectedSpot: (spot: ISpotListItem | null) => void;
 
-  detailSpot: Spot | null;
-  setDetailSpot: (spot: Spot | null) => void;
+  detailSpot: ISpotListItem | null;
+  setDetailSpot: (spot: ISpotListItem | null) => void;
+
+  searchCenter: { mapX: number; mapY: number } | null;
+  setSearchCenter: (center: { mapX: number; mapY: number }) => void;
+
+  visibleSpots: ISpotListItem[];
+  setVisibleSpots: (spots: ISpotListItem[]) => void;
 }
 
 export const useSpotStore = create<ISpotStore>((set) => ({
@@ -15,4 +21,10 @@ export const useSpotStore = create<ISpotStore>((set) => ({
 
   detailSpot: null,
   setDetailSpot: (spot) => set({ detailSpot: spot }),
+
+  searchCenter: null,
+  setSearchCenter: (center) => set({ searchCenter: center }),
+
+  visibleSpots: [],
+  setVisibleSpots: (spots) => set({ visibleSpots: spots }),
 }));

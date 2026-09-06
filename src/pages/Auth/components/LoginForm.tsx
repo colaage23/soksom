@@ -7,6 +7,8 @@ import { useState, type FormEvent } from "react";
 import { useLogin } from "../../../hooks/auth/useAuth";
 import { useNavigate } from "react-router-dom";
 import FindPasswordModal from "../../../components/modal/FindPasswordModal";
+import { getSocialAuthUrl } from "../../../utils/socialAuth";
+import { useToast } from "../../../hooks/common/useToast";
 
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
@@ -14,17 +16,18 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isFindPasswordModalOpen, setIsFindPasswordModalOpen] = useState(false);
-
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
+
+  const showToast = useToast();
 
   const [errors, setErrors] = useState({
     email: "",
     password: "",
   });
 
-  const { mutate: loginMutate, isPending } = useLogin();
+  const { mutateAsync: loginMutateAsync, isPending } = useLogin();
 
   const validate = () => {
     const newErrors = {
@@ -39,31 +42,23 @@ const LoginForm = () => {
     return newErrors;
   };
 
-  const handleLogin = (e: FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const newErrors = validate();
     setErrors(newErrors);
 
     const hasError = Object.values(newErrors).some((error) => error !== "");
-
     if (hasError) return;
 
-    loginMutate(
-      {
-        email,
-        password,
-      },
-      {
-        onSuccess: () => {
-          navigate("/");
-          alert("로그인이 완료되었습니다.");
-        },
-        onError: () => {
-          alert("로그인에 실패했습니다.");
-        },
-      },
-    );
+    try {
+      await loginMutateAsync({ email, password });
+      showToast("로그인이 완료되었습니다.", "success");
+      navigate("/");
+    } catch (error) {
+      showToast("로그인에 실패했습니다.", "error");
+      console.error(error);
+    }
   };
 
   return (
@@ -122,8 +117,12 @@ const LoginForm = () => {
           {Socials.map((social, index) => (
             <SocialLoginButton
               key={index}
+              type="button"
               $bgColor={social.bgColor}
               $color={social.color}
+              onClick={() => {
+                window.location.href = getSocialAuthUrl(social.provider);
+              }}
             >
               {social.icon} <span>{social.name}</span>로 로그인
             </SocialLoginButton>
@@ -139,20 +138,25 @@ const LoginForm = () => {
   );
 };
 
+type Provider = "kakao" | "google" | "naver";
+
 const Socials = [
   {
+    provider: "kakao" as Provider,
     name: "카카오톡",
     bgColor: "#FEE500",
     color: "#000000",
     icon: <img width={16} src={KakaoSymbol} alt="카카오 로그인 심볼" />,
   },
   {
+    provider: "google" as Provider,
     name: "Google",
     bgColor: "#F2F2F2",
     color: "#181a1e",
     icon: <img width={16} src={GoogleSymbol} alt="구글 로그인 심볼" />,
   },
   {
+    provider: "naver" as Provider,
     name: "네이버",
     bgColor: "#03A94D",
     color: "#fff",

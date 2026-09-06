@@ -1,10 +1,16 @@
 import styled from "styled-components";
-import { congestionStyle, type Spot } from "../mock";
 import { Heart, MoveRight } from "lucide-react";
 import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
+import type { ISpotListItem } from "../../../types/spot";
+import FallBackImage from "../../../assets/fallback.png";
+import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
+import {
+  getCongestionLevel,
+  getCongestionStyle,
+} from "../../../constants/congestion.utils";
 
 interface ISpotCardProps {
-  spot: Spot;
+  spot: ISpotListItem;
   isActive: boolean;
   onClick: () => void;
   onArrowClick: () => void;
@@ -16,55 +22,70 @@ const SpotCard = ({
   onClick,
   onArrowClick,
 }: ISpotCardProps) => {
-  const { likedSpot, toggleLikedSpot } = useLikedSpotStore();
+  const likedSpotMap = useLikedSpotStore((state) => state.likedSpotMap);
+  const { toggleFavorite, isPending } = useToggleFavorite();
 
-  const status = congestionStyle[spot.congestion];
+  if (!spot) return null;
+
+  const likedSpot = likedSpotMap[spot.contentid];
+  const isLiked = Boolean(likedSpot);
+
+  const rawRate = spot.congestion?.cnctrRate ?? null;
+  const congestionLevel = getCongestionLevel(rawRate);
+  const status = getCongestionStyle(rawRate);
 
   return (
     <SpotCardContainer $isActive={isActive} onClick={onClick}>
       <SpotImageWrapper>
-        <SpotImage src={spot.firstimage} />
+        <SpotImage src={spot.firstimage || FallBackImage} alt={spot.title} />
         <IconButton
-          $active={likedSpot.includes(spot.id)}
+          $active={isLiked}
+          disabled={isPending}
           onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
             e.stopPropagation();
-            toggleLikedSpot(spot.id);
+            toggleFavorite(spot, likedSpot?.favoriteId);
           }}
         >
-          <LikeIcon $active={likedSpot.includes(spot.id)} />
+          <LikeIcon $active={isLiked} />
         </IconButton>
       </SpotImageWrapper>
 
       <SpotInfoBox>
         <SubInfoText>
-          <span>{spot.addr1}</span>
+          <span>{spot.addr1?.split(" ").slice(1, 3).join(" ")}</span>
           <span style={{ color: "#c0c5ca" }}>·</span>
-          <span>{spot.category}</span>
+          <span>{spot.lclsSystm2Nm}</span>
         </SubInfoText>
 
-        <SpotName>{spot.name}</SpotName>
+        <SpotName>{spot.title}</SpotName>
 
-        <CongestionBox>
-          <CongestionProgressBar>
-            <CongestionProgressFill
+        {rawRate !== null ? (
+          <CongestionBox>
+            <CongestionProgressBar>
+              <CongestionProgressFill
+                style={{
+                  backgroundColor: status.bgColor,
+                  width: `${status.progress}%`,
+                }}
+              />
+            </CongestionProgressBar>
+            <CongestionBadge
               style={{
-                backgroundColor: status.bgColor,
-                width: `${status.progress}%`,
+                backgroundColor:
+                  congestionLevel === "혼잡"
+                    ? status.bgColor
+                    : `${status.bgColor}65`,
+                color: status.color,
               }}
-            />
-          </CongestionProgressBar>
-          <CongestionBadge
-            style={{
-              backgroundColor:
-                spot.congestion === "혼잡"
-                  ? status.bgColor
-                  : `${status.bgColor}65`,
-              color: status.color,
-            }}
-          >
-            {spot.congestion}
-          </CongestionBadge>
-        </CongestionBox>
+            >
+              {status.label}
+            </CongestionBadge>
+          </CongestionBox>
+        ) : (
+          <CongestionBox>
+            <NoCongestionBadge>혼잡도 정보 없음</NoCongestionBadge>
+          </CongestionBox>
+        )}
       </SpotInfoBox>
 
       <ArrowButton
@@ -110,7 +131,7 @@ const SpotCardContainer = styled.div<{ $isActive: boolean }>`
   gap: 16px;
 
   padding: 12px;
-  margin: 16px 16px 0;
+  margin: 0px 16px 0;
 
   border: 1px solid ${({ $isActive }) => ($isActive ? "#72c9c3" : "#f5f2eb")};
   border-radius: 1rem;
@@ -256,6 +277,16 @@ const CongestionBadge = styled.div`
 
   color: #20201f;
   font-size: 0.6875rem;
+  font-weight: 500;
+`;
+const NoCongestionBadge = styled.span`
+  padding: 3px 8px;
+
+  border-radius: 30px;
+  background-color: #f0efe9;
+
+  color: #9a958a;
+  font-size: 0.625rem;
   font-weight: 500;
 `;
 

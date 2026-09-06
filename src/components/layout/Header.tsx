@@ -1,19 +1,31 @@
-import { useEffect, useState } from "react";
-import { Menu, User } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { LogOut, Menu, User, UserCircle, UserRound } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../constants/colors";
 import Hamburger from "./Hamburger";
 import { navItems } from "../../constants/navItems";
 import SoksomLogo from "../../../public/logo.svg";
+import { useAuthStore } from "../../stores/auth/authStore";
+import { useGetUserInfo } from "../../hooks/auth/useGetUserInfo";
+import { useWayPointStore } from "../../stores/useWayPointStore";
 
 const Header = () => {
   const { pathname } = useLocation();
   const isHomePage = pathname === "/";
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
+
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const isInitialized = useAuthStore((state) => state.isInitialized);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+  const isLoggedIn = isInitialized && Boolean(accessToken);
+
+  const { data: userInfo } = useGetUserInfo();
 
   useEffect(() => {
     const updateScrollState = () => {
@@ -26,10 +38,13 @@ const Header = () => {
     return () => window.removeEventListener("scroll", updateScrollState);
   }, [pathname]);
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+  const [prevPathname, setPrevPathname] = useState(pathname);
+
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setIsMenuOpen(false);
-  }, [pathname]);
+    setIsUserMenuOpen(false);
+  }
 
   useEffect(() => {
     document.body.style.overflow = isMenuOpen ? "hidden" : "";
@@ -39,18 +54,45 @@ const Header = () => {
     };
   }, [isMenuOpen]);
 
+  useEffect(() => {
+    if (!isUserMenuOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(e.target as Node)
+      ) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isUserMenuOpen]);
+
+  const handleLogout = () => {
+    clearAuth();
+    setIsUserMenuOpen(false);
+    navigate("/");
+
+    useWayPointStore.getState().resetWayPoint();
+    useWayPointStore.persist.clearStorage();
+  };
+
   const isSolid = !isHomePage || isScrolled;
 
   return (
     <>
       <HeaderShell $isSolid={isSolid}>
         <HeaderInner>
-          <BrandBlock onClick={() => navigate("/")}>
-            <BrandImage src={SoksomLogo} alt="속솜" />
-            <BrandText $isSolid={isSolid}>
-              <h3>속솜</h3>
-            </BrandText>
-          </BrandBlock>
+          <div>
+            <BrandBlock onClick={() => navigate("/")}>
+              <BrandImage src={SoksomLogo} alt="속솜" />
+              <BrandText $isSolid={isSolid}>
+                <h3>속솜</h3>
+              </BrandText>
+            </BrandBlock>
+          </div>
 
           <DesktopNav aria-label="주요 메뉴">
             {navItems.map((item) => (
@@ -67,12 +109,59 @@ const Header = () => {
 
           <Actions>
             <DesktopActions>
-              <UserIcon $isSolid={isSolid} />
-              <LoginBtn $isSolid={isSolid} onClick={() => navigate("/auth")}>
-                로그인
-              </LoginBtn>
+              {isLoggedIn ? (
+                <UserMenuWrapper ref={userMenuRef}>
+                  <UserIcon
+                    $isSolid={isSolid}
+                    onClick={() => setIsUserMenuOpen((prev) => !prev)}
+                  />
+                  {isUserMenuOpen && (
+                    <UserDropdown>
+                      <UserProfileBox>
+                        {userInfo?.img ? (
+                          <ProfileImage
+                            src={userInfo.img}
+                            alt={userInfo?.nickname ?? "프로필"}
+                          />
+                        ) : (
+                          <ProfileImagePlaceholder>
+                            <ProfileFallbackIcon />
+                          </ProfileImagePlaceholder>
+                        )}
+                        <ProfileTextBox>
+                          <ProfileNickname>
+                            {userInfo?.nickname ?? "-"}
+                          </ProfileNickname>
+                          <ProfileEmail>{userInfo?.email ?? "-"}</ProfileEmail>
+                        </ProfileTextBox>
+                      </UserProfileBox>
+
+                      <DropdownDivider />
+
+                      <DropdownItem
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          navigate("/mypage");
+                        }}
+                      >
+                        <UserCircleIcon />
+                        마이페이지
+                      </DropdownItem>
+                      <DropdownItem onClick={handleLogout}>
+                        <LogOutIcon />
+                        로그아웃
+                      </DropdownItem>
+                    </UserDropdown>
+                  )}
+                </UserMenuWrapper>
+              ) : (
+                <LoginBtn $isSolid={isSolid} onClick={() => navigate("/auth")}>
+                  로그인
+                </LoginBtn>
+              )}
             </DesktopActions>
             <HamburgerBtn
+              $isSolid={isSolid}
               onClick={() => setIsMenuOpen(true)}
               aria-label="메뉴 열기"
             >
@@ -207,7 +296,7 @@ const DesktopActions = styled.div`
   }
 `;
 
-const HamburgerBtn = styled.button`
+const HamburgerBtn = styled.button<{ $isSolid: boolean }>`
   display: none;
   align-items: center;
   justify-content: center;
@@ -217,7 +306,7 @@ const HamburgerBtn = styled.button`
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: #111827;
+  color: ${({ $isSolid }) => ($isSolid ? "#111827" : "white")};
   cursor: pointer;
 
   @media (max-width: 768px) {
@@ -226,11 +315,13 @@ const HamburgerBtn = styled.button`
 `;
 
 const UserIcon = styled(User)<{ $isSolid: boolean }>`
-  width: 20px;
-  height: 20px;
+  padding: 0.5rem;
+  width: 36px;
+  height: 36px;
   stroke: currentColor;
   stroke-width: 2.2;
   color: ${({ $isSolid }) => ($isSolid ? "#111827" : "white")};
+  cursor: pointer;
 `;
 
 const MenuIcon = styled(Menu)`
@@ -263,6 +354,142 @@ const LoginBtn = styled.button<{ $isSolid: boolean }>`
     background: #0c9799;
     color: white;
   }
+`;
+
+const UserMenuWrapper = styled.div`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+`;
+
+const DropdownItem = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 10px 12px;
+
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 500;
+
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: #f5f2eb;
+  }
+`;
+
+const UserCircleIcon = styled(UserCircle)`
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
+`;
+
+const LogOutIcon = styled(LogOut)`
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
+`;
+
+const UserDropdown = styled.div`
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+
+  min-width: 220px;
+  max-width: 260px;
+
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+
+  z-index: 30;
+`;
+
+const UserProfileBox = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 12px 12px;
+`;
+
+const ProfileImage = styled.img`
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+
+  border-radius: 50%;
+  object-fit: cover;
+
+  background-color: #f5f2eb;
+`;
+
+const ProfileTextBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  min-width: 0;
+  flex: 1;
+`;
+
+const ProfileNickname = styled.span`
+  color: #101714;
+  font-size: 0.875rem;
+  font-weight: 600;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const ProfileEmail = styled.span`
+  color: #7b827d;
+  font-size: 0.75rem;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const DropdownDivider = styled.div`
+  height: 1px;
+  margin: 2px 4px 6px;
+
+  background-color: #f2eee6;
+`;
+
+const ProfileImagePlaceholder = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  width: 36px;
+  height: 36px;
+
+  border-radius: 50%;
+  background-color: #f5f2eb;
+`;
+
+const ProfileFallbackIcon = styled(UserRound)`
+  width: 22px;
+  height: 22px;
+  stroke: #b5b1a7;
+  stroke-width: 1.6;
 `;
 
 export default Header;

@@ -7,8 +7,14 @@ import {
   Sun,
   SunMedium,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import fallbackImage from "../../../assets/fallback.png";
 import colors from "../../../constants/colors";
+import { useJejuWeather } from "../../../hooks/useJejuWeather";
+import { useGetFavoriteSpots } from "../../../hooks/favorite/useGetFavoriteSpots";
+import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
+import { useAuthStore } from "../../../stores/auth/authStore";
 import {
   homeSectionDescription,
   homeSectionEyebrow,
@@ -16,55 +22,38 @@ import {
   homeSectionTitle,
 } from "../styles/homeSectionStyles.ts";
 
-const forecastItems = [
-  { day: "오늘", icon: SunMedium, temp: "24°", rain: "10%" },
-  { day: "내일", icon: Cloud, temp: "23°", rain: "20%" },
-  { day: "수", icon: CloudRain, temp: "21°", rain: "80%" },
-  { day: "목", icon: Cloud, temp: "22°", rain: "40%" },
-  { day: "금", icon: Sun, temp: "25°", rain: "5%" },
-  { day: "토", icon: Sun, temp: "26°", rain: "0%" },
-  { day: "일", icon: Cloud, temp: "24°", rain: "15%" },
-] as const;
+const weatherIconByCode = (weatherCode: number, size: number, isDay = true) => {
+  if (weatherCode === 0) {
+    return isDay ? <SunMedium size={size} /> : <Cloud size={size} />;
+  }
 
-const places = [
-  {
-    area: "서귀포시",
-    name: "쇠소깍",
-    status: "여유",
-    tone: "calm",
-    image:
-      "https://readdy.ai/api/search-image?query=Soft%20natural%20editorial%20photo%20of%20Jeju%20Soeseokkak%20emerald%20green%20river%20valley%20with%20black%20volcanic%20rocks%2C%20tall%20pine%20trees%20and%20wooden%20rowboats%2C%20calm%20water%20reflecting%20sky%2C%20gentle%20morning%20mist%2C%20warm%20travel%20brochure%20tones%2C%20clean%20uncluttered%20background%2C%20peaceful%20composition&width=600&height=720&seq=fav-soeseokkak-01&orientation=portrait",
-  },
-  {
-    area: "제주시 구좌읍",
-    name: "비자림",
-    status: "여유",
-    tone: "calm",
-    image:
-      "https://readdy.ai/api/search-image?query=Soft%20natural%20editorial%20photo%20of%20Jeju%20Soeseokkak%20emerald%20green%20river%20valley%20with%20black%20volcanic%20rocks%2C%20tall%20pine%20trees%20and%20wooden%20rowboats%2C%20calm%20water%20reflecting%20sky%2C%20gentle%20morning%20mist%2C%20warm%20travel%20brochure%20tones%2C%20clean%20uncluttered%20background%2C%20peaceful%20composition&width=600&height=720&seq=fav-soeseokkak-01&orientation=portrait",
-  },
-  {
-    area: "제주시 조천읍",
-    name: "사려니숲길",
-    status: "보통",
-    tone: "normal",
-    image:
-      "https://readdy.ai/api/search-image?query=Soft%20natural%20editorial%20photo%20of%20Jeju%20Soeseokkak%20emerald%20green%20river%20valley%20with%20black%20volcanic%20rocks%2C%20tall%20pine%20trees%20and%20wooden%20rowboats%2C%20calm%20water%20reflecting%20sky%2C%20gentle%20morning%20mist%2C%20warm%20travel%20brochure%20tones%2C%20clean%20uncluttered%20background%2C%20peaceful%20composition&width=600&height=720&seq=fav-soeseokkak-01&orientation=portrait",
-  },
-] as const;
+  if ([1, 2, 3, 45, 48].includes(weatherCode)) {
+    return <Cloud size={size} />;
+  }
 
-const toneLabelColor = {
-  calm: {
-    bg: "#e8f3e7",
-    fg: "#4d7f58",
-  },
-  normal: {
-    bg: "#ffe7d8",
-    fg: "#b9642b",
-  },
-} as const;
+  if ([51, 53, 55, 61, 63, 65, 80, 81, 82, 95].includes(weatherCode)) {
+    return <CloudRain size={size} />;
+  }
+
+  return <Sun size={size} />;
+};
 
 const WeatherSection = () => {
+  const navigate = useNavigate();
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const { data: weather, isLoading, isError } = useJejuWeather();
+  const { data: favoriteSpots = [], isLoading: isFavoriteLoading } =
+    useGetFavoriteSpots();
+  const { toggleFavorite, isPending: isFavoritePending } = useToggleFavorite();
+
+  const forecastItems = weather?.forecast ?? [];
+  const places = favoriteSpots.slice(0, 3);
+
+  const handleMoveToSpot = (title: string, contentId: string) => {
+    const searchParams = new URLSearchParams({ keyword: title, contentId });
+    navigate({ pathname: "/map", search: `?${searchParams.toString()}` });
+  };
+
   return (
     <Section>
       <Inner>
@@ -79,7 +68,7 @@ const WeatherSection = () => {
             오늘 제주 하늘과 함께, 지금 바로 들르기 좋은 장소를 같은 흐름으로
             묶어 보여드려요.
           </HeaderDescription>
-          <MoreLink>
+          <MoreLink type="button" onClick={() => navigate("/mypage/favorites")}>
             관심 관광지 전체 보기
             <ArrowUpRight size={16} />
           </MoreLink>
@@ -87,73 +76,125 @@ const WeatherSection = () => {
 
         <ContentGrid>
           <WeatherCard>
-            {/* 수정 필요 */}
             <WeatherTop>
               <div>
-                <WeatherMeta>제주시 · 지금</WeatherMeta>
-                <WeatherSummary>맑고 산뜻한 초여름</WeatherSummary>
+                <WeatherMeta>
+                  {weather?.locationLabel ?? "제주시 · 지금"}
+                </WeatherMeta>
+                <WeatherSummary>
+                  {isLoading
+                    ? "제주 날씨를 불러오는 중이에요"
+                    : isError
+                      ? "날씨 정보를 불러오지 못했어요"
+                      : weather?.summary}
+                </WeatherSummary>
               </div>
               <WeatherIconWrap>
-                <SunMedium size={20} />
+                {weatherIconByCode(
+                  weather?.weatherCode ?? 0,
+                  20,
+                  weather?.isDay ?? true,
+                )}
               </WeatherIconWrap>
             </WeatherTop>
 
             <WeatherInfoRow>
-              <CurrentTemp>24°</CurrentTemp>
+              <CurrentTemp>{weather?.temperature ?? "--°"}</CurrentTemp>
               <WeatherDetailGroup>
-                <WeatherDetails>체감 25° · 습도 62%</WeatherDetails>
-                <WeatherDetails>북서풍 3m/s · 자외선 보통</WeatherDetails>
+                <WeatherDetails>
+                  체감 {weather?.apparentTemperature ?? "--°"} · 습도{" "}
+                  {weather?.humidity ?? "--%"}
+                </WeatherDetails>
+                <WeatherDetails>
+                  바람 {weather?.windSpeed ?? "--m/s"} · 자외선{" "}
+                  {weather?.uvIndex ?? "--"}
+                </WeatherDetails>
               </WeatherDetailGroup>
             </WeatherInfoRow>
 
             <ForecastStrip>
-              {forecastItems.map(({ day, icon: Icon, temp, rain }) => (
-                <ForecastItem key={day}>
-                  <ForecastDay>{day}</ForecastDay>
-                  <Icon size={16} />
-                  <ForecastTemp>{temp}</ForecastTemp>
-                  <ForecastRain>{rain}</ForecastRain>
-                </ForecastItem>
-              ))}
+              {forecastItems.map(
+                ({ day, weatherCode, temperature, rainProbability }) => (
+                  <ForecastItem key={day}>
+                    <ForecastDay>{day}</ForecastDay>
+                    {weatherIconByCode(weatherCode, 16)}
+                    <ForecastTemp>{temperature}</ForecastTemp>
+                    <ForecastRain>{rainProbability}</ForecastRain>
+                  </ForecastItem>
+                ),
+              )}
             </ForecastStrip>
 
             <WeatherNote>
               <CircleAlert size={14} />
-              기상청 중기예보 기반. 최대 11일 제공
+              Open-Meteo 예보 기준. 최대 7일 제공
             </WeatherNote>
           </WeatherCard>
 
           <PlacesGrid>
-            {places.map((place) => (
-              <SpotCard key={place.name}>
-                <SpotImage $image={place.image}>
-                  <SpotBadge
-                    style={{
-                      backgroundColor: toneLabelColor[place.tone].bg,
-                      color: toneLabelColor[place.tone].fg,
-                    }}
-                  >
-                    {place.status}
-                  </SpotBadge>
-                  <FavoriteButton
-                    type="button"
-                    aria-label={`${place.name} 즐겨찾기`}
-                  >
-                    <Heart size={16} fill="currentColor" />
-                  </FavoriteButton>
-                </SpotImage>
+            {!accessToken ? (
+              <PlacesMessage>
+                <span>로그인하고 관심 관광지를 확인해 보세요.</span>
+                <PlacesMessageButton
+                  type="button"
+                  onClick={() => navigate("/auth")}
+                >
+                  로그인하기
+                  <ArrowUpRight size={16} />
+                </PlacesMessageButton>
+              </PlacesMessage>
+            ) : isFavoriteLoading ? (
+              <PlacesMessage>관심 관광지를 불러오는 중이에요.</PlacesMessage>
+            ) : places.length === 0 ? (
+              <PlacesMessage>
+                <span>아직 즐겨찾기한 관광지가 없어요.</span>
+                <PlacesMessageButton
+                  type="button"
+                  onClick={() => navigate("/map")}
+                >
+                  관광지 탐색하기
+                  <ArrowUpRight size={16} />
+                </PlacesMessageButton>
+              </PlacesMessage>
+            ) : (
+              places.map((place) => (
+                <SpotCard key={place.contentid}>
+                  <SpotImage $image={place.firstimage || fallbackImage}>
+                    <FavoriteButton
+                      type="button"
+                      disabled={isFavoritePending || !place.favoriteId}
+                      aria-label={`${place.title} 즐겨찾기 해제`}
+                      onClick={() => {
+                        if (place.favoriteId) {
+                          toggleFavorite(place, place.favoriteId);
+                        }
+                      }}
+                    >
+                      <Heart size={16} fill="currentColor" />
+                    </FavoriteButton>
+                  </SpotImage>
 
-                <SpotBody>
-                  <SpotText>
-                    <SpotArea>{place.area}</SpotArea>
-                    <SpotName>{place.name}</SpotName>
-                  </SpotText>
-                  <SpotAction type="button" aria-label={`${place.name} 보기`}>
-                    <ArrowUpRight size={16} />
-                  </SpotAction>
-                </SpotBody>
-              </SpotCard>
-            ))}
+                  <SpotBody>
+                    <SpotText>
+                      <SpotArea>
+                        {[place.addr1, place.addr2].filter(Boolean).join(" ") ||
+                          "주소 정보 없음"}
+                      </SpotArea>
+                      <SpotName>{place.title}</SpotName>
+                    </SpotText>
+                    <SpotAction
+                      type="button"
+                      aria-label={`${place.title} 보기`}
+                      onClick={() =>
+                        handleMoveToSpot(place.title, place.contentid)
+                      }
+                    >
+                      <ArrowUpRight size={16} />
+                    </SpotAction>
+                  </SpotBody>
+                </SpotCard>
+              ))
+            )}
           </PlacesGrid>
         </ContentGrid>
       </Inner>
@@ -200,16 +241,20 @@ const HeaderDescription = styled.p`
   max-width: 680px;
 `;
 
-const MoreLink = styled.a`
+const MoreLink = styled.button`
   display: inline-flex;
   align-items: center;
   align-self: flex-end;
   gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: #2e2a24;
   font-size: 0.95rem;
   font-weight: 500;
   text-decoration: none;
   white-space: nowrap;
+  cursor: pointer;
 
   @media (max-width: 900px) {
     align-self: flex-start;
@@ -335,7 +380,7 @@ const ForecastItem = styled.div`
   display: grid;
   justify-items: center;
   gap: 8px;
-  padding: 12px 8px;
+  padding: 12px 6px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.08);
   color: rgba(246, 250, 248, 0.92);
@@ -377,6 +422,36 @@ const PlacesGrid = styled.div`
   }
 `;
 
+const PlacesMessage = styled.div`
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 320px;
+  padding: 24px;
+  border-radius: 26px;
+  background: rgba(255, 251, 245, 0.92);
+  color: #7b746b;
+  font-weight: 600;
+  text-align: center;
+`;
+
+const PlacesMessageButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 20px;
+  background: #111111;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+`;
+
 const SpotCard = styled.article`
   overflow: hidden;
   border-radius: 26px;
@@ -396,16 +471,6 @@ const SpotImage = styled.div<{ $image: string }>`
   }
 `;
 
-const SpotBadge = styled.span`
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-`;
-
 const FavoriteButton = styled.button`
   position: absolute;
   right: 14px;
@@ -420,6 +485,11 @@ const FavoriteButton = styled.button`
   color: #ff7b3d;
   box-shadow: 0 10px 24px rgba(50, 35, 18, 0.12);
   cursor: pointer;
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
 `;
 
 const SpotBody = styled.div`
@@ -448,14 +518,22 @@ const SpotAction = styled.button`
 `;
 
 const SpotArea = styled.p`
+  display: -webkit-box;
+  overflow: hidden;
   margin: 0 0 6px;
   color: #9f988d;
   font-size: 0.82rem;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 `;
 
 const SpotName = styled.h3`
+  overflow: hidden;
   margin: 0;
   color: #171311;
   font-size: 1.5rem;
   font-family: Gowun Batang;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
