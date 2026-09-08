@@ -21,7 +21,7 @@ export interface DragItem {
 
 const WayPointItem = ({ dayIndex, index, spot }: WayPointItemProps) => {
   const { removeItem, moveItem } = useWayPointStore();
-  const { setDetailSpot, setSelectedSpot } = useSpotStore();
+  const { setSelectedSpot } = useSpotStore();
 
   const [, dragRef, preview] = useDrag<DragItem>({
     type: "WAYPOINT",
@@ -69,11 +69,7 @@ const WayPointItem = ({ dayIndex, index, spot }: WayPointItemProps) => {
           >
             <DragIcon />
           </WayPointDragButton>
-          <InfoBox
-            onClick={() => {
-              setDetailSpot(spot);
-            }}
-          >
+          <InfoBox>
             <WayPointName>{spot.title}</WayPointName>
 
             <WayPointInfoText>

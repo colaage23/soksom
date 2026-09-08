@@ -15,13 +15,21 @@ import KakaoMap from "./components/KakaoMap";
 import { useSpotStore } from "../../stores/useSpotStore";
 import { useSyncLikedSpots } from "../../hooks/favorite/useSyncLikedSpots";
 import { congestionStyle } from "../../constants/congestion";
+import { useSearchParams } from "react-router-dom";
 
 const Map = () => {
-  const { detailSpot, setDetailSpot } = useSpotStore();
+  const { visibleSpots } = useSpotStore();
 
   const [mode, setMode] = useState<"explore" | "route">("explore");
   const [open, setOpen] = useState(true);
   const [mobileView, setMobileView] = useState<"map" | "list">("list");
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const selectedSpotId = searchParams.get("contentId");
+  const detailSpot = selectedSpotId
+    ? visibleSpots.find((spot) => spot.contentid === selectedSpotId)
+    : undefined;
 
   const Icon = open ? ChevronLeft : ChevronRight;
 
@@ -49,7 +57,9 @@ const Map = () => {
             $isActive={mode === "explore"}
             onClick={() => {
               setMode("explore");
-              setDetailSpot(null);
+              const newParams = new URLSearchParams(searchParams);
+              newParams.delete("contentId");
+              setSearchParams(newParams);
             }}
           >
             <TelescopeIcon />
@@ -59,7 +69,9 @@ const Map = () => {
             $isActive={mode === "route"}
             onClick={() => {
               setMode("route");
-              setDetailSpot(null);
+              const newParams = new URLSearchParams(searchParams);
+              newParams.delete("contentId");
+              setSearchParams(newParams);
             }}
           >
             <RouteIcon />
@@ -69,7 +81,9 @@ const Map = () => {
 
         {mode === "explore" ? <ExploreList /> : <RouteList />}
 
-        <SpotDetailSection>{detailSpot && <SpotDetail />}</SpotDetailSection>
+        <SpotDetailSection>
+          {detailSpot && <SpotDetail spot={detailSpot} />}
+        </SpotDetailSection>
       </ListSection>
       <CongestionOverlay
         $open={open}

@@ -14,7 +14,6 @@ import {
   Toilet,
 } from "lucide-react";
 import { useState } from "react";
-import { useSpotStore } from "../../../stores/useSpotStore";
 import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
 import { useWayPointStore } from "../../../stores/useWayPointStore";
 import { useGetSpotDetail } from "../../../hooks/spot/useGetSpotDetail";
@@ -24,30 +23,35 @@ import {
 } from "../../../constants/congestion.utils";
 import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
 import FallBackImage from "../../../assets/fallback.png";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "../../../stores/auth/authStore";
+import type { ISpotListItem } from "../../../types/spot";
 
-const SpotDetail = () => {
+interface ISpotDetailProps {
+  spot: ISpotListItem;
+}
+
+const SpotDetail = ({ spot }: ISpotDetailProps) => {
   const navigate = useNavigate();
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const accessToken = useAuthStore((state) => state.accessToken);
   const isLoggedIn = Boolean(accessToken);
 
-  const { setDetailSpot, selectedSpot } = useSpotStore();
   const { likedSpotMap } = useLikedSpotStore();
   const { toggleFavorite, isPending: isFavoritePending } = useToggleFavorite();
-  const likedSpot = selectedSpot
-    ? likedSpotMap[selectedSpot.contentid]
-    : undefined;
+  const likedSpot = spot ? likedSpotMap[spot.contentid] : undefined;
   const isLiked = Boolean(likedSpot);
 
   const { toggleWayPoint, isSelected } = useWayPointStore();
 
   const { data: spotDetail } = useGetSpotDetail({
-    contentid: selectedSpot?.contentid ?? "",
-    contenttypeid: selectedSpot?.contenttypeid,
-    spotName: selectedSpot?.title,
-    areaCd: selectedSpot?.lDongRegnCd,
-    signguCd: selectedSpot?.lDongSignguCd,
+    contentid: spot?.contentid ?? "",
+    contenttypeid: spot?.contenttypeid,
+    spotName: spot?.title,
+    areaCd: spot?.lDongRegnCd,
+    signguCd: spot?.lDongSignguCd,
   });
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -89,17 +93,11 @@ const SpotDetail = () => {
   const isRoomInfo = spotDetail?.info?.some((item) => !!item.roomtitle);
 
   const handleAddToPlan = () => {
-    if (!isLoggedIn) {
-      handleGoToLogin();
-      return;
-    }
-    if (selectedSpot) toggleWayPoint(selectedSpot);
+    if (isLoggedIn) toggleWayPoint(spot);
   };
 
   const rawRate =
-    spotDetail?.congestion?.cnctrRate ??
-    selectedSpot?.congestion?.cnctrRate ??
-    null;
+    spotDetail?.congestion?.cnctrRate ?? spot?.congestion?.cnctrRate ?? null;
 
   const displayRate =
     rawRate !== null && rawRate !== undefined
@@ -126,7 +124,13 @@ const SpotDetail = () => {
         />
 
         <SpotActions>
-          <IconButton onClick={() => setDetailSpot(null)}>
+          <IconButton
+            onClick={() => {
+              const newParams = new URLSearchParams(searchParams);
+              newParams.delete("contentId");
+              setSearchParams(newParams);
+            }}
+          >
             <BackIcon />
           </IconButton>
 
@@ -140,8 +144,7 @@ const SpotDetail = () => {
                   handleGoToLogin();
                   return;
                 }
-                if (selectedSpot)
-                  toggleFavorite(selectedSpot, likedSpot?.favoriteId);
+                if (spot) toggleFavorite(spot, likedSpot?.favoriteId);
               }}
             >
               <LikeIcon $active={isLiked} />
@@ -367,7 +370,7 @@ const SpotDetail = () => {
             <>
               <LoginIcon /> 로그인 후 일정에 추가하기
             </>
-          ) : selectedSpot && isSelected(selectedSpot) ? (
+          ) : spot && isSelected(spot) ? (
             <>
               <CheckIcon /> 일정에 추가되었습니다
             </>

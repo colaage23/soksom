@@ -27,14 +27,8 @@ const ExploreList = () => {
   const [scrollContainer, setScrollContainer] =
     useState<HTMLUListElement | null>(null);
 
-  const {
-    selectedSpot,
-    detailSpot,
-    setSelectedSpot,
-    setDetailSpot,
-    searchCenter,
-    setVisibleSpots,
-  } = useSpotStore();
+  const { selectedSpot, setSelectedSpot, searchCenter, setVisibleSpots } =
+    useSpotStore();
   const { searchKeyword, setSearchKeyword, addRecentSearch } =
     useSearchKeywordStore();
   const keywordFromUrl = searchParams.get("keyword") ?? "";
@@ -165,33 +159,17 @@ const ExploreList = () => {
   }, [filteredSpots, setVisibleSpots]);
 
   useEffect(() => {
-    if (!contentIdFromUrl || filteredSpots.length === 0) {
-      return;
-    }
-
+    if (!contentIdFromUrl || filteredSpots.length === 0) return;
     const targetSpot = filteredSpots.find(
       (spot) => spot.contentid === contentIdFromUrl,
     );
-
-    if (!targetSpot) {
-      return;
-    }
-
-    if (
-      selectedSpot?.contentid === targetSpot.contentid &&
-      detailSpot?.contentid === targetSpot.contentid
-    ) {
-      return;
-    }
-
+    if (!targetSpot) return;
+    if (selectedSpot?.contentid === targetSpot.contentid) return;
     setSelectedSpot(targetSpot);
-    setDetailSpot(targetSpot);
   }, [
     contentIdFromUrl,
-    detailSpot?.contentid,
     filteredSpots,
     selectedSpot?.contentid,
-    setDetailSpot,
     setSelectedSpot,
   ]);
 
@@ -275,11 +253,15 @@ const ExploreList = () => {
                 isActive={selectedSpot === item}
                 onClick={() => {
                   setSelectedSpot(item);
-                  setDetailSpot(null);
+                  const newParams = new URLSearchParams(searchParams);
+                  newParams.delete("contentId");
+                  setSearchParams(newParams);
                 }}
                 onArrowClick={() => {
-                  setDetailSpot(item);
                   setSelectedSpot(item);
+                  const newParams = new URLSearchParams(searchParams);
+                  newParams.set("contentId", item.contentid);
+                  setSearchParams(newParams);
                 }}
               />
             ))}
