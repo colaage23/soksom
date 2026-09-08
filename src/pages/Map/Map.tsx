@@ -82,7 +82,9 @@ const Map = () => {
         {mode === "explore" ? <ExploreList /> : <RouteList />}
 
         <SpotDetailSection>
-          {detailSpot && <SpotDetail spot={detailSpot} />}
+          {detailSpot && (
+            <SpotDetail spot={detailSpot} key={detailSpot.contentid} />
+          )}
         </SpotDetailSection>
       </ListSection>
       <CongestionOverlay
