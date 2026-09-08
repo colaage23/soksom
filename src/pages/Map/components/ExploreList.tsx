@@ -254,12 +254,6 @@ const ExploreList = () => {
                 onClick={() => {
                   setSelectedSpot(item);
                   const newParams = new URLSearchParams(searchParams);
-                  newParams.delete("contentId");
-                  setSearchParams(newParams);
-                }}
-                onArrowClick={() => {
-                  setSelectedSpot(item);
-                  const newParams = new URLSearchParams(searchParams);
                   newParams.set("contentId", item.contentid);
                   setSearchParams(newParams);
                 }}
