@@ -160,8 +160,7 @@ const RouteList = () => {
         details,
       },
       {
-        onSuccess: (tripId) => {
-          console.log("여행 생성 완료:", tripId);
+        onSuccess: () => {
           setIsModalOpen(false);
           resetWayPoint();
           showToast("일정이 생성되었어요.", "success");
