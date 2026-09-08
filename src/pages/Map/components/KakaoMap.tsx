@@ -12,6 +12,7 @@ import { Minus, Plus, Road, RotateCw } from "lucide-react";
 import { useDirectionStore } from "../../../stores/useDirectionStore";
 import { useWayPointStore } from "../../../stores/useWayPointStore";
 import { getCongestionStyle } from "../../../constants/congestion.utils";
+import { useSearchParams } from "react-router-dom";
 
 interface IKakaoMapProps {
   mode: "explore" | "route";
@@ -21,13 +22,8 @@ interface IKakaoMapProps {
 
 const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
   const mapRef = useRef<kakao.maps.Map>(null);
-  const {
-    selectedSpot,
-    setSelectedSpot,
-    setDetailSpot,
-    setSearchCenter,
-    visibleSpots,
-  } = useSpotStore();
+  const { selectedSpot, setSelectedSpot, setSearchCenter, visibleSpots } =
+    useSpotStore();
   const { directions } = useDirectionStore();
   const { wayPoint, expandedDay, pool } = useWayPointStore();
 
@@ -36,6 +32,8 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
   const [level, setLevel] = useState(7);
 
   const [hoveredSpot, setHoveredSpot] = useState<string | null>(null);
+
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // 교통정보 표시 여부
   const [showTraffic, setShowTraffic] = useState(false);
@@ -168,7 +166,9 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
                 clickable={true}
                 onClick={() => {
                   setSelectedSpot(spot);
-                  setDetailSpot(spot);
+                  const newParams = new URLSearchParams(searchParams);
+                  newParams.set("contentId", spot.contentid);
+                  setSearchParams(newParams);
                 }}
                 onMouseOver={() => setHoveredSpot(spot.contentid)}
                 onMouseOut={() => setHoveredSpot(null)}
@@ -194,7 +194,6 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
                   clickable={true}
                   onClick={() => {
                     setSelectedSpot(point);
-                    setDetailSpot(point);
                   }}
                 />
               );
@@ -221,7 +220,6 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
                 clickable={true}
                 onClick={() => {
                   setSelectedSpot(point);
-                  setDetailSpot(point);
                 }}
               />
             );
