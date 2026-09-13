@@ -26,6 +26,24 @@ export interface IDirectionsApiResponse {
   routes: {
     result_code: number;
     result_msg: string;
+    summary: {
+      origin: { name: string; x: number; y: number };
+      destination: { name: string; x: number; y: number };
+      waypoints: { name: string; x: number; y: number }[];
+      priority: string;
+      bound?: {
+        min_x: number;
+        min_y: number;
+        max_x: number;
+        max_y: number;
+      };
+      fare: {
+        taxi: number;
+        toll: number;
+      };
+      distance: number;
+      duration: number;
+    };
     sections: {
       bound: {
         max_x: number;
@@ -59,9 +77,11 @@ export interface IDirectionsApiResponse {
 
 const KAKAO_REST_API = import.meta.env.VITE_APP_KAKAO_REST_API_KEY;
 
-export const getDirections = async (request: IDirectionsApiRequest) => {
+export const getDirections = async (
+  request: IDirectionsApiRequest,
+): Promise<IDirectionsApiResponse> => {
   try {
-    const response = await axios.post(
+    const response = await axios.post<IDirectionsApiResponse>(
       `https://apis-navi.kakaomobility.com/v1/waypoints/directions`,
       request,
       {
