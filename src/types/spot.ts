@@ -1,3 +1,5 @@
+import type { ICongestion } from "./congestion";
+
 export interface ISearchByKeywordRequest {
   keyword: string;
   pageNo: number;
@@ -87,16 +89,6 @@ export interface ISpotDetailImage {
   originimgurl?: string;
   serialnum?: string;
   smallimageurl?: string;
-}
-
-export interface ICongestion {
-  cnctrRate: string;
-  baseYmd: string;
-  areaCd: string;
-  areaNm: string;
-  signguCd: string;
-  signguNm: string;
-  tatsNm: string;
 }
 
 export interface ISpotDetailInfo {
