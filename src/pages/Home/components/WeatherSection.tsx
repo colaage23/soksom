@@ -157,43 +157,59 @@ const WeatherSection = () => {
                 </PlacesMessageButton>
               </PlacesMessage>
             ) : (
-              places.map((place) => (
-                <SpotCard key={place.contentid}>
-                  <SpotImage $image={place.firstimage || fallbackImage}>
-                    <FavoriteButton
-                      type="button"
-                      disabled={isFavoritePending || !place.favoriteId}
-                      aria-label={`${place.title} 즐겨찾기 해제`}
-                      onClick={() => {
-                        if (place.favoriteId) {
-                          toggleFavorite(place, place.favoriteId);
-                        }
-                      }}
-                    >
-                      <Heart size={16} fill="currentColor" />
-                    </FavoriteButton>
-                  </SpotImage>
+              <>
+                {places.map((place) => (
+                  <SpotCard key={place.contentid} $isWide={places.length === 1}>
+                    <SpotImage $image={place.firstimage || fallbackImage}>
+                      <FavoriteButton
+                        type="button"
+                        disabled={isFavoritePending || !place.favoriteId}
+                        aria-label={`${place.title} 즐겨찾기 해제`}
+                        onClick={() => {
+                          if (place.favoriteId) {
+                            toggleFavorite(place, place.favoriteId);
+                          }
+                        }}
+                      >
+                        <Heart size={16} fill="currentColor" />
+                      </FavoriteButton>
+                    </SpotImage>
 
-                  <SpotBody>
-                    <SpotText>
-                      <SpotArea>
-                        {[place.addr1, place.addr2].filter(Boolean).join(" ") ||
-                          "주소 정보 없음"}
-                      </SpotArea>
-                      <SpotName>{place.title}</SpotName>
-                    </SpotText>
-                    <SpotAction
+                    <SpotBody>
+                      <SpotText>
+                        <SpotArea>
+                          {[place.addr1, place.addr2]
+                            .filter(Boolean)
+                            .join(" ") || "주소 정보 없음"}
+                        </SpotArea>
+                        <SpotName>{place.title}</SpotName>
+                      </SpotText>
+                      <SpotAction
+                        type="button"
+                        aria-label={`${place.title} 보기`}
+                        onClick={() =>
+                          handleMoveToSpot(place.title, place.contentid)
+                        }
+                      >
+                        <ArrowUpRight size={16} />
+                      </SpotAction>
+                    </SpotBody>
+                  </SpotCard>
+                ))}
+
+                {places.length < 3 && (
+                  <ExplorePlacesMessage>
+                    <span>관심 관광지를 더 추가해 보세요.</span>
+                    <PlacesMessageButton
                       type="button"
-                      aria-label={`${place.title} 보기`}
-                      onClick={() =>
-                        handleMoveToSpot(place.title, place.contentid)
-                      }
+                      onClick={() => navigate("/map")}
                     >
+                      관광지 탐색하기
                       <ArrowUpRight size={16} />
-                    </SpotAction>
-                  </SpotBody>
-                </SpotCard>
-              ))
+                    </PlacesMessageButton>
+                  </ExplorePlacesMessage>
+                )}
+              </>
             )}
           </PlacesGrid>
         </ContentGrid>
@@ -438,6 +454,10 @@ const PlacesMessage = styled.div`
   text-align: center;
 `;
 
+const ExplorePlacesMessage = styled(PlacesMessage)`
+  grid-column: auto;
+`;
+
 const PlacesMessageButton = styled.button`
   display: inline-flex;
   align-items: center;
@@ -452,11 +472,16 @@ const PlacesMessageButton = styled.button`
   cursor: pointer;
 `;
 
-const SpotCard = styled.article`
+const SpotCard = styled.article<{ $isWide: boolean }>`
+  grid-column: ${({ $isWide }) => ($isWide ? "span 2" : "span 1")};
   overflow: hidden;
   border-radius: 26px;
   background: rgba(255, 251, 245, 0.92);
   box-shadow: 0 18px 36px rgba(89, 71, 46, 0.08);
+
+  @media (max-width: 900px) {
+    grid-column: span 1;
+  }
 `;
 
 const SpotImage = styled.div<{ $image: string }>`
