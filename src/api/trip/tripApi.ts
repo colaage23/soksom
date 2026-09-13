@@ -1,3 +1,4 @@
+import type { ICongestion } from "../../types/spot";
 import type {
   ITrip,
   ITripDetail,
@@ -6,7 +7,7 @@ import type {
 } from "../../types/trip";
 import { axiosInstance } from "../axiosInstance";
 
-interface IRawTripDetail {
+export interface IRawTripDetail {
   detailId?: number | string;
   tripId?: number | string;
   contentId?: string;
@@ -27,10 +28,13 @@ interface IRawTripDetail {
   lclsSystm1Nm?: string;
   lclsSystm2Nm?: string;
   lclsSystm3Nm?: string;
+  ldongRegnCd?: string;
+  ldongSignguCd?: string;
   visitOrder?: number | string;
   visitDate?: string;
   createdAt?: string;
   updatedAt?: string;
+  congestion?: ICongestion;
 }
 
 interface IRawTrip {
@@ -67,7 +71,7 @@ const toNumber = (value?: number | string) => {
   return Number.isFinite(nextValue) ? nextValue : 0;
 };
 
-const normalizeTripDetail = (detail: IRawTripDetail): ITripDetail => ({
+export const normalizeTripDetail = (detail: IRawTripDetail): ITripDetail => ({
   detailId: toNumber(detail.detailId),
   tripId: toNumber(detail.tripId),
   contentid: detail.contentId ?? detail.contentid ?? "",
@@ -86,10 +90,13 @@ const normalizeTripDetail = (detail: IRawTripDetail): ITripDetail => ({
   lclsSystm1Nm: detail.lclsSystm1Nm ?? "",
   lclsSystm2Nm: detail.lclsSystm2Nm ?? "",
   lclsSystm3Nm: detail.lclsSystm3Nm ?? "",
+  ldongRegnCd: detail.ldongRegnCd ?? "",
+  ldongSignguCd: detail.ldongSignguCd ?? "",
   visitOrder: detail.visitOrder !== undefined ? String(detail.visitOrder) : "",
   visitDate: detail.visitDate ?? "",
   createdAt: detail.createdAt ?? "",
   updatedAt: detail.updatedAt ?? "",
+  congestion: detail.congestion,
 });
 
 const normalizeTrip = (trip: IRawTrip): ITrip => {
@@ -206,5 +213,30 @@ export const createTrip = async (
   } catch (error) {
     console.error("Create Trip Error: ", error);
     throw new Error("Fail to create Trip.", { cause: error });
+  }
+};
+
+interface ITripDetailResponse {
+  success?: boolean;
+  message?: string;
+  data?: IRawTrip;
+}
+
+export const getTripDetail = async (
+  tripId: number | string,
+): Promise<ITrip> => {
+  try {
+    const { data } = await axiosInstance.get<ITripDetailResponse>(
+      `/trip/${tripId}`,
+    );
+
+    if (!data.data) {
+      throw new Error("No trip data returned.");
+    }
+
+    return normalizeTrip(data.data);
+  } catch (error) {
+    console.error("Fetch Trip Detail Error:", error);
+    throw new Error("Fail to fetch trip detail.", { cause: error });
   }
 };
