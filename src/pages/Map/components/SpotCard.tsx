@@ -13,15 +13,9 @@ interface ISpotCardProps {
   spot: ISpotListItem;
   isActive: boolean;
   onClick: () => void;
-  onArrowClick: () => void;
 }
 
-const SpotCard = ({
-  spot,
-  isActive,
-  onClick,
-  onArrowClick,
-}: ISpotCardProps) => {
+const SpotCard = ({ spot, isActive, onClick }: ISpotCardProps) => {
   const likedSpotMap = useLikedSpotStore((state) => state.likedSpotMap);
   const { toggleFavorite, isPending } = useToggleFavorite();
 
@@ -88,12 +82,7 @@ const SpotCard = ({
         )}
       </SpotInfoBox>
 
-      <ArrowButton
-        onClick={(e) => {
-          e.stopPropagation();
-          onArrowClick();
-        }}
-      >
+      <ArrowButton>
         <ArrowIcon />
       </ArrowButton>
     </SpotCardContainer>

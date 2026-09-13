@@ -38,6 +38,8 @@ export interface ITrip {
   shareCode: string;
   createdAt: string;
   updatedAt: string;
+  cnt: number;
+  firstimage: string;
   details: ITripDetail[];
 }
 

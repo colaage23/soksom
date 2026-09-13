@@ -404,7 +404,8 @@ const PlaceBadge = styled.span<{ $variant: "calm" | "warm" }>`
 `;
 
 const PlaceBody = styled.div`
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 18px;
   padding: 22px;
 `;
@@ -496,6 +497,7 @@ const FooterRow = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  margin-top: auto;
 
   @media (max-width: 640px) {
     align-items: flex-start;
@@ -524,6 +526,8 @@ const Tag = styled.span`
 const DetailButton = styled.button`
   display: inline-flex;
   align-items: center;
+  align-self: flex-end;
+  flex-shrink: 0;
   gap: 6px;
   padding: 11px 14px;
   border: 0;
@@ -532,5 +536,6 @@ const DetailButton = styled.button`
   color: white;
   font-size: 0.9rem;
   font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
 `;

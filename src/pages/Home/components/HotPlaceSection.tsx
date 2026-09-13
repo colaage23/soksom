@@ -71,6 +71,9 @@ const HotPlaceSection = () => {
           <CardGrid>
             {places.map((place, index) => {
               const isFeatured = index === 0;
+              const placeImage = place.thumbnail
+                ? place.thumbnail.replace(/^http:\/\//, "https://")
+                : placeImages[index % placeImages.length];
 
               return (
                 <PlaceCard
@@ -78,16 +81,12 @@ const HotPlaceSection = () => {
                   $featured={isFeatured}
                   $tone="hot"
                 >
-                  <PlaceImage
-                    $image={placeImages[index % placeImages.length]}
-                    $featured={isFeatured}
-                  >
+                  <PlaceImage $image={placeImage} $featured={isFeatured}>
                     <CardTop>
                       <TagPill $tone="hot">
                         <Flame size={15} />
                         <span style={{ color: "black" }}>핫플레이스</span>
                       </TagPill>
-                      <CrowdBadge>인기 {place.hubRank}위</CrowdBadge>
                     </CardTop>
                   </PlaceImage>
 
@@ -100,7 +99,11 @@ const HotPlaceSection = () => {
                       관광지예요.
                     </Summary>
                     <CardFooter>
-                      <RouteHint>관광지 상세 보기</RouteHint>
+                      <RouteHint
+                        onClick={() => handleMoveToPlace(place.hubTatsNm)}
+                      >
+                        관광지 상세 보기
+                      </RouteHint>
                       <ArrowButton
                         type="button"
                         aria-label={`${place.hubTatsNm} 상세 보기`}
@@ -305,17 +308,6 @@ const TagPill = styled.span<{ $tone: PlaceTone }>`
   font-weight: 600;
   backdrop-filter: blur(12px);
   gap: 6px;
-`;
-
-const CrowdBadge = styled.span`
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(34, 31, 26, 0.74);
-  color: #f5efe5;
-  font-size: 0.76rem;
-  font-weight: 600;
 `;
 
 const PlaceBody = styled.div<{ $featured?: boolean }>`

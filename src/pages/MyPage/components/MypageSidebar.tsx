@@ -4,8 +4,7 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../../constants/colors";
 import { useGetUserInfo } from "../../../hooks/auth/useGetUserInfo";
-import { useAuthStore } from "../../../stores/auth/authStore";
-import { useWayPointStore } from "../../../stores/useWayPointStore";
+import { useLogout } from "../../../hooks/auth/useAuth";
 
 const SIDEBAR_LIST_TOP = 96;
 
@@ -25,7 +24,9 @@ export const MypageSidebar = ({
   onSelectSection,
 }: MypageSidebarProps) => {
   const navigate = useNavigate();
-  const clearAuth = useAuthStore((state) => state.clearAuth);
+
+  const logout = useLogout();
+
   const { data: userInfo } = useGetUserInfo();
   const [isSidebarListPinned, setIsSidebarListPinned] = useState(false);
   const [sidebarListLeft, setSidebarListLeft] = useState(0);
@@ -45,9 +46,7 @@ export const MypageSidebar = ({
   };
 
   const handleLogout = () => {
-    clearAuth();
-    useWayPointStore.getState().resetWayPoint();
-    useWayPointStore.persist.clearStorage();
+    logout();
     navigate("/");
   };
 
