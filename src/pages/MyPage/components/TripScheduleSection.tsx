@@ -188,7 +188,7 @@ export const TripScheduleSection = () => {
 
   const renderTripCard = (trip: ITrip, index: number) => {
     const tripImage =
-      trip.details.find((detail) => detail.firstimage)?.firstimage ??
+      trip.firstimage ||
       temporaryTripImages[index % temporaryTripImages.length];
     const handleMoveToTrip = () => navigate(`/trip/${trip.tripId}`);
 
@@ -213,7 +213,7 @@ export const TripScheduleSection = () => {
           <UpcomingMeta>
             {formatTripDateRange(trip.startDate, trip.endDate)}
           </UpcomingMeta>
-          <UpcomingMeta>{trip.details.length}개 장소</UpcomingMeta>
+          <UpcomingMeta>{trip.cnt}개 장소</UpcomingMeta>
         </UpcomingBody>
       </UpcomingCard>
     );

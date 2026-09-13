@@ -40,10 +40,12 @@ interface IRawTrip {
   startDate?: string;
   endDate?: string;
   isAiRoute?: string;
-  shareCode?: string;
+  shareCode?: string | null;
   createdAt?: string;
   updatedAt?: string;
-  details?: IRawTripDetail[];
+  cnt?: number | string;
+  firstimage?: string | null;
+  details?: IRawTripDetail[] | null;
 }
 
 interface IRawTripListData {
@@ -90,20 +92,29 @@ const normalizeTripDetail = (detail: IRawTripDetail): ITripDetail => ({
   updatedAt: detail.updatedAt ?? "",
 });
 
-const normalizeTrip = (trip: IRawTrip): ITrip => ({
-  tripId: toNumber(trip.tripId),
-  userId: toNumber(trip.userId),
-  tripName: trip.tripName ?? "이름 없는 여행",
-  startDate: trip.startDate ?? "",
-  endDate: trip.endDate ?? "",
-  isAiRoute: trip.isAiRoute ?? "",
-  shareCode: trip.shareCode ?? "",
-  createdAt: trip.createdAt ?? "",
-  updatedAt: trip.updatedAt ?? "",
-  details: Array.isArray(trip.details)
+const normalizeTrip = (trip: IRawTrip): ITrip => {
+  const details = Array.isArray(trip.details)
     ? trip.details.map(normalizeTripDetail)
-    : [],
-});
+    : [];
+
+  return {
+    tripId: toNumber(trip.tripId),
+    userId: toNumber(trip.userId),
+    tripName: trip.tripName ?? "이름 없는 여행",
+    startDate: trip.startDate ?? "",
+    endDate: trip.endDate ?? "",
+    isAiRoute: trip.isAiRoute ?? "",
+    shareCode: trip.shareCode ?? "",
+    createdAt: trip.createdAt ?? "",
+    updatedAt: trip.updatedAt ?? "",
+    cnt: trip.cnt === undefined ? details.length : toNumber(trip.cnt),
+    firstimage:
+      trip.firstimage ??
+      details.find((detail) => detail.firstimage)?.firstimage ??
+      "",
+    details,
+  };
+};
 
 const getTripsByPath = async (
   path: "/trip" | "/trip/next" | "/trip/pre",
