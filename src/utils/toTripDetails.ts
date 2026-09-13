@@ -2,10 +2,8 @@ import type { ICreateTripDetailPayload } from "../api/trip/tripApi";
 import type { ISpotListItem } from "../types/spot";
 
 const addDays = (dateStr: string, days: number): string => {
-  const [year, month, day] = dateStr.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
+  const date = new Date(dateStr);
   date.setDate(date.getDate() + days);
-
   const yyyy = date.getFullYear();
   const mm = String(date.getMonth() + 1).padStart(2, "0");
   const dd = String(date.getDate()).padStart(2, "0");
@@ -25,20 +23,20 @@ const toTripDetails = (
       details.push({
         contentid: spot.contentid,
         contenttypeid: spot.contenttypeid ?? "",
-        zipcode: spot.zipcode ?? "",
+        zipcode: "", // ISpotListItem엔 없는 필드라 빈 값
         addr1: spot.addr1,
-        addr2: spot.addr2 ?? "",
+        addr2: "", // ISpotListItem엔 없는 필드라 빈 값
         firstimage: spot.firstimage ?? "",
         mapx: spot.mapx ?? "",
         mapy: spot.mapy ?? "",
-        tel: spot.tel ?? "",
+        tel: "", // ISpotListItem엔 없는 필드라 빈 값
         title: spot.title,
         lclsSystm1: spot.lclsSystm1 ?? "",
         lclsSystm2: spot.lclsSystm2 ?? "",
         lclsSystm3: spot.lclsSystm3 ?? "",
-        lclsSystm1Nm: spot.lclsSystm1Nm ?? "",
+        lclsSystm1Nm: "", // ISpotListItem엔 없는 필드라 빈 값
         lclsSystm2Nm: spot.lclsSystm2Nm ?? "",
-        lclsSystm3Nm: spot.lclsSystm3Nm ?? "",
+        lclsSystm3Nm: "", // ISpotListItem엔 없는 필드라 빈 값
         ldongRegnCd: spot.lDongRegnCd ?? "",
         ldongSignguCd: spot.lDongSignguCd ?? "",
         visitOrder: String(order + 1),
