@@ -179,7 +179,7 @@ export interface ISpotListItem {
   zipcode?: string;
   title: string;
   addr1: string;
-  addr2: string;
+  addr2?: string;
   firstimage?: string;
   mapx?: string;
   mapy?: string;

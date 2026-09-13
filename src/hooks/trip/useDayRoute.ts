@@ -34,17 +34,13 @@ export const useDayRoute = (spots: ITripDetail[]) => {
 
   const route = data?.routes?.[0];
 
-  const legs: RouteLeg[] | undefined = route?.sections
-    ?.filter(
-      (s): s is { distance: number; duration: number } =>
-        typeof s.distance === "number" && typeof s.duration === "number",
-    )
-    .map((s) => ({ distance: s.distance, duration: s.duration }));
+  const legs: RouteLeg[] | undefined = route?.sections?.map((s) => ({
+    distance: s.distance,
+    duration: s.duration,
+  }));
 
   return {
-    summary: route?.summary as
-      | { distance?: number; duration?: number }
-      | undefined,
+    summary: route?.summary,
     resultMsg: route?.result_msg as string | undefined,
     legs,
   };
