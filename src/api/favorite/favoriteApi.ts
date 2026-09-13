@@ -1,6 +1,7 @@
 import axios from "axios";
 import type { ISpotListItem } from "../../types/spot";
 import { axiosInstance } from "../axiosInstance";
+import type { ICongestion } from "../../types/congestion";
 
 export interface IFavoriteSpot {
   favoriteId?: string;
@@ -176,15 +177,7 @@ export interface IAddFavoritePayload {
   latitude?: number;
   longitude?: number;
   thumbnail?: string;
-  congestion?: {
-    cnctrRate: string;
-    baseYmd: string;
-    areaCd: string;
-    areaNm: string;
-    signguCd: string;
-    signguNm: string;
-    tatsNm: string;
-  };
+  congestion?: ICongestion;
 }
 
 interface IAddFavoriteResponse {

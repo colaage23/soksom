@@ -1,4 +1,4 @@
-import type { ICongestion } from "./spot";
+import type { ICongestion } from "./congestion";
 
 export interface ITripDetail {
   detailId: number;

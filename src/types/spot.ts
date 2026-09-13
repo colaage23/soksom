@@ -1,3 +1,5 @@
+import type { ICongestion } from "./congestion";
+
 export interface ISearchByKeywordRequest {
   keyword: string;
   pageNo: number;
