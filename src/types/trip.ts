@@ -1,5 +1,3 @@
-import type { ICongestion } from "./spot";
-
 export interface ITripDetail {
   detailId: number;
   tripId: number;
@@ -19,13 +17,10 @@ export interface ITripDetail {
   lclsSystm1Nm: string;
   lclsSystm2Nm: string;
   lclsSystm3Nm: string;
-  ldongRegnCd: string;
-  ldongSignguCd: string;
   visitOrder: string;
   visitDate: string;
   createdAt: string;
   updatedAt: string;
-  congestion?: ICongestion;
 }
 
 export interface ITrip {
