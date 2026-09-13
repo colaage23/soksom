@@ -71,6 +71,9 @@ const HotPlaceSection = () => {
           <CardGrid>
             {places.map((place, index) => {
               const isFeatured = index === 0;
+              const placeImage = place.thumbnail
+                ? place.thumbnail.replace(/^http:\/\//, "https://")
+                : placeImages[index % placeImages.length];
 
               return (
                 <PlaceCard
@@ -78,10 +81,7 @@ const HotPlaceSection = () => {
                   $featured={isFeatured}
                   $tone="hot"
                 >
-                  <PlaceImage
-                    $image={placeImages[index % placeImages.length]}
-                    $featured={isFeatured}
-                  >
+                  <PlaceImage $image={placeImage} $featured={isFeatured}>
                     <CardTop>
                       <TagPill $tone="hot">
                         <Flame size={15} />
@@ -99,7 +99,11 @@ const HotPlaceSection = () => {
                       관광지예요.
                     </Summary>
                     <CardFooter>
-                      <RouteHint>관광지 상세 보기</RouteHint>
+                      <RouteHint
+                        onClick={() => handleMoveToPlace(place.hubTatsNm)}
+                      >
+                        관광지 상세 보기
+                      </RouteHint>
                       <ArrowButton
                         type="button"
                         aria-label={`${place.hubTatsNm} 상세 보기`}
