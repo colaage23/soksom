@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { login, signup } from "../../api/auth/auth";
+import { deleteUser, login, signup } from "../../api/auth/auth";
 import { useAuthStore } from "../../stores/auth/authStore";
 import { useWayPointStore } from "../../stores/useWayPointStore";
 
@@ -20,6 +20,12 @@ export const useLogin = () => {
       localStorage.setItem("soksomRefreshToken", data.refreshToken);
       queryClient.clear();
     },
+  });
+};
+
+export const useDeleteUser = () => {
+  return useMutation({
+    mutationFn: deleteUser,
   });
 };
 

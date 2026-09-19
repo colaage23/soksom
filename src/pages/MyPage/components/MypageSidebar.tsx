@@ -1,10 +1,17 @@
-import { CalendarDays, Heart, LogOut, MapPinned } from "lucide-react";
+import {
+  CalendarDays,
+  Heart,
+  LogOut,
+  MapPinned,
+  UserRoundX,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../../constants/colors";
+import { useDeleteUser, useLogout } from "../../../hooks/auth/useAuth";
 import { useGetUserInfo } from "../../../hooks/auth/useGetUserInfo";
-import { useLogout } from "../../../hooks/auth/useAuth";
+import { useToast } from "../../../hooks/common/useToast";
 
 const SIDEBAR_LIST_TOP = 96;
 
@@ -26,6 +33,9 @@ export const MypageSidebar = ({
   const navigate = useNavigate();
 
   const logout = useLogout();
+  const showToast = useToast();
+  const { mutateAsync: deleteUser, isPending: isDeletingUser } =
+    useDeleteUser();
 
   const { data: userInfo } = useGetUserInfo();
   const [isSidebarListPinned, setIsSidebarListPinned] = useState(false);
@@ -48,6 +58,23 @@ export const MypageSidebar = ({
   const handleLogout = () => {
     logout();
     navigate("/");
+  };
+
+  const handleDeleteUser = async () => {
+    const confirmed = window.confirm(
+      "회원 탈퇴 후에는 계정을 복구할 수 없습니다. 정말 탈퇴하시겠습니까?",
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteUser();
+      logout();
+      navigate("/");
+      showToast("회원 탈퇴가 완료되었습니다.", "success");
+    } catch {
+      showToast("회원 탈퇴에 실패했습니다. 다시 시도해주세요.", "error");
+    }
   };
 
   useEffect(() => {
@@ -132,11 +159,21 @@ export const MypageSidebar = ({
               </SidebarButton>
             );
           })}
-
+          {/* 
           <SidebarLogout type="button" $active={false} onClick={handleLogout}>
             <LogOut size={17} />
             <span>로그아웃</span>
-          </SidebarLogout>
+          </SidebarLogout> */}
+
+          <SidebarWithdrawal
+            type="button"
+            $active={false}
+            onClick={handleDeleteUser}
+            disabled={isDeletingUser}
+          >
+            <UserRoundX size={17} />
+            <span>{isDeletingUser ? "탈퇴 처리 중..." : "회원 탈퇴"}</span>
+          </SidebarWithdrawal>
         </SidebarList>
       </SidebarListSlot>
     </Sidebar>
@@ -250,6 +287,15 @@ const SidebarButton = styled.button<{ $active: boolean }>`
 `;
 
 const SidebarLogout = styled(SidebarButton)`
+  color: #65716b;
+`;
+
+const SidebarWithdrawal = styled(SidebarButton)`
   color: #ef6a56;
   border-bottom: 0;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
 `;
