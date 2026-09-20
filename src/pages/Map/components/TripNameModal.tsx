@@ -22,6 +22,7 @@ const TripNameModal = ({
   const [tripName, setTripName] = useState(defaultValue);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (isOpen) setTripName(defaultValue);
   }, [isOpen, defaultValue]);
 
