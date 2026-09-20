@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import {
+  ArrowUpRight,
   CalendarPlus,
   CalendarX,
   Check,
@@ -26,10 +27,17 @@ import FallBackImage from "../../../assets/fallback.png";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "../../../stores/auth/authStore";
 import type { ISpotListItem } from "../../../types/spot";
+import { useAlternativeSpots } from "../../../hooks/spot/useAlternativeSpots";
 
 interface ISpotDetailProps {
   spot: ISpotListItem;
 }
+
+const getCurrentBaseYm = () => {
+  const today = new Date();
+  today.setMonth(today.getMonth() - 2);
+  return `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}`;
+};
 
 const SpotDetail = ({ spot }: ISpotDetailProps) => {
   const navigate = useNavigate();
@@ -53,6 +61,37 @@ const SpotDetail = ({ spot }: ISpotDetailProps) => {
     areaCd: spot?.lDongRegnCd,
     signguCd: spot?.lDongSignguCd,
   });
+
+  const rawRate =
+    spotDetail?.congestion?.cnctrRate ?? spot?.congestion?.cnctrRate ?? null;
+
+  const displayRate =
+    rawRate !== null && rawRate !== undefined
+      ? Math.round(parseFloat(String(rawRate)))
+      : null;
+
+  const congestionLevel = getCongestionLevel(rawRate);
+
+  const status = getCongestionStyle(rawRate);
+
+  console.log({
+    congestionLevel,
+    contentid: spot?.contentid,
+    title: spot?.title,
+  });
+
+  const { data: alternativeSpots, isLoading: isAlternativeLoading } =
+    useAlternativeSpots({
+      keyword: spot?.title ?? "",
+      contentId: spot?.contentid ?? "",
+      areaCd: spot?.lDongRegnCd ?? "",
+      signguCd:
+        spot?.lDongRegnCd && spot?.lDongSignguCd
+          ? `${spot.lDongRegnCd}${spot.lDongSignguCd}`
+          : "",
+      baseYm: getCurrentBaseYm(),
+      enabled: congestionLevel === "혼잡",
+    });
 
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -95,18 +134,6 @@ const SpotDetail = ({ spot }: ISpotDetailProps) => {
   const handleAddToPlan = () => {
     if (isLoggedIn) toggleWayPoint(spot);
   };
-
-  const rawRate =
-    spotDetail?.congestion?.cnctrRate ?? spot?.congestion?.cnctrRate ?? null;
-
-  const displayRate =
-    rawRate !== null && rawRate !== undefined
-      ? Math.round(parseFloat(String(rawRate)))
-      : null;
-
-  const congestionLevel = getCongestionLevel(rawRate);
-
-  const status = getCongestionStyle(rawRate);
 
   const clampedPosition =
     displayRate !== null ? Math.min(95, Math.max(5, displayRate)) : null;
@@ -334,34 +361,49 @@ const SpotDetail = ({ spot }: ISpotDetailProps) => {
           </InfoListBox>
         )}
 
-        {/* 대체 관광지 어떻게 불러오지? 우선 api는 없음 */}
-        <RecommendationBox>
-          {/* <RecommendationTitle>{status.recommendation}</RecommendationTitle>
-          {spotDetail?.recommendations.map((item) => (
-            <RecommendationCard key={item.contentid}>
-              <RecommendationImage src={item.firstimage} alt={item.name} />
+        {congestionLevel === "혼잡" &&
+          alternativeSpots &&
+          alternativeSpots.length > 0 && (
+            <RecommendationBox>
+              <RecommendationTitle>{status.recommendation}</RecommendationTitle>
 
-              <RecommendationContent>
-                <RecommendationName>{item.name}</RecommendationName>
-                <RecommendationInfo>
-                  <span>{item.addr1}</span>
-                  <span style={{ color: "#c0c5ca" }}> · </span>
-                  <span>{item.category}</span>
-                </RecommendationInfo>
-              </RecommendationContent>
+              {isAlternativeLoading && (
+                <RecommendationLoading>
+                  대체 관광지를 찾는 중...
+                </RecommendationLoading>
+              )}
 
-              <CongestionProgressBar style={{ height: "4px", width: "40px" }}>
-                <CongestionProgressFill
-                  style={{
-                    height: "4px",
-                    backgroundColor: congestionStyle[item.congestion].bgColor,
-                    width: `${congestionStyle[item.congestion].progress}%`,
-                  }}
-                />
-              </CongestionProgressBar>
-            </RecommendationCard>
-          ))} */}
-        </RecommendationBox>
+              <RecommendationGrid>
+                {alternativeSpots.map((item, idx) => (
+                  <RecommendationCard
+                    key={item.rlteTatsCd}
+                    onClick={() => {
+                      const newParams = new URLSearchParams(searchParams);
+                      newParams.delete("contentId");
+                      newParams.set("keyword", item.rlteTatsNm);
+                      setSearchParams(newParams);
+                    }}
+                  >
+                    <RecommendationRank>{idx + 1}</RecommendationRank>
+
+                    <RecommendationTop>
+                      <RecommendationName>{item.rlteTatsNm}</RecommendationName>
+                      <ArrowIcon />
+                    </RecommendationTop>
+
+                    <RecommendationTagBox>
+                      <RecommendationTag>
+                        #{item.rlteCtgryMclsNm}
+                      </RecommendationTag>
+                      <RecommendationTag>
+                        #{item.rlteCtgrySclsNm}
+                      </RecommendationTag>
+                    </RecommendationTagBox>
+                  </RecommendationCard>
+                ))}
+              </RecommendationGrid>
+            </RecommendationBox>
+          )}
       </SpotContent>
 
       <FixedButtonWrapper>
@@ -855,58 +897,118 @@ const RecommendationBox = styled.div`
   gap: 8px;
 `;
 
-// const RecommendationTitle = styled.h3`
-//   margin: 0 0 8px;
+const RecommendationTitle = styled.h3`
+  margin: 0 0 8px;
+  color: #2e3339;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1rem;
+  letter-spacing: 0.05em;
+`;
 
-//   color: #2e3339;
-//   font-size: 0.75rem;
-//   font-weight: 500;
+const RecommendationName = styled.p`
+  margin: 0;
+  color: #100c0d;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.625rem;
+`;
 
-//   line-height: 1rem;
-//   letter-spacing: 0.05em;
-// `;
+const RecommendationGrid = styled.div`
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+`;
 
-// const RecommendationCard = styled.div`
-//   width: 100%;
-//   display: flex;
-//   align-items: center;
-//   gap: 12px;
+const RecommendationCard = styled.div`
+  position: relative;
+  flex: 1 1 0;
+  min-width: 90px;
 
-//   padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 
-//   border: 1px solid #f5f3eb;
-//   border-radius: 16px;
-// `;
+  padding: 12px;
+  border: 1px solid #f0ede3;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fbfaf5 0%, #ffffff 100%);
 
-// const RecommendationImage = styled.img`
-//   height: 40px;
-//   width: 40px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 
-//   border-radius: 12px;
-// `;
+  &:hover {
+    border-color: #0c9799;
+    box-shadow: 0 4px 14px rgba(12, 151, 153, 0.12);
+    transform: translateY(-2px);
+  }
+`;
 
-// const RecommendationContent = styled.div`
-//   display: flex;
-//   flex-direction: column;
-//   flex: 1;
-// `;
+const RecommendationRank = styled.span`
+  position: absolute;
+  top: -6px;
+  left: 10px;
 
-// const RecommendationName = styled.p`
-//   margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-//   color: #100c0d;
-//   font-size: 0.875rem;
-//   font-weight: 500;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
 
-//   line-height: 1.625rem;
-// `;
+  background: #0c9799;
+  color: #fdfcf8;
+  font-size: 0.625rem;
+  font-weight: 700;
+`;
 
-// const RecommendationInfo = styled.div`
-//   margin: 0;
+const RecommendationTop = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 4px;
+  margin-top: 4px;
+`;
 
-//   color: #6c727a;
-//   font-size: 0.6875rem;
-// `;
+const ArrowIcon = styled(ArrowUpRight)`
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+  stroke: #b3ada0;
+  stroke-width: 2.2;
+  transition: stroke 0.15s ease;
+
+  ${RecommendationCard}:hover & {
+    stroke: #0c9799;
+  }
+`;
+
+const RecommendationTagBox = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+`;
+
+const RecommendationTag = styled.span`
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #eef6f5;
+
+  color: #359799;
+  font-size: 0.5625rem;
+  font-weight: 600;
+`;
+
+const RecommendationLoading = styled.p`
+  margin: 0;
+  color: #6c727a;
+  font-size: 0.75rem;
+`;
 
 const CalendarPlusIcon = styled(CalendarPlus)`
   width: 16px;

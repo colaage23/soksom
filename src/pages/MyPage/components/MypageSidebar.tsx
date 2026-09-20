@@ -1,10 +1,4 @@
-import {
-  CalendarDays,
-  Heart,
-  LogOut,
-  MapPinned,
-  UserRoundX,
-} from "lucide-react";
+import { CalendarDays, Heart, MapPinned, UserRoundX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
@@ -53,11 +47,6 @@ export const MypageSidebar = ({
     document
       .getElementById(`mypage-${sectionId}`)
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate("/");
   };
 
   const handleDeleteUser = async () => {
@@ -284,10 +273,6 @@ const SidebarButton = styled.button<{ $active: boolean }>`
   font-weight: 700;
   text-align: left;
   cursor: pointer;
-`;
-
-const SidebarLogout = styled(SidebarButton)`
-  color: #65716b;
 `;
 
 const SidebarWithdrawal = styled(SidebarButton)`
