@@ -1,4 +1,4 @@
-import type { ICongestion } from "../../types/spot";
+import type { ICongestion } from "../../types/congestion";
 import type {
   ITrip,
   ITripDetail,
