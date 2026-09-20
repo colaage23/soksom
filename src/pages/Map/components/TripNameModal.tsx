@@ -1,9 +1,11 @@
 import styled from "styled-components";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
 interface ITripNameModalProps {
   isOpen: boolean;
+  mode?: "create" | "edit";
+  defaultValue?: string;
   isSubmitting?: boolean;
   onClose: () => void;
   onConfirm: (tripName: string) => void;
@@ -11,11 +13,17 @@ interface ITripNameModalProps {
 
 const TripNameModal = ({
   isOpen,
+  mode = "create",
+  defaultValue = "",
   isSubmitting,
   onClose,
   onConfirm,
 }: ITripNameModalProps) => {
-  const [tripName, setTripName] = useState("");
+  const [tripName, setTripName] = useState(defaultValue);
+
+  useEffect(() => {
+    if (isOpen) setTripName(defaultValue);
+  }, [isOpen, defaultValue]);
 
   if (!isOpen) return null;
 
@@ -29,7 +37,11 @@ const TripNameModal = ({
     <Overlay onClick={onClose}>
       <ModalBox onClick={(e) => e.stopPropagation()}>
         <ModalHeader>
-          <ModalTitle>여행 이름을 입력해주세요</ModalTitle>
+          <ModalTitle>
+            {mode === "edit"
+              ? "여행 이름을 수정해주세요"
+              : "여행 이름을 입력해주세요"}
+          </ModalTitle>
           <CloseButton onClick={onClose}>
             <CloseIcon />
           </CloseButton>
@@ -50,7 +62,13 @@ const TripNameModal = ({
           onClick={handleConfirm}
           disabled={!tripName.trim() || isSubmitting}
         >
-          {isSubmitting ? "생성 중..." : "일정 생성하기"}
+          {isSubmitting
+            ? mode === "edit"
+              ? "수정 중..."
+              : "생성 중..."
+            : mode === "edit"
+              ? "일정 수정하기"
+              : "일정 생성하기"}
         </ConfirmButton>
       </ModalBox>
     </Overlay>

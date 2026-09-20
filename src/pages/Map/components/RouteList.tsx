@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import { useEffect, useMemo, useState } from "react";
-import { LogIn, Wand } from "lucide-react";
+import { LogIn, Wand, X } from "lucide-react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import PoolWayPointList from "./PoolWayPointList";
@@ -12,9 +12,11 @@ import { useDirectionWithFallback } from "../../../hooks/useDirectionWithFallbac
 import { useDirectionStore } from "../../../stores/useDirectionStore";
 import TripInfoCard from "./TripInfoCard";
 import { useCreateTrip } from "../../../hooks/trip/useCreateTrip";
+import { useUpdateTrip } from "../../../hooks/trip/useUpdateTrip";
+import { useGetTripDetail } from "../../../hooks/trip/useGetTripDetail";
 import toTripDetails from "../../../utils/toTripDetails";
 import TripNameModal from "./TripNameModal";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "../../../stores/auth/authStore";
 import { useToast } from "../../../hooks/common/useToast";
 
@@ -39,8 +41,31 @@ const RouteList = () => {
     setExpandedDay,
     resetWayPoint,
     dateRange,
+    editingTrip,
+    loadTripForEdit,
   } = useWayPointStore();
   const { setDirections } = useDirectionStore();
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const editTripId = searchParams.get("editTripId");
+  const { data: editTargetTrip } = useGetTripDetail(editTripId ?? "");
+
+  useEffect(() => {
+    if (!editTripId || !editTargetTrip) return;
+    // editingTrip은 store 전역 상태라 탐색 모드로 전환되어 RouteList가
+    // 언마운트/리마운트돼도 유지되므로, 이미 로드했는지 여기로 판단해야 함
+    if (editingTrip?.tripId === editTargetTrip.tripId) return;
+
+    loadTripForEdit(editTargetTrip);
+  }, [editTripId, editTargetTrip, editingTrip, loadTripForEdit]);
+
+  useEffect(() => {
+    // URL에서 editTripId가 사라졌는데 store에 이전 수정 상태가 남아있으면 정리
+    // (취소 버튼은 URL만 바꾸고, 스토어 초기화는 이 이펙트가 담당해야 레이스가 생기지 않음)
+    if (editTripId || !editingTrip) return;
+
+    resetWayPoint();
+  }, [editTripId, editingTrip, resetWayPoint]);
 
   const { fetchDirectionWithFallback, data } = useDirectionWithFallback();
 
@@ -100,6 +125,8 @@ const RouteList = () => {
   }, [route]);
 
   const { mutate: createTripMutate, isPending: isCreating } = useCreateTrip();
+  const { mutate: updateTripMutate, isPending: isUpdating } = useUpdateTrip();
+  const isSubmittingTrip = isCreating || isUpdating;
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const formatDate = (date: Date | null): string => {
@@ -145,11 +172,46 @@ const RouteList = () => {
     setIsModalOpen(true);
   };
 
+  const handleCancelEdit = () => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("editTripId");
+    setSearchParams(nextParams);
+  };
+
   const handleGenerateSchedule = (tripName: string) => {
     const startDate = formatDate(dateRange.startDate);
     const endDate = formatDate(dateRange.endDate);
 
     const details = toTripDetails(wayPoint, startDate);
+
+    if (editingTrip) {
+      updateTripMutate(
+        {
+          tripId: editingTrip.tripId,
+          payload: {
+            tripName,
+            startDate,
+            endDate,
+            isAiRoute: editingTrip.isAiRoute,
+            shareCode: editingTrip.shareCode,
+            details,
+          },
+        },
+        {
+          onSuccess: () => {
+            setIsModalOpen(false);
+            const tripId = editingTrip.tripId;
+            resetWayPoint();
+            showToast("일정이 수정되었어요.", "success");
+            navigate(`/trip/${tripId}`);
+          },
+          onError: () => {
+            showToast("일정 수정에 실패했습니다.", "error");
+          },
+        },
+      );
+      return;
+    }
 
     createTripMutate(
       {
@@ -176,6 +238,15 @@ const RouteList = () => {
     <RouteListContainer>
       <RouteListScroll>
         <TripInfoWrapper>
+          {editingTrip && (
+            <EditingBanner>
+              <span>'{editingTrip.tripName}' 일정을 수정하는 중이에요.</span>
+              <CancelEditButton type="button" onClick={handleCancelEdit}>
+                <X size={14} />
+                취소
+              </CancelEditButton>
+            </EditingBanner>
+          )}
           <TripInfoCard />
         </TripInfoWrapper>
 
@@ -215,7 +286,7 @@ const RouteList = () => {
         {isLoggedIn ? (
           <GenerateScheduleButton onClick={handleOpenModal}>
             <WandIcon />
-            일정 생성하기
+            {editingTrip ? "일정 수정하기" : "일정 생성하기"}
           </GenerateScheduleButton>
         ) : (
           <LoginRequiredButton onClick={handleGoToLogin}>
@@ -227,7 +298,9 @@ const RouteList = () => {
 
       <TripNameModal
         isOpen={isModalOpen}
-        isSubmitting={isCreating}
+        mode={editingTrip ? "edit" : "create"}
+        defaultValue={editingTrip?.tripName ?? ""}
+        isSubmitting={isSubmittingTrip}
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleGenerateSchedule}
       />
@@ -263,6 +336,36 @@ const RouteListScroll = styled.div`
 
 const TripInfoWrapper = styled.div`
   flex-shrink: 0;
+`;
+
+const EditingBanner = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 12px 16px 0;
+  padding: 10px 14px;
+  border: 1px solid rgba(12, 151, 153, 0.2);
+  border-radius: 12px;
+  background: rgba(12, 151, 153, 0.08);
+  color: #0c7d7e;
+  font-size: 0.8rem;
+  font-weight: 600;
+`;
+
+const CancelEditButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 999px;
+  background: white;
+  color: #0c7d7e;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
 `;
 
 const DayListSection = styled.div`

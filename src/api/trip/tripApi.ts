@@ -195,6 +195,15 @@ export interface ICreateTripPayload {
   details: ICreateTripDetailPayload[];
 }
 
+export interface IUpdateTripPayload {
+  tripName: string;
+  startDate: string;
+  endDate: string;
+  isAiRoute: string;
+  shareCode: string;
+  details: ICreateTripDetailPayload[];
+}
+
 interface ICreateTripResponse {
   success: boolean;
   message?: string;
@@ -213,6 +222,27 @@ export const createTrip = async (
   } catch (error) {
     console.error("Create Trip Error: ", error);
     throw new Error("Fail to create Trip.", { cause: error });
+  }
+};
+
+interface IUpdateTripResponse {
+  success?: boolean;
+  message?: string;
+  data?: unknown;
+}
+
+export const updateTrip = async ({
+  tripId,
+  payload,
+}: {
+  tripId: number;
+  payload: IUpdateTripPayload;
+}): Promise<void> => {
+  try {
+    await axiosInstance.put<IUpdateTripResponse>(`/trip/${tripId}`, payload);
+  } catch (error) {
+    console.error("Update Trip Error:", error);
+    throw new Error("Fail to update trip.", { cause: error });
   }
 };
 

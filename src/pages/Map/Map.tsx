@@ -20,11 +20,13 @@ import { useSearchParams } from "react-router-dom";
 const Map = () => {
   const { visibleSpots } = useSpotStore();
 
-  const [mode, setMode] = useState<"explore" | "route">("explore");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [mode, setMode] = useState<"explore" | "route">(
+    searchParams.get("editTripId") ? "route" : "explore",
+  );
   const [open, setOpen] = useState(true);
   const [mobileView, setMobileView] = useState<"map" | "list">("list");
-
-  const [searchParams, setSearchParams] = useSearchParams();
 
   const selectedSpotId = searchParams.get("contentId");
   const detailSpot = selectedSpotId

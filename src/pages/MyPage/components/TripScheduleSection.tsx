@@ -216,6 +216,12 @@ export const TripScheduleSection = () => {
     setOpenMenuTripId((prev) => (prev === tripId ? null : tripId));
   };
 
+  const handleEditTrip = (event: React.MouseEvent, tripId: number) => {
+    event.stopPropagation();
+    setOpenMenuTripId(null);
+    navigate(`/map?mode=route&editTripId=${tripId}`);
+  };
+
   const handleDeleteTrip = (event: React.MouseEvent, tripId: number) => {
     event.stopPropagation();
     setOpenMenuTripId(null);
@@ -226,7 +232,7 @@ export const TripScheduleSection = () => {
     deleteTripMutate(tripId);
   };
 
-  const renderTripCard = (trip: ITrip, index: number, showMenu = false) => {
+  const renderTripCard = (trip: ITrip, index: number, showEdit = false) => {
     const tripImage =
       trip.firstimage ||
       temporaryTripImages[index % temporaryTripImages.length];
@@ -247,29 +253,35 @@ export const TripScheduleSection = () => {
       >
         <UpcomingVisual $index={index}>
           <UpcomingVisualTitle>{trip.tripName}</UpcomingVisualTitle>
-          {showMenu && (
-            <TripMenuWrapper
-              ref={trip.tripId === openMenuTripId ? openMenuContainerRef : null}
+          <TripMenuWrapper
+            ref={trip.tripId === openMenuTripId ? openMenuContainerRef : null}
+          >
+            <TripMenuButton
+              type="button"
+              aria-label="일정 메뉴 열기"
+              onClick={(event) => handleToggleTripMenu(event, trip.tripId)}
             >
-              <TripMenuButton
-                type="button"
-                aria-label="일정 메뉴 열기"
-                onClick={(event) => handleToggleTripMenu(event, trip.tripId)}
-              >
-                <MoreVertical size={17} />
-              </TripMenuButton>
-              {openMenuTripId === trip.tripId && (
-                <TripMenuDropdown>
-                  <TripMenuDeleteButton
+              <MoreVertical size={17} />
+            </TripMenuButton>
+            {openMenuTripId === trip.tripId && (
+              <TripMenuDropdown>
+                {showEdit && (
+                  <TripMenuEditButton
                     type="button"
-                    onClick={(event) => handleDeleteTrip(event, trip.tripId)}
+                    onClick={(event) => handleEditTrip(event, trip.tripId)}
                   >
-                    일정 삭제
-                  </TripMenuDeleteButton>
-                </TripMenuDropdown>
-              )}
-            </TripMenuWrapper>
-          )}
+                    일정 수정
+                  </TripMenuEditButton>
+                )}
+                <TripMenuDeleteButton
+                  type="button"
+                  onClick={(event) => handleDeleteTrip(event, trip.tripId)}
+                >
+                  일정 삭제
+                </TripMenuDeleteButton>
+              </TripMenuDropdown>
+            )}
+          </TripMenuWrapper>
         </UpcomingVisual>
         <UpcomingImage src={tripImage} alt="" />
         <UpcomingBody>
@@ -325,7 +337,9 @@ export const TripScheduleSection = () => {
             )}
           </CurrentTripsHeader>
           <CurrentTripCarousel ref={currentTripCarouselRef}>
-            {currentTrips.map((trip, index) => renderTripCard(trip, index))}
+            {currentTrips.map((trip, index) =>
+              renderTripCard(trip, index, true),
+            )}
           </CurrentTripCarousel>
         </CurrentTrips>
       )}
@@ -740,6 +754,22 @@ const TripMenuDropdown = styled.div`
   border-radius: 12px;
   background: white;
   box-shadow: 0 12px 24px rgba(35, 49, 44, 0.14);
+`;
+
+const TripMenuEditButton = styled.button`
+  padding: 10px 16px;
+  border: 0;
+  border-bottom: 1px solid rgba(36, 149, 155, 0.1);
+  background: white;
+  color: #245f62;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(36, 149, 155, 0.08);
+  }
 `;
 
 const TripMenuDeleteButton = styled.button`
