@@ -1,8 +1,14 @@
-import { ChevronLeft, ChevronRight, Ellipsis } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Ellipsis,
+  MoreVertical,
+} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../../constants/colors";
+import { useDeleteTrip } from "../../../hooks/trip/useDeleteTrip";
 import {
   useGetNextTrips,
   useGetPreviousTrips,
@@ -56,10 +62,13 @@ const getVisiblePages = (currentPage: number, totalPages: number) => {
 export const TripScheduleSection = () => {
   const navigate = useNavigate();
   const currentTripCarouselRef = useRef<HTMLDivElement>(null);
+  const openMenuContainerRef = useRef<HTMLDivElement | null>(null);
   const [selectedTripFilter, setSelectedTripFilter] =
     useState<(typeof tripFilterOptions)[number]>("전체");
   const [upcomingPage, setUpcomingPage] = useState(1);
   const [pastPage, setPastPage] = useState(1);
+  const [openMenuTripId, setOpenMenuTripId] = useState<number | null>(null);
+  const { mutate: deleteTripMutate } = useDeleteTrip();
   const tripListParams = { pageNo: 1, numOfRows: 20 };
   const upcomingTripParams = { pageNo: upcomingPage, numOfRows: 9 };
   const pastTripParams = { pageNo: pastPage, numOfRows: 9 };
@@ -186,7 +195,38 @@ export const TripScheduleSection = () => {
     });
   };
 
-  const renderTripCard = (trip: ITrip, index: number) => {
+  useEffect(() => {
+    if (openMenuTripId === null) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        openMenuContainerRef.current &&
+        !openMenuContainerRef.current.contains(event.target as Node)
+      ) {
+        setOpenMenuTripId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openMenuTripId]);
+
+  const handleToggleTripMenu = (event: React.MouseEvent, tripId: number) => {
+    event.stopPropagation();
+    setOpenMenuTripId((prev) => (prev === tripId ? null : tripId));
+  };
+
+  const handleDeleteTrip = (event: React.MouseEvent, tripId: number) => {
+    event.stopPropagation();
+    setOpenMenuTripId(null);
+
+    const confirmed = window.confirm("이 여행 일정을 삭제하시겠습니까?");
+    if (!confirmed) return;
+
+    deleteTripMutate(tripId);
+  };
+
+  const renderTripCard = (trip: ITrip, index: number, showMenu = false) => {
     const tripImage =
       trip.firstimage ||
       temporaryTripImages[index % temporaryTripImages.length];
@@ -207,6 +247,29 @@ export const TripScheduleSection = () => {
       >
         <UpcomingVisual $index={index}>
           <UpcomingVisualTitle>{trip.tripName}</UpcomingVisualTitle>
+          {showMenu && (
+            <TripMenuWrapper
+              ref={trip.tripId === openMenuTripId ? openMenuContainerRef : null}
+            >
+              <TripMenuButton
+                type="button"
+                aria-label="일정 메뉴 열기"
+                onClick={(event) => handleToggleTripMenu(event, trip.tripId)}
+              >
+                <MoreVertical size={17} />
+              </TripMenuButton>
+              {openMenuTripId === trip.tripId && (
+                <TripMenuDropdown>
+                  <TripMenuDeleteButton
+                    type="button"
+                    onClick={(event) => handleDeleteTrip(event, trip.tripId)}
+                  >
+                    일정 삭제
+                  </TripMenuDeleteButton>
+                </TripMenuDropdown>
+              )}
+            </TripMenuWrapper>
+          )}
         </UpcomingVisual>
         <UpcomingImage src={tripImage} alt="" />
         <UpcomingBody>
@@ -281,7 +344,7 @@ export const TripScheduleSection = () => {
               {upcomingTrips.length > 0 ? (
                 upcomingTrips
                   .slice(0, 3)
-                  .map((trip, index) => renderTripCard(trip, index))
+                  .map((trip, index) => renderTripCard(trip, index, true))
               ) : (
                 <AddTripCard type="button" onClick={() => navigate("/map")}>
                   <AddCircle>+</AddCircle>
@@ -325,7 +388,9 @@ export const TripScheduleSection = () => {
         {!isTripLoading &&
           !isTripError &&
           selectedTripFilter !== "전체" &&
-          visibleTrips.map((trip, index) => renderTripCard(trip, index))}
+          visibleTrips.map((trip, index) =>
+            renderTripCard(trip, index, selectedTripFilter === "진행 예정"),
+          )}
 
         {!isTripLoading &&
           !isTripError &&
@@ -627,7 +692,9 @@ const UpcomingCard = styled.article`
 
 const UpcomingVisual = styled.div<{ $index: number }>`
   display: flex;
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   padding: 14px 16px;
   background: ${({ $index }) =>
     $index === 0
@@ -637,8 +704,57 @@ const UpcomingVisual = styled.div<{ $index: number }>`
 
 const UpcomingVisualTitle = styled.h4`
   margin: 0;
+  overflow: hidden;
   color: #245f62;
   font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const TripMenuWrapper = styled.div`
+  position: relative;
+  flex: 0 0 auto;
+`;
+
+const TripMenuButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0);
+  color: #245f62;
+  cursor: pointer;
+`;
+
+const TripMenuDropdown = styled.div`
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 10;
+  overflow: hidden;
+  border: 1px solid rgba(36, 149, 155, 0.14);
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 12px 24px rgba(35, 49, 44, 0.14);
+`;
+
+const TripMenuDeleteButton = styled.button`
+  padding: 10px 16px;
+  border: 0;
+  background: white;
+  color: #e2483d;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(226, 72, 61, 0.08);
+  }
 `;
 
 const UpcomingBody = styled.div`

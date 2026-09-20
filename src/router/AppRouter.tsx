@@ -10,6 +10,7 @@ import RecentPlaces from "../pages/MyPage/RecentPlaces";
 import SocialCallback from "../pages/Auth/components/SocialCallback";
 import PublicRoute from "./PublicRoute";
 import PrivateRoute from "./PrivateRoute";
+import TripDetail from "../pages/TripDetail/TripDetail";
 
 const HomeOrCallback = () => {
   const [searchParams] = useSearchParams();
@@ -28,6 +29,8 @@ function AppRouter() {
         <Route element={<PublicRoute />}>
           <Route path="auth" element={<Auth />} />
         </Route>
+
+        <Route path="trip/:tripId" element={<TripDetail />} />
 
         <Route element={<PrivateRoute />}>
           <Route path="mypage" element={<Mypage />} />
