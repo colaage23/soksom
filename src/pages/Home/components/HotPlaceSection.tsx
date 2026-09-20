@@ -127,7 +127,7 @@ export default HotPlaceSection;
 
 const Section = styled.section`
   padding: 180px 24px;
-  background: #f8f2e2;
+  background: linear-gradient(180deg, #f6f2e9 0%, #f8f2e2 240px);
 
   @media (max-width: 768px) {
     padding: 24px 16px 88px;
