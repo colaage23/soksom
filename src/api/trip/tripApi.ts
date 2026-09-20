@@ -240,3 +240,18 @@ export const getTripDetail = async (
     throw new Error("Fail to fetch trip detail.", { cause: error });
   }
 };
+
+interface IDeleteTripResponse {
+  success: boolean;
+  message?: string;
+  data?: unknown;
+}
+
+export const deleteTrip = async (tripId: number): Promise<void> => {
+  try {
+    await axiosInstance.delete<IDeleteTripResponse>(`/trip/${tripId}`);
+  } catch (error) {
+    console.error("Delete Trip Error: ", error);
+    throw new Error("Fail to delete Trip.", { cause: error });
+  }
+};
