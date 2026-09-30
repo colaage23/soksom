@@ -378,6 +378,9 @@ const CategorySection = styled.section`
   padding: 0 16px 16px 16px;
 
   flex-wrap: wrap;
+  @media (max-width: 400px) {
+    gap: 4px;
+  }
 `;
 
 const CategoryChip = styled.button<{
