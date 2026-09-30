@@ -220,7 +220,7 @@ const CongestionOverlay = styled.div<{
 }>`
   position: absolute;
 
-  bottom: 16px;
+  bottom: 24px;
   left: ${({ $open, $hasDetail }) => {
     if (!$open) return "16px";
 
@@ -244,8 +244,8 @@ const CongestionOverlay = styled.div<{
   z-index: 0;
 
   @media (max-width: 768px) {
-    left: 16px;
-    bottom: 16px;
+    left: 8px;
+    bottom: 24px;
 
     display: ${({ $mobileView }) => ($mobileView === "list" ? "none" : "flex")};
   }
