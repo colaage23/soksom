@@ -11,6 +11,7 @@ import { useGetSpotsByKeyword } from "../../../hooks/spot/useGetSpotsByKeyword";
 import { useGetSpotsByLocation } from "../../../hooks/spot/useGetSpotsByLocation";
 import { useInView } from "react-intersection-observer";
 import SkeletonCard from "./SkeletonCard";
+import type { ISpotListItem } from "../../../types/spot";
 
 const CATEGORY_TYPE_MAP: Record<string, string | null> = {
   전체: null,
@@ -145,7 +146,21 @@ const ExploreList = () => {
   );
 
   const likedSpotMap = useLikedSpotStore((state) => state.likedSpotMap);
-  const likedSpots = useMemo(() => Object.values(likedSpotMap), [likedSpotMap]);
+  const congestionMap = useMemo(() => {
+    const map = new Map<string, ISpotListItem["congestion"]>();
+    [...spots, ...spotsByKeyword].forEach((spot) => {
+      if (spot?.congestion) map.set(spot.contentid, spot.congestion);
+    });
+    return map;
+  }, [spots, spotsByKeyword]);
+  const likedSpots = useMemo(
+    () =>
+      Object.values(likedSpotMap).map((spot) => ({
+        ...spot,
+        congestion: congestionMap.get(spot.contentid) ?? spot.congestion,
+      })),
+    [likedSpotMap, congestionMap],
+  );
 
   const filteredSpots = useMemo(() => {
     if (selectedCategory === "MY") return likedSpots;
@@ -246,11 +261,11 @@ const ExploreList = () => {
           </EmptyState>
         ) : (
           <>
-            {filteredSpots?.map((item, idx) => (
+            {filteredSpots?.map((item) => (
               <SpotCard
-                key={idx}
+                key={item.contentid}
                 spot={item}
-                isActive={selectedSpot === item}
+                isActive={selectedSpot?.contentid === item.contentid}
                 onClick={() => {
                   setSelectedSpot(item);
                   const newParams = new URLSearchParams(searchParams);
