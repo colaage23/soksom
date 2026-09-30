@@ -290,7 +290,7 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
           </>
         )}
       </Map>
-      {showSearchHereButton && (
+      {showSearchHereButton && mode === "explore" && (
         <SearchHereButton
           onClick={handleSearchHere}
           $open={open}
