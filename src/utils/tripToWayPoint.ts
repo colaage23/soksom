@@ -28,7 +28,8 @@ const toSpotListItem = (detail: ITripDetail): ISpotListItem => ({
   congestion: detail.congestion ?? null,
 });
 
-// 여행 상세를 일차별 wayPoint 배열로 변환. 날짜 범위 밖 상세는 보관함(pool)으로 보냄
+// 여행 상세를 일차별 wayPoint 배열로 변환.
+// 날짜 범위 밖 상세는 보관함으로 보냄
 export const tripToWayPoint = (trip: ITrip) => {
   const startDate = toDateOnly(trip.startDate);
   const endDate = toDateOnly(trip.endDate);

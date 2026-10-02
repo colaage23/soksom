@@ -20,6 +20,17 @@ interface IKakaoMapProps {
   hasDetail: boolean;
 }
 
+const INITIAL_CENTER = { lat: 33.48685000876393, lng: 126.46454720117006 };
+const INITIAL_LEVEL = 7;
+const MAX_LEVEL = 9;
+
+const JEJU_BOUNDS = {
+  minLat: 33.1,
+  maxLat: 33.6,
+  minLng: 126.1,
+  maxLng: 127.0,
+};
+
 const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
   const mapRef = useRef<kakao.maps.Map>(null);
   const { selectedSpot, setSelectedSpot, setSearchCenter, visibleSpots } =
@@ -29,13 +40,12 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
 
   const [showSearchHereButton, setShowSearchHereButton] = useState(false);
 
-  const [level, setLevel] = useState(7);
+  const [level, setLevel] = useState(INITIAL_LEVEL);
 
   const [hoveredSpot, setHoveredSpot] = useState<string | null>(null);
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // 교통정보 표시 여부
   const [showTraffic, setShowTraffic] = useState(false);
 
   const getMarkerSize = (mapLevel: number) => {
@@ -62,7 +72,19 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
     if (!map) return;
 
     const center = map.getCenter();
-    setSearchCenter({ mapX: center.getLng() - 0.006, mapY: center.getLat() });
+    const lat = center.getLat();
+    const lng = center.getLng();
+
+    if (!isInJeju(lat, lng)) {
+      map.setLevel(INITIAL_LEVEL);
+      map.panTo(new kakao.maps.LatLng(INITIAL_CENTER.lat, INITIAL_CENTER.lng));
+      setLevel(INITIAL_LEVEL);
+      setSearchCenter({ mapX: INITIAL_CENTER.lng, mapY: INITIAL_CENTER.lat });
+      setShowSearchHereButton(false);
+      return;
+    }
+
+    setSearchCenter({ mapX: lng - 0.006, mapY: lat });
     setShowSearchHereButton(false);
   };
 
@@ -72,15 +94,15 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
 
   const lat = selectedSpot?.mapy
     ? parseFloat(selectedSpot.mapy)
-    : 33.48685000876393;
+    : INITIAL_CENTER.lat;
   const lng = selectedSpot?.mapx
     ? parseFloat(selectedSpot.mapx)
-    : 126.46454720117006;
+    : INITIAL_CENTER.lng;
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
-    const nextLevel = selectedSpot ? 4 : 7;
+    const nextLevel = selectedSpot ? 4 : INITIAL_LEVEL;
     map.setLevel(nextLevel);
     setLevel(nextLevel);
   }, [selectedSpot]);
@@ -104,7 +126,6 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
     handleUserMapMove();
   };
 
-  // 교통정보 레이어 on/off
   const handleToggleTraffic = () => {
     const map = mapRef.current;
     if (!map) return;
@@ -131,15 +152,22 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
         return acc;
       }, []) ?? [];
 
+  const isInJeju = (lat: number, lng: number) =>
+    lat >= JEJU_BOUNDS.minLat &&
+    lat <= JEJU_BOUNDS.maxLat &&
+    lng >= JEJU_BOUNDS.minLng &&
+    lng <= JEJU_BOUNDS.maxLng;
+
   return (
     <MapContainer>
       <Map
         id="kakao-map"
         center={{ lat, lng: selectedSpot?.mapy ? lng - 0.006 : lng }}
         style={{ width: "100%", height: "100%" }}
-        level={selectedSpot ? 4 : 7}
+        level={selectedSpot ? 4 : INITIAL_LEVEL}
         zoomable={true}
         ref={mapRef}
+        onCreate={(map) => map.setMaxLevel(MAX_LEVEL)}
         onDragEnd={handleUserMapMove}
         onZoomChanged={handleZoomChanged}
       >
@@ -290,7 +318,8 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
           </>
         )}
       </Map>
-      {showSearchHereButton && mode === "explore" && (
+
+      {showSearchHereButton && (
         <SearchHereButton
           onClick={handleSearchHere}
           $open={open}
@@ -429,7 +458,6 @@ const ZoomOutButton = styled.button`
   }
 `;
 
-// 교통정보 토글 버튼 (줌 버튼 아래에 위치)
 const TrafficButton = styled.button<{ $active: boolean }>`
   position: absolute;
   top: 114px;
@@ -488,7 +516,7 @@ const SearchHereButton = styled.button<{
   padding: 0 16px;
 
   border: none;
-  border-radius: 9999px;
+  border-radius: 16px;
 
   background-color: #0c9799;
   color: #fff;
@@ -523,7 +551,7 @@ const RefreshIcon = styled(RotateCw)`
   height: 14px;
   flex-shrink: 0;
   stroke: #fff;
-  stroke-width: 2.5;
+  stroke-width: 3;
 `;
 
 export default KakaoMap;

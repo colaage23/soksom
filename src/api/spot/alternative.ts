@@ -15,7 +15,7 @@ export const getAlternativeSpots = async (
     );
     return data.data;
   } catch (err) {
-    console.error("alternative fetch failed", err); // 임시
+    console.error("alternative fetch failed", err);
     throw err;
   }
 };

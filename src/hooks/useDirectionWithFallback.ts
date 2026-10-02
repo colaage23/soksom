@@ -51,8 +51,6 @@ export const useDirectionWithFallback = () => {
       }
     }
 
-    // 4. 재시도
-
     if (resultCode === 101 || resultCode === 102 || resultCode === 103) {
       await fetchDirection(request);
     }

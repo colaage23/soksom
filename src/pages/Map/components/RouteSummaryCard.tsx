@@ -2,12 +2,12 @@ import styled from "styled-components";
 import { Route } from "lucide-react";
 
 interface RouteSummaryCardProps {
-  distance?: number; // meters
-  duration?: number; // seconds
+  distance?: number;
+  duration?: number;
   resultMsg?: string;
 }
 
-// 원본 카카오모빌리티 응답을 그대로 받지 않고, 필요한 값만 정제해서 받는다.
+// 원본 카카오모빌리티 응답을 그대로 받지 않고, 필요한 값만 받음.
 // 셋 다 없으면 보여줄 게 없으므로 렌더링하지 않음
 const RouteSummaryCard = ({
   distance,

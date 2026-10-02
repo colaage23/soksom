@@ -6,7 +6,7 @@ import { tripToWayPoint } from "../utils/tripToWayPoint";
 
 export const MAX_DAY_COUNT = 7;
 
-// wayPoint 배열의 day 인덱스로 함께 쓰이는 특수값: "아직 일차 미배정 = 보관함"
+// 아직 일차 미배정 = 보관함
 export const POOL_DAY = -1;
 
 interface DateRange {
@@ -22,22 +22,22 @@ interface IEditingTrip {
 }
 
 interface IWayPoint {
-  pool: ISpotListItem[]; // 일차 미배정 관광지 보관함
-  wayPoint: ISpotListItem[][]; // wayPoint[dayIndex] = 해당 일차의 관광지 목록
-  dayCount: number; // 1 ~ MAX_DAY_COUNT
-  expandedDay: number | null; // 현재 펼쳐진(아코디언) 일차. null = 전부 접힘
-  dateRange: DateRange; // 여행 시작/종료 날짜
-  editingTrip: IEditingTrip | null; // null이 아니면 기존 여행을 수정하는 중
+  pool: ISpotListItem[];
+  wayPoint: ISpotListItem[][];
+  dayCount: number;
+  expandedDay: number | null;
+  dateRange: DateRange;
+  editingTrip: IEditingTrip | null;
 
   setDayCount: (count: number) => void;
-  setExpandedDay: (day: number) => void; // 같은 일차를 다시 누르면 접힘(토글)
+  setExpandedDay: (day: number) => void;
   setDateRange: (range: DateRange) => void;
 
-  // 관광지 추가/제거는 특정 일차가 아니라 보관함(pool) 기준으로 토글
+  // 관광지 추가/제거는 특정 일차가 아니라 보관함 기준.
   toggleWayPoint: (spot: ISpotListItem) => void;
-  // dayIndex: POOL_DAY(-1) = 보관함, 0 이상 = 해당 일차
+
   removeItem: (dayIndex: number, contentId: string) => void;
-  // fromDay/toDay 모두 POOL_DAY 또는 실제 일차 인덱스 (보관함 ↔ 일차, 일차 ↔ 일차 모두 지원)
+
   moveItem: (
     fromDay: number,
     fromIndex: number,
@@ -76,7 +76,6 @@ export const useWayPointStore = create<IWayPoint>()(
           }
 
           if (clamped < wayPoint.length) {
-            // 줄어드는 일차에 있던 관광지는 삭제하지 않고 보관함으로 되돌림
             const returnedSpots = wayPoint.slice(clamped).flat();
             wayPoint.length = clamped;
 
@@ -103,14 +102,14 @@ export const useWayPointStore = create<IWayPoint>()(
 
       toggleWayPoint: (spot) =>
         set((state) => {
-          // 보관함에 이미 있으면 제거
+          // 보관함에 이미 있으면 제거.
           if (state.pool.some((i) => i.contentid === spot.contentid)) {
             return {
               pool: state.pool.filter((i) => i.contentid !== spot.contentid),
             };
           }
 
-          // 어떤 일차에 이미 들어있으면 그 일차에서 제거
+          // 어떤 일차에 이미 들어있으면 그 일차에서 제거.
           const dayIdx = state.wayPoint.findIndex((daySpots) =>
             daySpots.some((i) => i.contentid === spot.contentid),
           );
@@ -123,7 +122,7 @@ export const useWayPointStore = create<IWayPoint>()(
             return { wayPoint };
           }
 
-          // 둘 다 아니면 보관함에 새로 추가 (특정 일차로 바로 들어가지 않음)
+          // 둘 다 아니면 보관함에 새로 추가.
           return { pool: [...state.pool, spot] };
         }),
 
@@ -203,7 +202,7 @@ export const useWayPointStore = create<IWayPoint>()(
     {
       name: "wayPoint-storage",
       storage: createJSONStorage(() => localStorage),
-      // pool, wayPoint, dayCount, dateRange를 localStorage에 저장 (expandedDay는 UI 상태라 저장 안 함)
+      // pool, wayPoint, dayCount, dateRange를 localStorage에 저장.
       partialize: (state) => ({
         pool: state.pool,
         wayPoint: state.wayPoint,

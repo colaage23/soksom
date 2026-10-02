@@ -12,13 +12,11 @@ interface DayCardProps {
   spots: ISpotListItem[];
   isExpanded: boolean;
   onToggle: () => void;
-  // 이 일차의 구간별 경로 정보. spots[i] -> spots[i+1] 구간에 대응 (spots.length - 1개)
   routeSections?: RouteSection[];
   children?: React.ReactNode;
 }
 
-// 펼쳐졌든 접혔든 카드 전체(헤더+내용)가 하나의 드롭 영역이 되도록 통합.
-// 헤더/리스트가 각각 useDrop을 가지면 드래그 시 테두리가 겹쳐 보이는 문제가 있어 하나로 정리함.
+// 펼쳐졌든 접혔든 카드 전체가 하나의 드롭 영역이 되도록 통합.
 const DayCard = ({
   dayIdx,
   spots,

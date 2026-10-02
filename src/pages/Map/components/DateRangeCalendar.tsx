@@ -21,7 +21,7 @@ const isSameDay = (a: Date | null, b: Date | null) =>
 const isInRange = (day: Date, start: Date | null, end: Date | null) =>
   !!start && !!end && day > start && day < end;
 
-// 두 날짜 사이 일수 차이 (당일 포함 여행 일수 계산에 사용)
+// 두 날짜 사이 일수 차이 (당일 포함)
 const getDiffDays = (a: Date, b: Date) =>
   Math.round((a.getTime() - b.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -53,7 +53,7 @@ const DateRangeCalendar = ({
     return day < today;
   };
 
-  // 시작일만 선택된 상태에서, 최대 여행 기간(MAX_DAY_COUNT)을 넘는 날짜인지 확인
+  // 최대 여행 기간 판별
   const isBeyondMaxRange = (day: Date) => {
     if (!startDate || endDate) return false;
     if (day <= startDate) return false;

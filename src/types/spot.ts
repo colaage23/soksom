@@ -49,9 +49,9 @@ export interface ITripSpotResponse {
   lclsSystm1Nm: string; // 대분류 이름
   lclsSystm2Nm: string; // 중분류 이름
   lclsSystm3Nm: string; // 소분류 이름
-  lDongRegnCd: string;
-  lDongSignguCd: string;
-  congestion: ICongestion;
+  lDongRegnCd: string; // 지역코드
+  lDongSignguCd: string; // 시군구코드
+  congestion: ICongestion; // 혼잡도
 }
 
 export interface ISpotDetailCommon {

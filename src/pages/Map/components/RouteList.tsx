@@ -20,7 +20,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "../../../stores/auth/authStore";
 import { useToast } from "../../../hooks/common/useToast";
 
-// 카카오모빌리티 응답에서 우리가 실제로 쓰는 부분만 느슨하게 타입 지정
+// 카카오모빌리티 응답에서 실제로 쓰는 부분만 느슨하게 타입 지정
 interface KakaoDirectionRoute {
   result_msg?: string;
   summary?: { distance?: number; duration?: number };

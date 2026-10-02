@@ -30,7 +30,7 @@ const TripInfoCard = () => {
 
   // 여행 정보(날짜, 동행인)를 초기화하면서 일차 수(dayCount)도 날짜 기준(1)으로 되돌림.
   // 담아뒀던 관광지 자체는 지워지지 않고, setDayCount가 줄어드는 일차의 관광지를
-  // 보관함(pool)으로 되돌려주므로 데이터는 유지됨
+  // 보관함(pool)으로 되돌려주므로 데이터는 유지됨.
   const handleResetAll = (e: React.MouseEvent) => {
     e.stopPropagation(); // 아코디언 토글 방지
 

@@ -1,4 +1,3 @@
-// 라우트 정의
 import { Routes, Route, useSearchParams } from "react-router-dom";
 import AppLayout from "../components/layout/AppLayout";
 import Home from "../pages/Home/Home";

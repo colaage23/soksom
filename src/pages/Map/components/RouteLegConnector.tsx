@@ -1,16 +1,14 @@
 import styled from "styled-components";
 
 export interface RouteSection {
-  distance: number; // meters
-  duration: number; // seconds
+  distance: number;
+  duration: number;
 }
 
 interface RouteLegConnectorProps {
   section?: RouteSection;
 }
 
-// 관광지 사이 구간(경유지 → 다음 경유지)의 거리/시간을 보여주는 커넥터.
-// 아직 데이터가 없을 때는(로딩 중) 빈 상태로만 표시
 const RouteLegConnector = ({ section }: RouteLegConnectorProps) => {
   return (
     <LegConnectorRow>

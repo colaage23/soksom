@@ -214,7 +214,6 @@ export const removeFavorite = async (favoriteId: string): Promise<void> => {
   }
 };
 
-// ISpotListItem -> POST 요청 바디 변환
 export const toAddFavoritePayload = (
   spot: ISpotListItem,
 ): IAddFavoritePayload => ({
