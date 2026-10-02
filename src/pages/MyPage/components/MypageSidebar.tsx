@@ -6,6 +6,7 @@ import colors from "../../../constants/colors";
 import { useDeleteUser, useLogout } from "../../../hooks/auth/useAuth";
 import { useGetUserInfo } from "../../../hooks/auth/useGetUserInfo";
 import { useToast } from "../../../hooks/common/useToast";
+import { AUTH_PROVIDER_LOGO } from "../../../constants/authProvider";
 
 const SIDEBAR_LIST_TOP = 96;
 
@@ -120,8 +121,20 @@ export const MypageSidebar = ({
             "?"
           )}
         </AvatarCircle>
-        <ProfileName>{userInfo?.nickname || userInfo?.name || "-"}</ProfileName>
-        <ProfileEmail>{userInfo?.email || "-"}</ProfileEmail>
+        <ProfileName>
+          {userInfo?.authProvider &&
+            userInfo.authProvider !== "LOCAL" &&
+            AUTH_PROVIDER_LOGO[userInfo.authProvider] && (
+              <ProviderLogo
+                src={AUTH_PROVIDER_LOGO[userInfo.authProvider]}
+                alt={userInfo.authProvider}
+              />
+            )}
+          {userInfo?.nickname || userInfo?.name || "-"}
+        </ProfileName>
+        {userInfo?.authProvider === "LOCAL" && (
+          <ProfileEmail>{userInfo?.email || "-"}</ProfileEmail>
+        )}
       </ProfileCard>
       <SidebarListSlot
         ref={sidebarListSlotRef}
@@ -172,7 +185,7 @@ export const MypageSidebar = ({
 const ProfileCard = styled.article`
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: 24px;
   width: 100%;
   max-width: 280px;
   padding: 28px 22px;
@@ -191,9 +204,9 @@ const AvatarCircle = styled.div`
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  width: 62px;
-  height: 62px;
-  border-radius: 999px;
+  width: 128px;
+  height: 128px;
+  border-radius: 48px;
   background: linear-gradient(145deg, ${colors.main}, #1f7f84);
   color: white;
   font-size: 2rem;
@@ -207,10 +220,21 @@ const ProfileImage = styled.img`
 `;
 
 const ProfileName = styled.h2`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
   margin: 0;
   color: #24302a;
-  font-size: 1.9rem;
+  font-size: 1.5rem;
   font-family: Gowun Batang;
+`;
+
+const ProviderLogo = styled.img`
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  object-fit: contain;
 `;
 
 const ProfileEmail = styled.p`
