@@ -350,8 +350,8 @@ const MapContainer = styled.div`
 
 const ZoomButtonContainer = styled.div`
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 18px;
+  right: 14px;
 
   display: flex;
   flex-direction: column;
@@ -432,8 +432,8 @@ const ZoomOutButton = styled.button`
 // 교통정보 토글 버튼 (줌 버튼 아래에 위치)
 const TrafficButton = styled.button<{ $active: boolean }>`
   position: absolute;
-  top: 116px;
-  right: 16px;
+  top: 114px;
+  right: 14px;
 
   display: flex;
   justify-content: center;
