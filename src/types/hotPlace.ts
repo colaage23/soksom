@@ -11,4 +11,5 @@ export interface IHotPlace {
   hubRank: string;
   mapX: string;
   mapY: string;
+  thumbnail: string;
 }

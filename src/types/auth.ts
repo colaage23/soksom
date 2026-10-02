@@ -19,13 +19,8 @@ export interface IUserInfo {
   nickname: string;
   email: string;
   img: string;
-}
-
-export interface IUserInfo {
-  name: string;
-  nickname: string;
-  email: string;
-  img: string;
+  authProvider: string;
+  isDeleted: boolean;
 }
 
 export interface IUserInfoResponse {

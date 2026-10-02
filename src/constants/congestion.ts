@@ -37,7 +37,7 @@ export const congestionStyle = {
 
 export const noDataStyle = {
   label: "정보 없음",
-  bgColor: "#000",
+  bgColor: "#bbb",
   color: "#ffffff",
   progress: 0,
   description: "현재 이 관광지의 혼잡도 정보를 제공하지 않습니다.",

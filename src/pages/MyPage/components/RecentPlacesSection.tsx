@@ -101,7 +101,16 @@ export const RecentPlacesSection = () => {
                         )
                       : "최근 조회"}
                   </MiniCardMeta>
-                  <StatusPill $variant="calm">최근 조회</StatusPill>
+                  <RecentTags>
+                    {[
+                      place.lclsSystm1Nm,
+                      place.lclsSystm2Nm,
+                      place.lclsSystm3Nm,
+                    ]
+                      .filter(Boolean)
+                      .map((tag) => `#${tag}`)
+                      .join(" ")}
+                  </RecentTags>
                 </MiniCardText>
               </MiniCard>
             );
@@ -233,27 +242,11 @@ const MiniCardMeta = styled.p`
   font-size: 0.88rem;
 `;
 
-const StatusPill = styled.span<{ $variant: "calm" | "warm" | "solid" }>`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: fit-content;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: ${({ $variant }) => {
-    if ($variant === "warm") return "rgba(255, 158, 88, 0.16)";
-    if ($variant === "solid") return colors.main;
-
-    return "rgba(36, 149, 155, 0.12)";
-  }};
-  color: ${({ $variant }) => {
-    if ($variant === "warm") return "#ef8a3d";
-    if ($variant === "solid") return "white";
-
-    return colors.main;
-  }};
-  font-size: 0.78rem;
-  font-weight: 800;
+const RecentTags = styled.p`
+  margin: 0;
+  color: #93a19b;
+  font-size: 0.88rem;
+  font-weight: 600;
 `;
 
 const HighlightCard = styled.article`

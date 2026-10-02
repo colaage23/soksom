@@ -12,6 +12,7 @@ import { Minus, Plus, Road, RotateCw } from "lucide-react";
 import { useDirectionStore } from "../../../stores/useDirectionStore";
 import { useWayPointStore } from "../../../stores/useWayPointStore";
 import { getCongestionStyle } from "../../../constants/congestion.utils";
+import { useSearchParams } from "react-router-dom";
 
 interface IKakaoMapProps {
   mode: "explore" | "route";
@@ -21,21 +22,18 @@ interface IKakaoMapProps {
 
 const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
   const mapRef = useRef<kakao.maps.Map>(null);
-  const {
-    selectedSpot,
-    setSelectedSpot,
-    setDetailSpot,
-    setSearchCenter,
-    visibleSpots,
-  } = useSpotStore();
+  const { selectedSpot, setSelectedSpot, setSearchCenter, visibleSpots } =
+    useSpotStore();
   const { directions } = useDirectionStore();
-  const { wayPoint, expandedDay } = useWayPointStore();
+  const { wayPoint, expandedDay, pool } = useWayPointStore();
 
   const [showSearchHereButton, setShowSearchHereButton] = useState(false);
 
-  const [level, setLevel] = useState(9);
+  const [level, setLevel] = useState(7);
 
   const [hoveredSpot, setHoveredSpot] = useState<string | null>(null);
+
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // 교통정보 표시 여부
   const [showTraffic, setShowTraffic] = useState(false);
@@ -70,16 +68,19 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
 
   // wayPoint는 일차별 배열이라 지금 펼쳐져 있는 일차의 관광지만 지도에 마커로 찍도록
   const currentDaySpots =
-    expandedDay !== null ? (wayPoint[expandedDay] ?? []) : [];
+    expandedDay !== null ? (wayPoint[expandedDay] ?? []) : pool;
 
-  const lat = selectedSpot?.mapy ? parseFloat(selectedSpot.mapy) : 33.34714;
-  const lng = selectedSpot?.mapx ? parseFloat(selectedSpot.mapx) : 126.41986;
-
+  const lat = selectedSpot?.mapy
+    ? parseFloat(selectedSpot.mapy)
+    : 33.48685000876393;
+  const lng = selectedSpot?.mapx
+    ? parseFloat(selectedSpot.mapx)
+    : 126.46454720117006;
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
-    const nextLevel = selectedSpot ? 4 : 9;
+    const nextLevel = selectedSpot ? 4 : 7;
     map.setLevel(nextLevel);
     setLevel(nextLevel);
   }, [selectedSpot]);
@@ -108,7 +109,6 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
     const map = mapRef.current;
     if (!map) return;
 
-    // react-kakao-maps-sdk 타입에 TRAFFIC 관련 정의가 없는 경우가 있어 any로 캐스팅
     const kakaoMap = map as unknown as {
       addOverlayMapTypeId: (id: unknown) => void;
       removeOverlayMapTypeId: (id: unknown) => void;
@@ -137,7 +137,7 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
         id="kakao-map"
         center={{ lat, lng: selectedSpot?.mapy ? lng - 0.006 : lng }}
         style={{ width: "100%", height: "100%" }}
-        level={selectedSpot ? 4 : 9}
+        level={selectedSpot ? 4 : 7}
         zoomable={true}
         ref={mapRef}
         onDragEnd={handleUserMapMove}
@@ -166,7 +166,9 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
                 clickable={true}
                 onClick={() => {
                   setSelectedSpot(spot);
-                  setDetailSpot(spot);
+                  const newParams = new URLSearchParams(searchParams);
+                  newParams.set("contentId", spot.contentid);
+                  setSearchParams(newParams);
                 }}
                 onMouseOver={() => setHoveredSpot(spot.contentid)}
                 onMouseOut={() => setHoveredSpot(null)}
@@ -175,25 +177,53 @@ const KakaoMap = ({ mode, open, hasDetail }: IKakaoMapProps) => {
           })}
 
         {mode === "route" &&
-          currentDaySpots.map((point, idx) => (
-            <MapMarker
-              key={point.contentid}
-              position={{
-                lat: Number(point.mapy),
-                lng: Number(point.mapx),
-              }}
-              image={{
-                src: getNumberMarkerSrc(idx + 1),
-                size: { width: 40, height: 40 },
-                options: { offset: { x: 40, y: 40 } },
-              }}
-              clickable={true}
-              onClick={() => {
-                setSelectedSpot(point);
-                setDetailSpot(point);
-              }}
-            />
-          ))}
+          currentDaySpots.map((point, idx) => {
+            if (expandedDay !== null) {
+              return (
+                <MapMarker
+                  key={point.contentid}
+                  position={{
+                    lat: Number(point.mapy),
+                    lng: Number(point.mapx),
+                  }}
+                  image={{
+                    src: getNumberMarkerSrc(idx + 1),
+                    size: { width: 40, height: 40 },
+                    options: { offset: { x: 40, y: 40 } },
+                  }}
+                  clickable={true}
+                  onClick={() => {
+                    setSelectedSpot(point);
+                  }}
+                />
+              );
+            }
+
+            const congestionColor = getCongestionStyle(
+              point.congestion?.cnctrRate ?? null,
+            ).bgColor;
+
+            return (
+              <MapMarker
+                key={point.contentid}
+                position={{
+                  lat: Number(point.mapy),
+                  lng: Number(point.mapx),
+                }}
+                image={{
+                  src: getMarkerSrc(congestionColor, point.contenttypeid),
+                  size: { width: markerSize, height: markerSize },
+                  options: {
+                    offset: { x: markerSize / 2, y: markerSize / 1.5 },
+                  },
+                }}
+                clickable={true}
+                onClick={() => {
+                  setSelectedSpot(point);
+                }}
+              />
+            );
+          })}
 
         {hoveredSpot &&
           (() => {

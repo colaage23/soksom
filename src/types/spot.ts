@@ -1,3 +1,5 @@
+import type { ICongestion } from "./congestion";
+
 export interface ISearchByKeywordRequest {
   keyword: string;
   pageNo: number;
@@ -89,16 +91,6 @@ export interface ISpotDetailImage {
   smallimageurl?: string;
 }
 
-export interface ICongestion {
-  cnctrRate: string;
-  baseYmd: string;
-  areaCd: string;
-  areaNm: string;
-  signguCd: string;
-  signguNm: string;
-  tatsNm: string;
-}
-
 export interface ISpotDetailInfo {
   contentid?: string;
   contenttypeid?: string;
@@ -176,15 +168,20 @@ export interface ISpotListItem {
   favoriteId?: string;
   contentid: string;
   contenttypeid?: string;
+  zipcode?: string;
   title: string;
   addr1: string;
+  addr2?: string;
   firstimage?: string;
   mapx?: string;
   mapy?: string;
+  tel?: string;
   lclsSystm1?: string;
   lclsSystm2?: string;
   lclsSystm3?: string;
+  lclsSystm1Nm?: string;
   lclsSystm2Nm?: string;
+  lclsSystm3Nm?: string;
   lDongRegnCd?: string;
   lDongSignguCd?: string;
   congestion?: ICongestion | null;

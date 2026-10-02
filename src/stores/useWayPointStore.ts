@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { ISpotListItem } from "../types/spot";
+import type { ITrip } from "../types/trip";
+import { tripToWayPoint } from "../utils/tripToWayPoint";
 
 export const MAX_DAY_COUNT = 7;
 
@@ -12,12 +14,20 @@ interface DateRange {
   endDate: Date | null;
 }
 
+interface IEditingTrip {
+  tripId: number;
+  tripName: string;
+  isAiRoute: string;
+  shareCode: string;
+}
+
 interface IWayPoint {
   pool: ISpotListItem[]; // 일차 미배정 관광지 보관함
   wayPoint: ISpotListItem[][]; // wayPoint[dayIndex] = 해당 일차의 관광지 목록
   dayCount: number; // 1 ~ MAX_DAY_COUNT
   expandedDay: number | null; // 현재 펼쳐진(아코디언) 일차. null = 전부 접힘
   dateRange: DateRange; // 여행 시작/종료 날짜
+  editingTrip: IEditingTrip | null; // null이 아니면 기존 여행을 수정하는 중
 
   setDayCount: (count: number) => void;
   setExpandedDay: (day: number) => void; // 같은 일차를 다시 누르면 접힘(토글)
@@ -37,6 +47,7 @@ interface IWayPoint {
 
   isSelected: (spot: ISpotListItem) => boolean;
 
+  loadTripForEdit: (trip: ITrip) => void;
   resetWayPoint: () => void;
 }
 
@@ -48,6 +59,7 @@ export const useWayPointStore = create<IWayPoint>()(
       dayCount: 1,
       expandedDay: null,
       dateRange: { startDate: null, endDate: null },
+      editingTrip: null,
 
       setDayCount: (count) =>
         set((state) => {
@@ -167,7 +179,26 @@ export const useWayPointStore = create<IWayPoint>()(
           dayCount: 1,
           expandedDay: null,
           dateRange: { startDate: null, endDate: null },
+          editingTrip: null,
         }),
+
+      loadTripForEdit: (trip) => {
+        const { pool, wayPoint, dayCount, dateRange } = tripToWayPoint(trip);
+
+        set({
+          pool,
+          wayPoint,
+          dayCount,
+          dateRange,
+          expandedDay: null,
+          editingTrip: {
+            tripId: trip.tripId,
+            tripName: trip.tripName,
+            isAiRoute: trip.isAiRoute,
+            shareCode: trip.shareCode,
+          },
+        });
+      },
     }),
     {
       name: "wayPoint-storage",

@@ -101,13 +101,7 @@ const FavoritePlaces = () => {
       eyebrow="FAVORITES"
       title="즐겨찾기 장소"
       backLabel="마이페이지로 돌아가기"
-      stats={[
-        { label: "저장한 장소", value: `${favoriteSpots.length}곳` },
-        {
-          label: "카테고리 보유",
-          value: `${new Set(items.map((item) => item.badge)).size}종`,
-        },
-      ]}
+      stats={[{ label: "저장한 장소", value: `${favoriteSpots.length}곳` }]}
       items={items}
       emptyMessage={
         isError

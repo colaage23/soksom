@@ -31,3 +31,5 @@ export const getUserInfo = async (): Promise<IUserInfo> => {
   const { data } = await axiosInstance.get<IUserInfoResponse>("/user");
   return data.data;
 };
+
+export const deleteUser = () => axiosInstance.delete("/user");

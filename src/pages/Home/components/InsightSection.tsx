@@ -9,10 +9,11 @@ import {
 } from "../styles/homeSectionStyles.ts";
 import { CustomOverlayMap, Map } from "react-kakao-maps-sdk";
 import { getHomeMarkerSrc } from "../../../utils/marker.ts";
-import { useGetSpotsDetail } from "../../../hooks/spot/useGetSpotsDetail";
 import type { ISpotDetailRequest } from "../../../types/spot";
 import { getCongestionStyle } from "../../../constants/congestion.utils";
 import { insightSpots } from "../../../constants/insightSpots.ts";
+import { useGetCongestion } from "../../../hooks/congestion/useGetCongestion.ts";
+import { useGetSpotsDetail } from "../../../hooks/spot/useGetSpotsDetail.ts";
 
 const filterTabs = ["지금", "내일 오전"] as const;
 
@@ -58,13 +59,30 @@ const InsightSection = () => {
     [selectedTab],
   );
 
-  const spotDetailResults = useGetSpotsDetail(insightRequests);
+  const spotDetailResults = useGetSpotsDetail(
+    selectedTab === "내일 오전" ? insightRequests : [],
+  );
 
+  const congestionResults = useGetCongestion(
+    selectedTab === "지금"
+      ? insightRequests.map((req) => ({
+          areaCd: req.areaCd ?? "",
+          spotName: req.spotName ?? "",
+          signguCd: req.signguCd ?? "",
+        }))
+      : [],
+  );
   const liveInsights = useMemo(
     () =>
       insightRequests.map((spot, index) => {
-        const result = spotDetailResults[index];
-        const cnctrRate = result?.data?.congestion?.cnctrRate ?? null;
+        const cnctrRate =
+          selectedTab === "지금"
+            ? (congestionResults[index]?.data?.cnctrRate ?? null)
+            : (spotDetailResults[index]?.data?.congestion?.cnctrRate ?? null);
+        const isLoading =
+          selectedTab === "지금"
+            ? (congestionResults[index]?.isLoading ?? false)
+            : (spotDetailResults[index]?.isLoading ?? false);
         const style = getCongestionStyle(cnctrRate);
 
         return {
@@ -73,10 +91,10 @@ const InsightSection = () => {
           status: style.label,
           bgColor: style.bgColor,
           textColor: style.color,
-          isLoading: result?.isLoading ?? false,
+          isLoading,
         };
       }),
-    [insightRequests, spotDetailResults],
+    [insightRequests, spotDetailResults, congestionResults, selectedTab],
   );
 
   useEffect(() => {

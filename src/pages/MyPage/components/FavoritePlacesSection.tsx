@@ -1,46 +1,15 @@
-import {
-  ChevronRight,
-  Compass,
-  Heart,
-  MapPinned,
-  Trees,
-  Waves,
-} from "lucide-react";
+import { ChevronRight, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../../constants/colors";
 import { useGetFavoriteSpots } from "../../../hooks/favorite/useGetFavoriteSpots";
 import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
 
-const getFavoriteIcon = (category?: string) => {
-  const normalizedCategory = category?.toLowerCase() ?? "";
-
-  if (
-    normalizedCategory.includes("산") ||
-    normalizedCategory.includes("오름") ||
-    normalizedCategory.includes("레포츠")
-  ) {
-    return Compass;
-  }
-
-  if (
-    normalizedCategory.includes("숲") ||
-    normalizedCategory.includes("공원") ||
-    normalizedCategory.includes("자연")
-  ) {
-    return Trees;
-  }
-
-  if (
-    normalizedCategory.includes("해") ||
-    normalizedCategory.includes("바다") ||
-    normalizedCategory.includes("해변")
-  ) {
-    return Waves;
-  }
-
-  return MapPinned;
-};
+const temporaryFavoriteImages = [
+  "https://images.unsplash.com/photo-1530789253388-582c481c54b0?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
+];
 
 export const FavoritePlacesSection = () => {
   const navigate = useNavigate();
@@ -93,12 +62,9 @@ export const FavoritePlacesSection = () => {
           </FavoriteEmptyCard>
         ) : (
           previewFavoriteSpots.map((place, index) => {
-            const category =
-              place.lclsSystm3Nm ??
-              place.lclsSystm2Nm ??
-              place.lclsSystm1Nm ??
-              "저장한 장소";
-            const Icon = getFavoriteIcon(category);
+            const placeImage =
+              place.firstimage ??
+              temporaryFavoriteImages[index % temporaryFavoriteImages.length];
 
             return (
               <FavoriteCard
@@ -111,15 +77,7 @@ export const FavoritePlacesSection = () => {
                 }
               >
                 <FavoriteVisual $index={index}>
-                  <LevelBadge
-                    $variant={
-                      category.includes("자연") || category.includes("숲")
-                        ? "calm"
-                        : "warm"
-                    }
-                  >
-                    {category}
-                  </LevelBadge>
+                  <FavoriteVisualTitle>{place.title}</FavoriteVisualTitle>
                   <FavoriteToggleButton
                     type="button"
                     disabled={isFavoritePending || !place.favoriteId}
@@ -134,18 +92,21 @@ export const FavoritePlacesSection = () => {
                     <Heart size={18} fill="currentColor" />
                   </FavoriteToggleButton>
                 </FavoriteVisual>
+                <FavoriteImage src={placeImage} alt="" />
                 <FavoriteBody>
-                  <Icon size={30} />
-                  <FavoriteTitle>{place.title}</FavoriteTitle>
                   <FavoriteMeta>
                     {[place.addr1, place.addr2].filter(Boolean).join(" ") ||
                       "주소 정보 없음"}
                   </FavoriteMeta>
                   <FavoriteTags>
-                    {[place.lclsSystm1Nm, place.lclsSystm2Nm]
+                    {[
+                      place.lclsSystm1Nm,
+                      place.lclsSystm2Nm,
+                      place.lclsSystm3Nm,
+                    ]
                       .filter(Boolean)
                       .map((tag) => `#${tag}`)
-                      .join(" ") || "#favorite"}
+                      .join(" ")}
                   </FavoriteTags>
                 </FavoriteBody>
               </FavoriteCard>
@@ -231,9 +192,11 @@ const FavoriteEmptyCard = styled.article`
 `;
 
 const FavoriteCard = styled.article`
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid rgba(36, 149, 155, 0.08);
-  border-radius: 22px;
+  border-radius: 20px;
   background: #fff;
   cursor: pointer;
 
@@ -249,17 +212,23 @@ const FavoriteVisual = styled.div<{ $index: number }>`
   justify-content: space-between;
   padding: 14px 16px;
   background: ${({ $index }) =>
-    $index % 2 === 0
-      ? "linear-gradient(135deg, rgba(36, 149, 155, 0.18), rgba(36, 149, 155, 0.06))"
-      : "linear-gradient(135deg, rgba(182, 224, 190, 0.55), rgba(248, 251, 245, 0.95))"};
+    $index === 0
+      ? "linear-gradient(135deg, rgba(155, 212, 239, 0.6), rgba(241, 250, 255, 0.95))"
+      : "linear-gradient(135deg, rgba(196, 239, 170, 0.6), rgba(248, 252, 244, 0.95))"};
+`;
+
+const FavoriteVisualTitle = styled.h4`
+  margin: 0;
+  color: #24302a;
+  font-size: 1rem;
 `;
 
 const FavoriteToggleButton = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 18px;
+  height: 18px;
   padding: 0;
   border: 0;
   border-radius: 999px;
@@ -275,15 +244,17 @@ const FavoriteToggleButton = styled.button`
 
 const FavoriteBody = styled.div`
   display: grid;
+  flex: 1;
   gap: 8px;
-  padding: 18px 16px 20px;
+  padding: 16px;
   color: ${colors.main};
 `;
 
-const FavoriteTitle = styled.h4`
-  margin: 0;
-  color: #24302a;
-  font-size: 1.08rem;
+const FavoriteImage = styled.img`
+  display: block;
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
 `;
 
 const FavoriteMeta = styled.p`
@@ -297,17 +268,4 @@ const FavoriteTags = styled.p`
   color: #93a19b;
   font-size: 0.88rem;
   font-weight: 600;
-`;
-
-const LevelBadge = styled.span<{ $variant: "calm" | "warm" }>`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: ${({ $variant }) =>
-    $variant === "warm" ? "#ffefe4" : "#e6f7f4"};
-  color: ${({ $variant }) => ($variant === "warm" ? "#ef8a3d" : colors.main)};
-  font-size: 0.76rem;
-  font-weight: 800;
 `;

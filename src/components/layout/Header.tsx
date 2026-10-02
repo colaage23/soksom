@@ -9,6 +9,7 @@ import SoksomLogo from "../../../public/logo.svg";
 import { useAuthStore } from "../../stores/auth/authStore";
 import { useGetUserInfo } from "../../hooks/auth/useGetUserInfo";
 import { useLogout } from "../../hooks/auth/useAuth";
+import { AUTH_PROVIDER_LOGO } from "../../constants/authProvider";
 
 const Header = () => {
   const { pathname } = useLocation();
@@ -129,9 +130,23 @@ const Header = () => {
                         )}
                         <ProfileTextBox>
                           <ProfileNickname>
+                            {userInfo?.authProvider &&
+                              userInfo.authProvider !== "LOCAL" &&
+                              AUTH_PROVIDER_LOGO[userInfo.authProvider] && (
+                                <ProviderLogo
+                                  src={
+                                    AUTH_PROVIDER_LOGO[userInfo.authProvider]
+                                  }
+                                  alt={userInfo.authProvider}
+                                />
+                              )}
                             {userInfo?.nickname ?? "-"}
                           </ProfileNickname>
-                          <ProfileEmail>{userInfo?.email ?? "-"}</ProfileEmail>
+                          {userInfo?.authProvider === "LOCAL" && (
+                            <ProfileEmail>
+                              {userInfo?.email ?? "-"}
+                            </ProfileEmail>
+                          )}
                         </ProfileTextBox>
                       </UserProfileBox>
 
@@ -446,6 +461,10 @@ const ProfileTextBox = styled.div`
 `;
 
 const ProfileNickname = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
   color: #101714;
   font-size: 0.875rem;
   font-weight: 600;
@@ -489,6 +508,13 @@ const ProfileFallbackIcon = styled(UserRound)`
   height: 22px;
   stroke: #b5b1a7;
   stroke-width: 1.6;
+`;
+
+const ProviderLogo = styled.img`
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  object-fit: contain;
 `;
 
 export default Header;

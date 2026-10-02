@@ -1,3 +1,4 @@
+import type { ICongestion } from "../../types/congestion";
 import type {
   ITrip,
   ITripDetail,
@@ -6,7 +7,7 @@ import type {
 } from "../../types/trip";
 import { axiosInstance } from "../axiosInstance";
 
-interface IRawTripDetail {
+export interface IRawTripDetail {
   detailId?: number | string;
   tripId?: number | string;
   contentId?: string;
@@ -27,10 +28,13 @@ interface IRawTripDetail {
   lclsSystm1Nm?: string;
   lclsSystm2Nm?: string;
   lclsSystm3Nm?: string;
+  ldongRegnCd?: string;
+  ldongSignguCd?: string;
   visitOrder?: number | string;
   visitDate?: string;
   createdAt?: string;
   updatedAt?: string;
+  congestion?: ICongestion;
 }
 
 interface IRawTrip {
@@ -40,10 +44,12 @@ interface IRawTrip {
   startDate?: string;
   endDate?: string;
   isAiRoute?: string;
-  shareCode?: string;
+  shareCode?: string | null;
   createdAt?: string;
   updatedAt?: string;
-  details?: IRawTripDetail[];
+  cnt?: number | string;
+  firstimage?: string | null;
+  details?: IRawTripDetail[] | null;
 }
 
 interface IRawTripListData {
@@ -65,7 +71,7 @@ const toNumber = (value?: number | string) => {
   return Number.isFinite(nextValue) ? nextValue : 0;
 };
 
-const normalizeTripDetail = (detail: IRawTripDetail): ITripDetail => ({
+export const normalizeTripDetail = (detail: IRawTripDetail): ITripDetail => ({
   detailId: toNumber(detail.detailId),
   tripId: toNumber(detail.tripId),
   contentid: detail.contentId ?? detail.contentid ?? "",
@@ -84,26 +90,38 @@ const normalizeTripDetail = (detail: IRawTripDetail): ITripDetail => ({
   lclsSystm1Nm: detail.lclsSystm1Nm ?? "",
   lclsSystm2Nm: detail.lclsSystm2Nm ?? "",
   lclsSystm3Nm: detail.lclsSystm3Nm ?? "",
+  ldongRegnCd: detail.ldongRegnCd ?? "",
+  ldongSignguCd: detail.ldongSignguCd ?? "",
   visitOrder: detail.visitOrder !== undefined ? String(detail.visitOrder) : "",
   visitDate: detail.visitDate ?? "",
   createdAt: detail.createdAt ?? "",
   updatedAt: detail.updatedAt ?? "",
+  congestion: detail.congestion,
 });
 
-const normalizeTrip = (trip: IRawTrip): ITrip => ({
-  tripId: toNumber(trip.tripId),
-  userId: toNumber(trip.userId),
-  tripName: trip.tripName ?? "이름 없는 여행",
-  startDate: trip.startDate ?? "",
-  endDate: trip.endDate ?? "",
-  isAiRoute: trip.isAiRoute ?? "",
-  shareCode: trip.shareCode ?? "",
-  createdAt: trip.createdAt ?? "",
-  updatedAt: trip.updatedAt ?? "",
-  details: Array.isArray(trip.details)
+const normalizeTrip = (trip: IRawTrip): ITrip => {
+  const details = Array.isArray(trip.details)
     ? trip.details.map(normalizeTripDetail)
-    : [],
-});
+    : [];
+
+  return {
+    tripId: toNumber(trip.tripId),
+    userId: toNumber(trip.userId),
+    tripName: trip.tripName ?? "이름 없는 여행",
+    startDate: trip.startDate ?? "",
+    endDate: trip.endDate ?? "",
+    isAiRoute: trip.isAiRoute ?? "",
+    shareCode: trip.shareCode ?? "",
+    createdAt: trip.createdAt ?? "",
+    updatedAt: trip.updatedAt ?? "",
+    cnt: trip.cnt === undefined ? details.length : toNumber(trip.cnt),
+    firstimage:
+      trip.firstimage ??
+      details.find((detail) => detail.firstimage)?.firstimage ??
+      "",
+    details,
+  };
+};
 
 const getTripsByPath = async (
   path: "/trip" | "/trip/next" | "/trip/pre",
@@ -177,6 +195,15 @@ export interface ICreateTripPayload {
   details: ICreateTripDetailPayload[];
 }
 
+export interface IUpdateTripPayload {
+  tripName: string;
+  startDate: string;
+  endDate: string;
+  isAiRoute: string;
+  shareCode: string;
+  details: ICreateTripDetailPayload[];
+}
+
 interface ICreateTripResponse {
   success: boolean;
   message?: string;
@@ -195,5 +222,66 @@ export const createTrip = async (
   } catch (error) {
     console.error("Create Trip Error: ", error);
     throw new Error("Fail to create Trip.", { cause: error });
+  }
+};
+
+interface IUpdateTripResponse {
+  success?: boolean;
+  message?: string;
+  data?: unknown;
+}
+
+export const updateTrip = async ({
+  tripId,
+  payload,
+}: {
+  tripId: number;
+  payload: IUpdateTripPayload;
+}): Promise<void> => {
+  try {
+    await axiosInstance.put<IUpdateTripResponse>(`/trip/${tripId}`, payload);
+  } catch (error) {
+    console.error("Update Trip Error:", error);
+    throw new Error("Fail to update trip.", { cause: error });
+  }
+};
+
+interface ITripDetailResponse {
+  success?: boolean;
+  message?: string;
+  data?: IRawTrip;
+}
+
+export const getTripDetail = async (
+  tripId: number | string,
+): Promise<ITrip> => {
+  try {
+    const { data } = await axiosInstance.get<ITripDetailResponse>(
+      `/trip/${tripId}`,
+    );
+
+    if (!data.data) {
+      throw new Error("No trip data returned.");
+    }
+
+    return normalizeTrip(data.data);
+  } catch (error) {
+    console.error("Fetch Trip Detail Error:", error);
+    throw new Error("Fail to fetch trip detail.", { cause: error });
+  }
+};
+
+interface IDeleteTripResponse {
+  success: boolean;
+  message?: string;
+  data?: unknown;
+}
+
+export const deleteTrip = async (tripId: number): Promise<void> => {
+  try {
+    await axiosInstance.delete<IDeleteTripResponse>(`/trip/${tripId}`);
+  } catch (error) {
+    console.error("Delete Trip Error: ", error);
+    throw new Error("Fail to delete Trip.", { cause: error });
   }
 };
