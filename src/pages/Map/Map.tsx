@@ -7,7 +7,7 @@ import {
   Route,
   Telescope,
 } from "lucide-react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import ExploreList from "./components/ExploreList";
 import RouteList from "./components/RouteList";
 import SpotDetail from "./components/SpotDetail";
@@ -109,8 +109,15 @@ const Map = () => {
         onClick={() =>
           setMobileView((prev) => (prev === "map" ? "list" : "map"))
         }
+        aria-label={mobileView === "map" ? "목록 보기" : "지도 보기"}
       >
-        {mobileView === "map" ? <ListIcon size={20} /> : <MapIcon size={20} />}
+        <FlipIcon key={mobileView}>
+          {mobileView === "map" ? (
+            <ListIcon size={24} />
+          ) : (
+            <MapIcon size={24} />
+          )}
+        </FlipIcon>
       </FloatingViewButton>
     </MapContainer>
   );
@@ -374,14 +381,14 @@ const FloatingViewButton = styled.button`
   right: 20px;
   bottom: 20px;
 
-  width: 52px;
-  height: 52px;
+  width: 60px;
+  height: 60px;
 
   justify-content: center;
   align-items: center;
 
   border: none;
-  border-radius: 50%;
+  border-radius: 25px;
 
   background: #298e8c;
   color: #fdfcf8;
@@ -389,10 +396,34 @@ const FloatingViewButton = styled.button`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 
   cursor: pointer;
-  z-index: 30;
+  z-index: 20;
 
   @media (max-width: 768px) {
     display: flex;
+  }
+
+  &:hover {
+    background: #309a98;
+  }
+`;
+
+const flipIn = keyframes`
+  from {
+    transform: rotateY(-180deg);
+    opacity: 0;
+  }
+  to {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+`;
+
+const FlipIcon = styled.span`
+  display: inline-flex;
+  animation: ${flipIn} 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
   }
 `;
 
