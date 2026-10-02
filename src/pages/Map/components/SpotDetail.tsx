@@ -74,12 +74,6 @@ const SpotDetail = ({ spot }: ISpotDetailProps) => {
 
   const status = getCongestionStyle(rawRate);
 
-  console.log({
-    congestionLevel,
-    contentid: spot?.contentid,
-    title: spot?.title,
-  });
-
   const { data: alternativeSpots, isLoading: isAlternativeLoading } =
     useAlternativeSpots({
       keyword: spot?.title ?? "",
