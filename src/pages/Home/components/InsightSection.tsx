@@ -279,9 +279,9 @@ const InsightFrame = styled.div`
   grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
   gap: 34px;
   margin: 0 auto;
-  padding: 28px;
+  padding: 24px;
   border: 1px solid rgba(124, 111, 84, 0.08);
-  border-radius: 34px;
+  border-radius: 24px;
   background: rgba(250, 246, 239, 0.9);
   box-shadow: 0 20px 60px rgba(73, 55, 27, 0.08);
 
@@ -299,7 +299,7 @@ const InsightFrame = styled.div`
 const MapPanel = styled.div`
   position: relative;
   min-height: 594px;
-  border-radius: 28px;
+  border-radius: 14px;
   overflow: hidden;
   background:
     radial-gradient(
@@ -317,14 +317,14 @@ const MapPanel = styled.div`
 
 const Legend = styled.div`
   position: absolute;
-  left: 20px;
-  bottom: 18px;
+  left: 12px;
+  bottom: 24px;
   display: inline-flex;
   align-items: center;
   gap: 14px;
   padding: 12px 16px;
-  border-radius: 18px;
-  background: rgba(255, 250, 242, 0.92);
+  border-radius: 16px;
+  background: rgba(254, 251, 246, 0.92);
   box-shadow: 0 16px 28px rgba(92, 74, 43, 0.08);
 
   z-index: 9999;
@@ -424,6 +424,7 @@ const StatusPulse = styled.span`
 const InsightTitle = styled.h2`
   ${homeSectionTitle};
   color: #191611;
+  padding-bottom: 24px;
 `;
 
 const AccentText = styled.span`
