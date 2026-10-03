@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import colors from "../../../constants/colors";
 import {
   homeSectionEyebrow,
+  homeSectionInner,
   homeSectionTitle,
 } from "../styles/homeSectionStyles.ts";
 import { CustomOverlayMap, Map } from "react-kakao-maps-sdk";
@@ -140,125 +141,127 @@ const InsightSection = () => {
 
   return (
     <Section>
-      <InsightFrame>
-        <MapPanel>
-          <Map
-            id="home-kakao-map"
-            center={{ lat: 33.34214, lng: 126.571986 }}
-            style={{ width: "100%", height: "100%" }}
-            level={mapLevel}
-            draggable={false}
-            zoomable={false}
-            scrollwheel={false}
-            disableDoubleClick={true}
-            disableDoubleClickZoom={true}
-            ref={mapRef}
-          >
-            {liveInsights.map((spot, index) => (
-              <CustomOverlayMap
-                key={spot.name}
-                position={{ lat: spot.latitude, lng: spot.longitude }}
-                yAnchor={1}
-              >
-                <MarkerFloatWrapper
-                  style={{ animationDelay: `${index * 0.3}s` }}
+      <Inner>
+        <InsightFrame>
+          <MapPanel>
+            <Map
+              id="home-kakao-map"
+              center={{ lat: 33.34214, lng: 126.571986 }}
+              style={{ width: "100%", height: "100%" }}
+              level={mapLevel}
+              draggable={false}
+              zoomable={false}
+              scrollwheel={false}
+              disableDoubleClick={true}
+              disableDoubleClickZoom={true}
+              ref={mapRef}
+            >
+              {liveInsights.map((spot, index) => (
+                <CustomOverlayMap
+                  key={spot.name}
+                  position={{ lat: spot.latitude, lng: spot.longitude }}
+                  yAnchor={1}
                 >
-                  <MarkerLabel $bgColor={spot.bgColor}>
-                    {spot.name} ·{" "}
-                    {spot.isLoading ? "-" : `${Math.floor(+spot.value)}%`}
-                  </MarkerLabel>
-                  <MarkerPin
-                    src={getHomeMarkerSrc(spot.bgColor)}
-                    $bgColor={spot.bgColor}
-                  />
-                </MarkerFloatWrapper>
-              </CustomOverlayMap>
-            ))}
-          </Map>
-
-          <Legend>
-            <LegendTitle>혼잡도</LegendTitle>
-            <LegendItems>
-              <LegendItem>
-                <LegendDot $tone="calm" />
-                여유
-              </LegendItem>
-              <LegendItem>
-                <LegendDot $tone="normal" />
-                보통
-              </LegendItem>
-              <LegendItem>
-                <LegendDot $tone="busy" />
-                혼잡
-              </LegendItem>
-            </LegendItems>
-          </Legend>
-        </MapPanel>
-
-        <InsightContent>
-          <LiveRow>
-            <LiveBadge />
-            <LiveStatus>
-              <StatusPulse />
-              실시간 업데이트
-            </LiveStatus>
-          </LiveRow>
-
-          <InsightTitle>
-            지금 제주, 어디가
-            <br />
-            <AccentText>붐비는지</AccentText> 한눈에.
-          </InsightTitle>
-
-          <FilterTabs>
-            {filterTabs.map((tab) => (
-              <FilterTab
-                key={tab}
-                type="button"
-                $active={selectedTab === tab}
-                aria-pressed={selectedTab === tab}
-                onClick={() => setSelectedTab(tab)}
-              >
-                {tab}
-              </FilterTab>
-            ))}
-          </FilterTabs>
-
-          <RankList>
-            {liveInsights.map((item) => (
-              <RankRow key={item.name}>
-                <PlaceInfo>
-                  <ColorDot style={{ background: item.bgColor }} />
-                  <span>{item.name}</span>
-                </PlaceInfo>
-                <BarArea>
-                  <ProgressTrack>
-                    <ProgressFill
-                      style={{
-                        width: `${item.isLoading ? 0 : item.value}%`,
-                        background: item.bgColor,
-                      }}
-                    />
-                  </ProgressTrack>
-                  <StatusBadge
-                    style={{
-                      background: item.bgColor,
-                      color: item.textColor,
-                    }}
+                  <MarkerFloatWrapper
+                    style={{ animationDelay: `${index * 0.3}s` }}
                   >
-                    {item.isLoading ? "조회중" : item.status}
-                  </StatusBadge>
-                </BarArea>
-              </RankRow>
-            ))}
-          </RankList>
+                    <MarkerLabel $bgColor={spot.bgColor}>
+                      {spot.name} ·{" "}
+                      {spot.isLoading ? "-" : `${Math.floor(+spot.value)}%`}
+                    </MarkerLabel>
+                    <MarkerPin
+                      src={getHomeMarkerSrc(spot.bgColor)}
+                      $bgColor={spot.bgColor}
+                    />
+                  </MarkerFloatWrapper>
+                </CustomOverlayMap>
+              ))}
+            </Map>
 
-          <DetailButton onClick={() => navigate("/map")}>
-            혼잡도 지도 자세히 보기
-            <ArrowUpRight size={18} />
-          </DetailButton>
-        </InsightContent>
-      </InsightFrame>
+            <Legend>
+              <LegendTitle>혼잡도</LegendTitle>
+              <LegendItems>
+                <LegendItem>
+                  <LegendDot $tone="calm" />
+                  여유
+                </LegendItem>
+                <LegendItem>
+                  <LegendDot $tone="normal" />
+                  보통
+                </LegendItem>
+                <LegendItem>
+                  <LegendDot $tone="busy" />
+                  혼잡
+                </LegendItem>
+              </LegendItems>
+            </Legend>
+          </MapPanel>
+
+          <InsightContent>
+            <LiveRow>
+              <LiveBadge />
+              <LiveStatus>
+                <StatusPulse />
+                실시간 업데이트
+              </LiveStatus>
+            </LiveRow>
+
+            <InsightTitle>
+              지금 제주, 어디가
+              <br />
+              <AccentText>붐비는지</AccentText> 한눈에.
+            </InsightTitle>
+
+            <FilterTabs>
+              {filterTabs.map((tab) => (
+                <FilterTab
+                  key={tab}
+                  type="button"
+                  $active={selectedTab === tab}
+                  aria-pressed={selectedTab === tab}
+                  onClick={() => setSelectedTab(tab)}
+                >
+                  {tab}
+                </FilterTab>
+              ))}
+            </FilterTabs>
+
+            <RankList>
+              {liveInsights.map((item) => (
+                <RankRow key={item.name}>
+                  <PlaceInfo>
+                    <ColorDot style={{ background: item.bgColor }} />
+                    <span>{item.name}</span>
+                  </PlaceInfo>
+                  <BarArea>
+                    <ProgressTrack>
+                      <ProgressFill
+                        style={{
+                          width: `${item.isLoading ? 0 : item.value}%`,
+                          background: item.bgColor,
+                        }}
+                      />
+                    </ProgressTrack>
+                    <StatusBadge
+                      style={{
+                        background: item.bgColor,
+                        color: item.textColor,
+                      }}
+                    >
+                      {item.isLoading ? "조회중" : item.status}
+                    </StatusBadge>
+                  </BarArea>
+                </RankRow>
+              ))}
+            </RankList>
+
+            <DetailButton onClick={() => navigate("/map")}>
+              혼잡도 지도 자세히 보기
+              <ArrowIcon size={18} />
+            </DetailButton>
+          </InsightContent>
+        </InsightFrame>
+      </Inner>
     </Section>
   );
 };
@@ -272,6 +275,10 @@ const Section = styled.section`
   @media (max-width: 768px) {
     padding: 32px 16px 72px;
   }
+`;
+
+const Inner = styled.div`
+  ${homeSectionInner};
 `;
 
 const InsightFrame = styled.div`
@@ -524,6 +531,10 @@ const StatusBadge = styled.span`
   text-align: center;
 `;
 
+const ArrowIcon = styled(ArrowUpRight)`
+  transition: transform 0.2s ease;
+`;
+
 const DetailButton = styled.button`
   display: inline-flex;
   align-items: center;
@@ -531,18 +542,33 @@ const DetailButton = styled.button`
   gap: 8px;
   width: fit-content;
   margin-top: 36px;
-  padding: 15px 22px;
+  padding: 14px 22px;
   border: 0;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #1c858b 0%, ${colors.main} 100%);
-  color: #fffef7;
+  border-radius: 20px;
+  background: #000;
+  color: #fdfcf8;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 18px 26px rgba(35, 124, 121, 0.2);
+  transition: background-color 0.15s ease;
 
   &:hover {
-    filter: brightness(0.97);
+    background: #0a8385;
+  }
+
+  &:hover ${ArrowIcon} {
+    transform: translate(2px, -2px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${colors.main};
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    ${ArrowIcon} {
+      transition: none;
+    }
   }
 
   @media (max-width: 768px) {
