@@ -53,7 +53,8 @@ const HeroSectionComp = () => {
         <Headline>
           붐비지 않는 제주,
           <br />
-          속닥속닥 알려드릴게요.
+          <ItalicText>속</ItalicText>닥<ItalicText>속</ItalicText>닥
+          알려드릴게요.
         </Headline>
 
         <SubCopy>
@@ -95,6 +96,12 @@ const HeroSectionComp = () => {
 };
 
 export default HeroSectionComp;
+
+const ItalicText = styled.span`
+  font-family: Gowun Batang;
+  font-weight: 300;
+  font-style: italic;
+`;
 
 const HeroSection = styled.section`
   position: relative;
@@ -209,8 +216,8 @@ const SearchPanel = styled.form`
   align-items: center;
   gap: 18px;
   width: min(100%, 800px);
-  padding: 12px;
-  border-radius: 22px;
+  padding: 4px;
+  border-radius: 24px;
   background: white;
   box-shadow: 0 12px 60px rgba(15, 29, 28, 0.18);
 
@@ -273,11 +280,11 @@ const SearchButton = styled.button`
   height: 50px;
   padding: 0 28px;
   border: 0;
-  border-radius: 16px;
+  border-radius: 2px 20px 20px 2px;
   background: ${colors.main};
   color: white;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 
   &:hover {
