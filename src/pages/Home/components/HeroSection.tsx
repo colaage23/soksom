@@ -224,14 +224,14 @@ const SearchPanel = styled.form`
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     gap: 12px;
-    padding: 14px;
-    border-radius: 24px;
+    padding: 10px 4px 4px 4px;
+    border-radius: 16px;
   }
 
   @media (max-width: 480px) {
     gap: 10px;
-    padding: 10px;
-    border-radius: 20px;
+    padding: 10px 4px 4px 4px;
+    border-radius: 16px;
   }
 `;
 
