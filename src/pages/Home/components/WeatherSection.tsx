@@ -385,7 +385,7 @@ const WeatherDetails = styled.p`
 const ForecastStrip = styled.div`
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 8px;
+  gap: 4px;
 
   @media (max-width: 480px) {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -397,7 +397,7 @@ const ForecastItem = styled.div`
   justify-items: center;
   gap: 8px;
   padding: 12px 6px;
-  border-radius: 16px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.08);
   color: rgba(246, 250, 248, 0.92);
 `;
@@ -475,6 +475,7 @@ const PlacesMessageButton = styled.button`
 const SpotCard = styled.article<{ $isWide: boolean }>`
   grid-column: ${({ $isWide }) => ($isWide ? "span 2" : "span 1")};
   overflow: hidden;
+  border: 1px solid #e4ddcf;
   border-radius: 26px;
   background: rgba(255, 251, 245, 0.92);
   box-shadow: 0 18px 36px rgba(89, 71, 46, 0.08);
@@ -482,6 +483,15 @@ const SpotCard = styled.article<{ $isWide: boolean }>`
   @media (max-width: 900px) {
     grid-column: span 1;
   }
+`;
+
+const SpotBody = styled.div`
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px 20px;
+  border-top: 1px solid #e4ddcf;
 `;
 
 const SpotImage = styled.div<{ $image: string }>`
@@ -500,29 +510,44 @@ const FavoriteButton = styled.button`
   position: absolute;
   right: 14px;
   top: 14px;
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(255, 251, 245, 0.96);
-  color: #ff7b3d;
-  box-shadow: 0 10px 24px rgba(50, 35, 18, 0.12);
+
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  outline: none;
+  border: none;
+  border-radius: 30px;
+
+  background-color: #f77036;
+
   cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    stroke: none;
+    fill: #fdfcf8;
+    stroke-width: 2;
+  }
+
+  &:hover {
+    background-color: #f7f2eb;
+  }
+
+  &:hover svg {
+    stroke: #1b2024;
+    fill: none;
+  }
 
   &:disabled {
     cursor: wait;
     opacity: 0.6;
   }
-`;
-
-const SpotBody = styled.div`
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px 18px 20px;
 `;
 
 const SpotText = styled.div`
