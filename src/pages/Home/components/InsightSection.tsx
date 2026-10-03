@@ -281,7 +281,7 @@ const InsightFrame = styled.div`
   margin: 0 auto;
   padding: 24px;
   border: 1px solid rgba(124, 111, 84, 0.08);
-  border-radius: 24px;
+  border-radius: 36px;
   background: rgba(250, 246, 239, 0.9);
   box-shadow: 0 20px 60px rgba(73, 55, 27, 0.08);
 
@@ -299,7 +299,7 @@ const InsightFrame = styled.div`
 const MapPanel = styled.div`
   position: relative;
   min-height: 594px;
-  border-radius: 14px;
+  border-radius: 18px;
   overflow: hidden;
   background:
     radial-gradient(
