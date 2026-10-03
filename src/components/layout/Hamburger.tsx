@@ -6,6 +6,7 @@ import { navItems } from "../../constants/navItems";
 import { useAuthStore } from "../../stores/auth/authStore";
 import { useGetUserInfo } from "../../hooks/auth/useGetUserInfo";
 import { useLogout } from "../../hooks/auth/useAuth";
+import { AUTH_PROVIDER_LOGO } from "../../constants/authProvider";
 
 type HamburgerProps = {
   isOpen: boolean;
@@ -78,8 +79,20 @@ const Hamburger = ({ isOpen, onClose }: HamburgerProps) => {
                 </ProfileImagePlaceholder>
               )}
               <ProfileTextBox>
-                <ProfileNickname>{userInfo?.nickname ?? "-"}</ProfileNickname>
-                <ProfileEmail>{userInfo?.email ?? "-"}</ProfileEmail>
+                <ProfileNickname>
+                  {userInfo?.authProvider &&
+                    userInfo.authProvider !== "LOCAL" &&
+                    AUTH_PROVIDER_LOGO[userInfo.authProvider] && (
+                      <ProviderLogo
+                        src={AUTH_PROVIDER_LOGO[userInfo.authProvider]}
+                        alt={userInfo.authProvider}
+                      />
+                    )}
+                  {userInfo?.nickname ?? "-"}
+                </ProfileNickname>
+                {userInfo?.authProvider === "LOCAL" && (
+                  <ProfileEmail>{userInfo?.email ?? "-"}</ProfileEmail>
+                )}
               </ProfileTextBox>
             </ProfileRow>
 
@@ -308,6 +321,10 @@ const ProfileTextBox = styled.div`
 `;
 
 const ProfileNickname = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
   color: #111827;
   font-size: 0.9375rem;
   font-weight: 700;
@@ -315,6 +332,13 @@ const ProfileNickname = styled.span`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+`;
+
+const ProviderLogo = styled.img`
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  object-fit: contain;
 `;
 
 const ProfileEmail = styled.span`

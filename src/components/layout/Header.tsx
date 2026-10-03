@@ -336,6 +336,11 @@ const UserIcon = styled(User)<{ $isSolid: boolean }>`
   stroke-width: 2.2;
   color: ${({ $isSolid }) => ($isSolid ? "#111827" : "white")};
   cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: ${colors.main};
+  }
 `;
 
 const MenuIcon = styled(Menu)`
@@ -384,7 +389,7 @@ const DropdownItem = styled.button`
   padding: 10px 12px;
 
   border: none;
-  border-radius: 10px;
+  border-radius: 4px;
   background: transparent;
 
   color: #374151;
@@ -426,7 +431,7 @@ const UserDropdown = styled.div`
   padding: 6px;
 
   background: white;
-  border-radius: 14px;
+  border-radius: 6px;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
 
   z-index: 30;
@@ -441,11 +446,11 @@ const UserProfileBox = styled.div`
 `;
 
 const ProfileImage = styled.img`
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
 
-  border-radius: 50%;
+  border-radius: 13px;
   object-fit: cover;
 
   background-color: #f5f2eb;
@@ -485,7 +490,7 @@ const ProfileEmail = styled.span`
 
 const DropdownDivider = styled.div`
   height: 1px;
-  margin: 2px 4px 6px;
+  margin: 2px 8px 8px;
 
   background-color: #f2eee6;
 `;
