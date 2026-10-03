@@ -628,7 +628,7 @@ const CongestionBadge = styled.div`
 
   padding: 4px 8px;
 
-  border-radius: 30px;
+  border-radius: 10px;
 
   color: #20201f;
   font-size: 0.75rem;

@@ -517,7 +517,7 @@ const ProgressFill = styled.div`
 const StatusBadge = styled.span`
   min-width: 44px;
   padding: 6px 10px;
-  border-radius: 999px;
+  border-radius: 12px;
   font-size: 0.8rem;
   font-weight: 800;
   text-align: center;
