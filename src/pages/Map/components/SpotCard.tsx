@@ -194,11 +194,11 @@ const IconButton = styled.button<{ $active?: boolean }>`
 
   &:hover {
     cursor: pointer;
-    background-color: #f77036;
+    background-color: ${({ $active }) => ($active ? "#fffafccc" : "#f77036")};
   }
 
   &:hover ${LikeIcon} {
-    stroke: ${({ $active }) => ($active ? "#1b2024" : "#fdfcf8")};
+    stroke: ${({ $active }) => ($active ? "#999fa6" : "#fdfcf8")};
     fill: ${({ $active }) => ($active ? "none" : "#fdfcf8")};
   }
 `;

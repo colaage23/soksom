@@ -456,15 +456,35 @@ const FavoriteButton = styled.button<{ $active: boolean }>`
   width: 42px;
   height: 42px;
   flex: 0 0 auto;
+
   border: 1px solid
-    ${({ $active }) =>
-      $active ? "rgba(212, 83, 106, 0.2)" : "rgba(36, 149, 155, 0.12)"};
+    ${({ $active }) => ($active ? "#f77036" : "rgba(36, 149, 155, 0.12)")};
   border-radius: 999px;
   background: ${({ $active }) =>
-    $active ? "rgba(212, 83, 106, 0.12)" : "rgba(255, 255, 255, 0.92)"};
-  color: ${({ $active }) => ($active ? "#d4536a" : "#8a9791")};
+    $active ? "#f77036" : "rgba(255, 255, 255, 0.92)"};
+  color: ${({ $active }) => ($active ? "#fdfcf8" : "#8a9791")};
+
   box-shadow: 0 10px 18px rgba(35, 49, 44, 0.06);
   cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+
+  svg {
+    fill: ${({ $active }) => ($active ? "currentColor" : "transparent")};
+    transition: fill 0.2s ease;
+  }
+
+  &:hover {
+    border-color: #f7703633;
+    background: #f770362a;
+    color: #f77036;
+  }
+
+  &:hover svg {
+    fill: currentColor;
+  }
 
   &:disabled {
     cursor: wait;
