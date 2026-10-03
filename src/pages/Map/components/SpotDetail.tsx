@@ -151,7 +151,7 @@ const SpotDetail = ({ spot }: ISpotDetailProps) => {
         />
 
         <SpotActions>
-          <IconButton
+          <BackButton
             onClick={() => {
               const newParams = new URLSearchParams(searchParams);
               newParams.delete("contentId");
@@ -159,7 +159,7 @@ const SpotDetail = ({ spot }: ISpotDetailProps) => {
             }}
           >
             <BackIcon />
-          </IconButton>
+          </BackButton>
 
           <RightGroup>
             <IconButton
@@ -519,12 +519,18 @@ const IconButton = styled.button<{ $active?: boolean }>`
 
   &:hover {
     cursor: pointer;
-    background-color: rgba(247, 242, 235, 1);
+    background-color: #f77036;
   }
 
   &:hover ${LikeIcon} {
-    stroke: ${({ $active }) => ($active ? "#1b2024" : "#f77036")};
+    stroke: ${({ $active }) => ($active ? "#1b2024" : "#fdfcf8")};
     fill: ${({ $active }) => ($active ? "none" : "#fdfcf8")};
+  }
+`;
+
+const BackButton = styled(IconButton)`
+  &:hover {
+    background-color: #f7f2eb;
   }
 `;
 
