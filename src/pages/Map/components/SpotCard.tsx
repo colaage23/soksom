@@ -122,10 +122,12 @@ const SpotCardContainer = styled.div<{ $isActive: boolean }>`
   padding: 12px;
   margin: 0px 16px 0;
 
-  border: 1px solid ${({ $isActive }) => ($isActive ? "#72c9c3" : "#f5f2eb")};
+  border: 1px solid
+    ${({ $isActive }) => ($isActive ? "rgba(12, 151, 153, 0.35)" : "#f5f2eb")};
   border-radius: 1rem;
 
-  background-color: ${({ $isActive }) => ($isActive ? "#e5faf8" : "#fdfcf8")};
+  background-color: ${({ $isActive }) =>
+    $isActive ? "rgba(229, 250, 248, 0.8)" : "#fffefd"};
 
   transition: 0.15s border cubic-bezier(0.4, 0, 0.2, 1);
 
