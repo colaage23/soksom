@@ -170,7 +170,8 @@ const WeatherSection = () => {
                         type="button"
                         disabled={isFavoritePending || !place.favoriteId}
                         aria-label={`${place.title} 즐겨찾기 해제`}
-                        onClick={() => {
+                        onClick={(event) => {
+                          event.stopPropagation();
                           if (place.favoriteId) {
                             toggleFavorite(place, place.favoriteId);
                           }
@@ -497,12 +498,32 @@ const SpotBody = styled.div`
 const SpotImage = styled.div<{ $image: string }>`
   position: relative;
   min-height: 320px;
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.08)),
-    url(${({ $image }) => $image}) center center / cover no-repeat;
+  overflow: hidden;
+  isolation: isolate;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(180deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.08)),
+      url(${({ $image }) => $image}) center center / cover no-repeat;
+    transition: transform 0.7s cubic-bezier(0.2, 0.6, 0.2, 1);
+  }
+
+  ${SpotCard}:hover &::before {
+    transform: scale(1.05);
+  }
 
   @media (max-width: 900px) {
     min-height: 280px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::before {
+      transition: none;
+    }
   }
 `;
 
