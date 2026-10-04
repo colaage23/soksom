@@ -716,7 +716,6 @@ const PageNumberButton = styled(PageButton)<{ $active: boolean }>`
 const UpcomingCard = styled.article`
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   border: 1px solid #e4ddcf;
   border-radius: 14px;
   background: #fffefc;
@@ -740,6 +739,7 @@ const UpcomingImage = styled.img`
   height: 240px;
   object-fit: cover;
   background: #e8e2d4;
+  border-radius: 13px 13px 0 0;
 
   @media (max-width: 1024px) {
     height: 140px;
@@ -834,7 +834,7 @@ const TripMenuDropdown = styled.div`
   right: 0;
   z-index: 10;
   overflow: hidden;
-  border: 1px solid rgba(36, 149, 155, 0.14);
+  border: 1px solid #e4ddcf;
   border-radius: 12px;
   background: white;
   box-shadow: 0 12px 24px rgba(35, 49, 44, 0.14);
@@ -843,7 +843,7 @@ const TripMenuDropdown = styled.div`
 const TripMenuEditButton = styled.button`
   padding: 10px 16px;
   border: 0;
-  border-bottom: 1px solid rgba(36, 149, 155, 0.1);
+  border-bottom: 1px solid #e4ddcf;
   background: white;
   color: #245f62;
   font-size: 0.85rem;
