@@ -133,7 +133,7 @@ const SpotCardContainer = styled.div<{ $isActive: boolean }>`
 
   &:hover {
     cursor: pointer;
-    border: 1px solid #72c9c3;
+    border: 1px solid rgba(12, 151, 153, 0.35);
   }
 
   &:hover ${ArrowButton} {
