@@ -335,10 +335,6 @@ const ArrowButton = styled.button`
     transition: transform 0.25s ease;
   }
 
-  ${PlaceCard}:hover & {
-    background: #ff7d43;
-  }
-
   ${PlaceCard}:hover & svg {
     transform: translate(2px, -2px);
   }

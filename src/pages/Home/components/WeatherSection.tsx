@@ -10,7 +10,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import fallbackImage from "../../../assets/fallback.png";
-import colors from "../../../constants/colors";
 import { useJejuWeather } from "../../../hooks/useJejuWeather";
 import { useGetFavoriteSpots } from "../../../hooks/favorite/useGetFavoriteSpots";
 import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
@@ -159,7 +158,13 @@ const WeatherSection = () => {
             ) : (
               <>
                 {places.map((place) => (
-                  <SpotCard key={place.contentid} $isWide={places.length === 1}>
+                  <SpotCard
+                    key={place.contentid}
+                    $isWide={places.length === 1}
+                    onClick={() =>
+                      handleMoveToSpot(place.title, place.contentid)
+                    }
+                  >
                     <SpotImage $image={place.firstimage || fallbackImage}>
                       <FavoriteButton
                         type="button"
@@ -184,13 +189,7 @@ const WeatherSection = () => {
                         </SpotArea>
                         <SpotName>{place.title}</SpotName>
                       </SpotText>
-                      <SpotAction
-                        type="button"
-                        aria-label={`${place.title} 보기`}
-                        onClick={() =>
-                          handleMoveToSpot(place.title, place.contentid)
-                        }
-                      >
+                      <SpotAction aria-label={`${place.title} 보기`}>
                         <ArrowUpRight size={16} />
                       </SpotAction>
                     </SpotBody>
@@ -289,15 +288,15 @@ const ContentGrid = styled.div`
 
 const WeatherCard = styled.article`
   padding: 32px 30px 30px;
-  border-radius: 38px;
+  border-radius: 18px;
   color: #f6faf8;
   background:
     radial-gradient(
-      circle at top right,
-      rgba(88, 177, 176, 0.42),
-      transparent 26%
+      circle at 100% 0%,
+      rgba(255, 255, 255, 0.2),
+      transparent 45%
     ),
-    linear-gradient(160deg, ${colors.main} 0%, #136f72 100%);
+    linear-gradient(145deg, rgba(12, 151, 153, 0.92), rgba(36, 149, 155, 0.78));
   box-shadow: 0 24px 44px rgba(28, 104, 102, 0.18);
 
   @media (max-width: 768px) {
@@ -332,8 +331,8 @@ const WeatherIconWrap = styled.div`
   place-items: center;
   width: 92px;
   height: 92px;
-  border-radius: 26px;
-  background: rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.25);
 
   svg {
     width: 40px;
@@ -476,9 +475,10 @@ const SpotCard = styled.article<{ $isWide: boolean }>`
   grid-column: ${({ $isWide }) => ($isWide ? "span 2" : "span 1")};
   overflow: hidden;
   border: 1px solid #e4ddcf;
-  border-radius: 26px;
+  border-radius: 18px;
   background: rgba(255, 251, 245, 0.92);
   box-shadow: 0 18px 36px rgba(89, 71, 46, 0.08);
+  cursor: pointer;
 
   @media (max-width: 900px) {
     grid-column: span 1;
@@ -565,6 +565,26 @@ const SpotAction = styled.button`
   background: #111111;
   color: white;
   cursor: pointer;
+
+  svg {
+    transition: transform 0.25s ease;
+  }
+
+  ${SpotCard}:hover & svg,
+  &:focus-visible svg {
+    transform: translate(2px, -2px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #111111;
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    svg {
+      transition: none;
+    }
+  }
 `;
 
 const SpotArea = styled.p`
