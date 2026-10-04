@@ -490,7 +490,7 @@ const ProfileEmail = styled.span`
 
 const DropdownDivider = styled.div`
   height: 1px;
-  margin: 2px 8px 8px;
+  margin: 2px -6px 8px;
 
   background-color: #f2eee6;
 `;
