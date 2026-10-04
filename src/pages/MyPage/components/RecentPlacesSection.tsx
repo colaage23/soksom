@@ -187,7 +187,7 @@ const SectionLink = styled.button`
 
 const RecentGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) 0.55fr;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 
   @media (max-width: 900px) {
