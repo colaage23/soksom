@@ -1,4 +1,4 @@
-import { ArrowLeft, Heart, MapPinned, MoveRight } from "lucide-react";
+import { ChevronLeft, Heart, MoveRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../../constants/colors";
@@ -38,8 +38,10 @@ type PlaceCollectionPageProps = {
   isFavoritePending?: boolean;
 };
 
+const shortenRegion = (region: string) =>
+  region.replace(/^제주특별자치도\s*/, "");
+
 const PlaceCollectionPage = ({
-  eyebrow,
   title,
   backLabel,
   stats,
@@ -67,57 +69,32 @@ const PlaceCollectionPage = ({
     });
   };
 
+  const countLabel = stats[0]?.value;
+
   return (
     <PageShell>
       <PageInner>
         <HeroSection>
-          <HeroTopRow>
-            <BackButton type="button" onClick={() => navigate("/mypage")}>
-              <ArrowLeft size={18} />
-              {backLabel}
-            </BackButton>
-          </HeroTopRow>
+          <BackButton type="button" onClick={() => navigate("/mypage")}>
+            <ChevronLeft size={18} />
+            {backLabel}
+          </BackButton>
 
-          <HeroContent>
-            <HeroTextGroup>
-              <Eyebrow>{eyebrow}</Eyebrow>
-              <HeroTitle>{title}</HeroTitle>
-            </HeroTextGroup>
-
-            <HeroStats $columns={stats.length}>
-              {stats.map((stat) => (
-                <StatCard key={stat.label}>
-                  <StatLabel>{stat.label}</StatLabel>
-                  <StatValue>{stat.value}</StatValue>
-                </StatCard>
-              ))}
-            </HeroStats>
-          </HeroContent>
+          <HeroTextGroup>
+            <HeroTitle>{title}</HeroTitle>
+            {countLabel && <StatValue>{countLabel}</StatValue>}
+          </HeroTextGroup>
         </HeroSection>
 
         {isLoading ? (
-          <PlacesGrid>
+          <PlacesGrid aria-busy="true">
             {Array.from({ length: 4 }).map((_, index) => (
-              <PlaceCard key={`favorite-skeleton-${index}`}>
-                <PlaceVisual $index={index}>
-                  <PlaceBadge $variant="calm">불러오는 중</PlaceBadge>
-                </PlaceVisual>
+              <PlaceCard key={`collection-skeleton-${index}`}>
+                <PlaceVisual />
                 <PlaceBody>
-                  <PlaceHeader>
-                    <PlaceHeaderTop>
-                      <PlaceTitleGroup>
-                        <PlaceMetaText>로딩 중</PlaceMetaText>
-                        <PlaceTitle>
-                          즐겨찾기 장소를 불러오고 있습니다.
-                        </PlaceTitle>
-                        <PlaceRegion>잠시만 기다려 주세요.</PlaceRegion>
-                      </PlaceTitleGroup>
-                    </PlaceHeaderTop>
-                  </PlaceHeader>
-
-                  <PlaceSummary>
-                    저장된 장소 목록을 서버에서 조회하고 있습니다.
-                  </PlaceSummary>
+                  <PlaceMetaText>불러오는 중</PlaceMetaText>
+                  <PlaceTitle>장소를 불러오고 있어요</PlaceTitle>
+                  <PlaceRegion>잠시만 기다려 주세요.</PlaceRegion>
                 </PlaceBody>
               </PlaceCard>
             ))}
@@ -126,62 +103,30 @@ const PlaceCollectionPage = ({
           <EmptyStateCard>{emptyMessage}</EmptyStateCard>
         ) : (
           <PlacesGrid>
-            {items.map((item, index) => {
+            {items.map((item) => {
               const Icon = item.icon;
+              const uniqueTags = [...new Set(item.tags.filter(Boolean))];
 
               return (
-                <PlaceCard key={item.title}>
-                  <PlaceVisual $index={index}>
+                <PlaceCard key={item.contentId ?? item.title}>
+                  <PlaceVisual>
                     {item.thumbnail ? (
-                      <PlaceImage src={item.thumbnail} alt={item.title} />
+                      <PlaceImage src={item.thumbnail} alt="" />
                     ) : (
                       <Icon size={34} />
                     )}
                   </PlaceVisual>
 
                   <PlaceBody>
-                    <PlaceHeader>
-                      <PlaceHeaderTop>
-                        <PlaceTitleGroup>
-                          <PlaceMetaText>
-                            {formatDateLabel
-                              ? formatDateLabel(item.date)
-                              : item.date}
-                          </PlaceMetaText>
-                          <PlaceTitle>{item.title}</PlaceTitle>
-                          <PlaceRegion>{item.region}</PlaceRegion>
-                        </PlaceTitleGroup>
-                        <FavoriteButton
-                          type="button"
-                          $active={Boolean(item.isFavorite)}
-                          disabled={isFavoritePending}
-                          onClick={() => onFavoriteClick?.(item)}
-                          aria-label={
-                            item.isFavorite
-                              ? `${item.title} 즐겨찾기 해제`
-                              : `${item.title} 즐겨찾기 추가`
-                          }
-                        >
-                          <Heart
-                            size={18}
-                            fill={item.isFavorite ? "currentColor" : "none"}
-                          />
-                        </FavoriteButton>
-                      </PlaceHeaderTop>
-                    </PlaceHeader>
-
-                    <PlaceSummary>{item.summary}</PlaceSummary>
-
-                    <MetaList>
-                      <MetaItem>
-                        <MapPinned size={16} />
-                        <span>{item.region}</span>
-                      </MetaItem>
-                    </MetaList>
+                    <PlaceMetaText>
+                      {formatDateLabel ? formatDateLabel(item.date) : item.date}
+                    </PlaceMetaText>
+                    <PlaceTitle>{item.title}</PlaceTitle>
+                    <PlaceRegion>{shortenRegion(item.region)}</PlaceRegion>
 
                     <FooterRow>
                       <TagList>
-                        {item.tags.map((tag) => (
+                        {uniqueTags.map((tag) => (
                           <Tag key={tag}>{tag}</Tag>
                         ))}
                       </TagList>
@@ -195,6 +140,21 @@ const PlaceCollectionPage = ({
                       </DetailButton>
                     </FooterRow>
                   </PlaceBody>
+
+                  <FavoriteButton
+                    type="button"
+                    $active={Boolean(item.isFavorite)}
+                    disabled={isFavoritePending}
+                    onClick={() => onFavoriteClick?.(item)}
+                    aria-pressed={Boolean(item.isFavorite)}
+                    aria-label={
+                      item.isFavorite
+                        ? `${item.title} 즐겨찾기 해제`
+                        : `${item.title} 즐겨찾기 추가`
+                    }
+                  >
+                    <Heart size={18} />
+                  </FavoriteButton>
                 </PlaceCard>
               );
             })}
@@ -209,22 +169,11 @@ export default PlaceCollectionPage;
 
 const PageShell = styled.div`
   min-height: calc(100vh - 72px);
-  padding: 28px 20px 72px;
-  background:
-    radial-gradient(
-      circle at top right,
-      rgba(36, 149, 155, 0.18),
-      transparent 24%
-    ),
-    radial-gradient(
-      circle at top left,
-      rgba(22, 63, 65, 0.08),
-      transparent 30%
-    ),
-    linear-gradient(180deg, #f2f6f3 0%, #eef4f1 46%, #f7faf8 100%);
+  padding: 32px 24px 96px;
+  background: #f6f3ec;
 
   @media (max-width: 768px) {
-    padding: 16px 12px 48px;
+    padding: 20px 16px 56px;
   }
 `;
 
@@ -232,107 +181,62 @@ const PageInner = styled.div`
   max-width: 1240px;
   margin: 0 auto;
   display: grid;
-  gap: 20px;
+  gap: 28px;
 `;
 
 const HeroSection = styled.section`
   display: grid;
-  gap: 22px;
-  padding: 26px;
-  border: 1px solid rgba(36, 149, 155, 0.1);
-  border-radius: 30px;
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 22px 44px rgba(35, 49, 44, 0.06);
-
-  @media (max-width: 768px) {
-    padding: 20px;
-  }
-`;
-
-const HeroTopRow = styled.div`
-  display: flex;
-  justify-content: flex-start;
+  justify-items: start;
+  gap: 20px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #e4ddcf;
 `;
 
 const BackButton = styled.button`
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border: 1px solid rgba(36, 149, 155, 0.14);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #2b3a33;
-  font-size: 0.88rem;
-  font-weight: 600;
+  gap: 4px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #6f6a60;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
-`;
+  transition: color 0.15s ease;
 
-const HeroContent = styled.div`
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(280px, 0.9fr);
-  gap: 18px;
-
-  @media (max-width: 920px) {
-    grid-template-columns: 1fr;
+  &:hover {
+    color: #203029;
   }
 `;
 
 const HeroTextGroup = styled.div`
-  display: grid;
-  gap: 10px;
-`;
-
-const Eyebrow = styled.span`
-  color: ${colors.main};
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.18em;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px;
 `;
 
 const HeroTitle = styled.h1`
   margin: 0;
   color: #203029;
-  font-size: clamp(2rem, 3vw, 3rem);
-  font-weight: 800;
+  font-family: Gowun Batang;
+  font-size: clamp(1.875rem, 3vw, 2.25rem);
+  font-weight: 700;
   line-height: 1.1;
 `;
 
-const HeroStats = styled.div<{ $columns: number }>`
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-
-  @media (max-width: 640px) {
-    flex-direction: column;
-  }
-`;
-
-const StatCard = styled.article`
-  display: grid;
-  width: 160px;
-  gap: 8px;
-  padding: 18px;
-  border-radius: 22px;
-  background: linear-gradient(180deg, #f8fbf9 0%, #eff6f2 100%);
-  border: 1px solid rgba(36, 149, 155, 0.08);
-`;
-
-const StatLabel = styled.span`
-  color: #7d8b85;
-  font-size: 0.86rem;
-  font-weight: 700;
-`;
-
-const StatValue = styled.strong`
-  color: #21312a;
-  font-size: 1.4rem;
+const StatValue = styled.span`
+  color: #6f6a60;
+  font-size: 1rem;
 `;
 
 const PlacesGrid = styled.section`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
+  gap: 20px;
 
   @media (max-width: 980px) {
     grid-template-columns: 1fr;
@@ -341,42 +245,45 @@ const PlacesGrid = styled.section`
 
 const EmptyStateCard = styled.article`
   padding: 40px 28px;
-  border: 1px solid rgba(36, 149, 155, 0.08);
-  border-radius: 30px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 22px 40px rgba(35, 49, 44, 0.05);
-  color: #52615a;
-  font-size: 0.98rem;
-  font-weight: 600;
+  border: 1px dashed #d8cfbe;
+  border-radius: 22px;
+  color: #6f6a60;
+  font-size: 0.95rem;
   text-align: center;
 `;
 
 const PlaceCard = styled.article`
+  position: relative;
   display: grid;
-  grid-template-columns: 148px minmax(0, 1fr);
+  grid-template-columns: 160px minmax(0, 1fr);
+  min-height: 252px;
   overflow: hidden;
-  border: 1px solid rgba(36, 149, 155, 0.08);
-  border-radius: 30px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 22px 40px rgba(35, 49, 44, 0.05);
+  border: 1px solid #e4ddcf;
+  border-radius: 22px;
+  background: #fdfcf8;
+
+  transition: border-color 0.3s ease;
+
+  &:hover {
+    border-color: rgba(12, 151, 153, 0.5);
+  }
 
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
   }
 `;
 
-const PlaceVisual = styled.div<{ $index: number }>`
-  position: relative;
+const PlaceVisual = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  min-height: 220px;
-  background: ${({ $index }) =>
-    $index % 2 === 0
-      ? "linear-gradient(160deg, rgba(36, 149, 155, 0.2), rgba(36, 149, 155, 0.04))"
-      : "linear-gradient(160deg, rgba(22, 63, 65, 0.18), rgba(240, 247, 244, 0.08))"};
+  background: #e8e2d4;
   color: ${colors.main};
+
+  @media (max-width: 640px) {
+    height: 180px;
+  }
 `;
 
 const PlaceImage = styled.img`
@@ -385,86 +292,51 @@ const PlaceImage = styled.img`
   object-fit: cover;
 `;
 
-const PlaceBadge = styled.span<{ $variant: "calm" | "warm" }>`
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 7px 12px;
-  border-radius: 999px;
-  background: ${({ $variant }) =>
-    $variant === "calm"
-      ? "rgba(36, 149, 155, 0.14)"
-      : "rgba(242, 170, 76, 0.18)"};
-  color: ${({ $variant }) => ($variant === "calm" ? colors.main : "#b96a0d")};
-  font-size: 0.84rem;
-  font-weight: 800;
-`;
-
 const PlaceBody = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 6px;
+  min-width: 0;
   padding: 22px;
 `;
 
-const PlaceHeader = styled.div`
-  display: grid;
-  gap: 10px;
-`;
-
-const PlaceHeaderTop = styled.div`
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-
-  @media (max-width: 640px) {
-    align-items: center;
-  }
-`;
-
-const PlaceTitleGroup = styled.div`
-  display: grid;
-  gap: 6px;
+const PlaceMetaText = styled.span`
+  color: #0c7f81;
+  font-size: 0.8125rem;
+  font-weight: 600;
 `;
 
 const PlaceTitle = styled.h2`
   margin: 0;
+  padding-right: 56px;
   color: #203029;
-  font-size: 1.32rem;
+  font-family: Gowun Batang;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.25;
 `;
 
 const PlaceRegion = styled.p`
   margin: 0;
-  color: #809089;
-  font-size: 0.92rem;
-`;
-
-const PlaceMetaText = styled.span`
-  color: ${colors.main};
-  font-size: 0.88rem;
-  font-weight: 800;
+  color: #6f6a60;
+  font-size: 0.875rem;
 `;
 
 const FavoriteButton = styled.button<{ $active: boolean }>`
+  position: absolute;
+  top: 20px;
+  right: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
-  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
 
-  border: 1px solid
-    ${({ $active }) => ($active ? "#f77036" : "rgba(36, 149, 155, 0.12)")};
+  border: 1px solid ${({ $active }) => ($active ? "#f77036" : "#e4ddcf")};
   border-radius: 999px;
-  background: ${({ $active }) =>
-    $active ? "#f77036" : "rgba(255, 255, 255, 0.92)"};
-  color: ${({ $active }) => ($active ? "#fdfcf8" : "#8a9791")};
+  background: ${({ $active }) => ($active ? "#f77036" : "#fdfcf8")};
+  color: ${({ $active }) => ($active ? "#fdfcf8" : "#6f6a60")};
 
-  box-shadow: 0 10px 18px rgba(35, 49, 44, 0.06);
   cursor: pointer;
   transition:
     background-color 0.2s ease,
@@ -492,70 +364,77 @@ const FavoriteButton = styled.button<{ $active: boolean }>`
   }
 `;
 
-const PlaceSummary = styled.p`
-  margin: 0;
-  color: #55655f;
-  font-size: 0.96rem;
-  line-height: 1.7;
-`;
-
-const MetaList = styled.div`
-  display: grid;
-  gap: 10px;
-`;
-
-const MetaItem = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #60706a;
-  font-size: 0.9rem;
-`;
-
 const FooterRow = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
   margin-top: auto;
-
-  @media (max-width: 640px) {
-    align-items: flex-start;
-    flex-direction: column;
-  }
+  padding-top: 18px;
 `;
 
 const TagList = styled.div`
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 6px;
 `;
 
 const Tag = styled.span`
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 7px 12px;
-  border-radius: 999px;
-  background: rgba(36, 149, 155, 0.08);
-  color: ${colors.main};
-  font-size: 0.84rem;
-  font-weight: 700;
+  max-width: 100%;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: rgba(12, 151, 153, 0.08);
+  color: #0c7f81;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const DetailButton = styled.button`
   display: inline-flex;
   align-items: center;
-  align-self: flex-end;
   flex-shrink: 0;
   gap: 6px;
-  padding: 11px 14px;
+  margin-left: auto;
+  padding: 12px 24px;
   border: 0;
-  border-radius: 999px;
+  border-radius: 19px;
   background: #203029;
-  color: white;
-  font-size: 0.9rem;
-  font-weight: 700;
+  color: #fdfcf8;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  svg {
+    transition: transform 0.25s cubic-bezier(0.2, 0.6, 0.2, 1);
+  }
+
+  &:hover {
+    background: #2d4239;
+  }
+
+  &:hover svg {
+    transform: translateX(5px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #203029;
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    svg {
+      transition: none;
+    }
+  }
 `;

@@ -52,7 +52,9 @@ const RecentPlaces = () => {
       badge: "최근 조회",
       badgeVariant: "calm",
       isFavorite: Boolean(favoriteId),
-      tags: [place.contenttypeid ? `#${place.contenttypeid}` : "#recent"],
+      tags: [place.lclsSystm1Nm, place.lclsSystm2Nm, place.lclsSystm3Nm]
+        .filter(Boolean)
+        .map((tag) => `#${tag}`),
       primaryMeta:
         place.createdAt?.slice(0, 10).replace(/-/g, ".") ?? "최근 조회",
       secondaryMeta: `기록 #${place.historyId}`,
