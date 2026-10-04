@@ -18,11 +18,9 @@ const Mypage = () => {
             selectedSection={selectedSection}
             onSelectSection={setSelectedSection}
           />
-          <ContentColumn>
-            <RecentPlacesSection />
-            <FavoritePlacesSection />
-            <TripScheduleSection />
-          </ContentColumn>
+          <RecentPlacesSection />
+          <FavoritePlacesSection />
+          <TripScheduleSection />
         </DashboardGrid>
       </PageInner>
     </PageShell>
@@ -37,13 +35,7 @@ const PageShell = styled.div`
   overflow-y: visible;
   min-height: calc(100vh - 72px);
   padding: 24px 20px 72px;
-  background:
-    radial-gradient(
-      circle at top left,
-      rgba(36, 149, 155, 0.16),
-      transparent 28%
-    ),
-    linear-gradient(180deg, #f5f7f4 0%, #f8faf7 52%, #f1f5f1 100%);
+  background: #f6f2e9;
 
   @media (max-width: 768px) {
     padding: 16px 12px 48px;
@@ -53,22 +45,17 @@ const PageShell = styled.div`
 const PageInner = styled.div`
   position: relative;
   z-index: 1;
-  max-width: 1280px;
+  max-width: 1300px;
   margin: 0 auto;
 `;
 
 const DashboardGrid = styled.div`
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: 1fr;
   gap: 18px;
   align-items: start;
 
   @media (max-width: 980px) {
     grid-template-columns: 1fr;
   }
-`;
-
-const ContentColumn = styled.div`
-  display: grid;
-  gap: 18px;
 `;
