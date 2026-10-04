@@ -1,21 +1,10 @@
-import { CalendarDays, Heart, MapPinned, UserRoundX } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef } from "react";
 import styled from "styled-components";
 import colors from "../../../constants/colors";
-import { useDeleteUser, useLogout } from "../../../hooks/auth/useAuth";
+import { useLogout } from "../../../hooks/auth/useAuth";
 import { useMypageCounts } from "../../../hooks/mypage/useMypageCounts";
 import { useGetUserInfo } from "../../../hooks/auth/useGetUserInfo";
-import { useToast } from "../../../hooks/common/useToast";
 import { AUTH_PROVIDER_LOGO } from "../../../constants/authProvider";
-
-const SIDEBAR_LIST_TOP = 96;
-
-const sidebarSections = [
-  { id: "recent", label: "최근 방문 장소", icon: MapPinned },
-  { id: "favorites", label: "즐겨찾기", icon: Heart },
-  { id: "trips", label: "여행 일정", icon: CalendarDays },
-] as const;
 
 const PROVIDER_LABEL: Record<string, string> = {
   KAKAO: "카카오",
@@ -23,21 +12,8 @@ const PROVIDER_LABEL: Record<string, string> = {
   NAVER: "네이버",
 };
 
-interface MypageSidebarProps {
-  selectedSection: (typeof sidebarSections)[number]["id"];
-  onSelectSection: (sectionId: (typeof sidebarSections)[number]["id"]) => void;
-}
-
-export const MypageSidebar = ({
-  selectedSection,
-  onSelectSection,
-}: MypageSidebarProps) => {
-  const navigate = useNavigate();
-
+export const MypageSidebar = () => {
   const logout = useLogout();
-  const showToast = useToast();
-  const { mutateAsync: deleteUser, isPending: isDeletingUser } =
-    useDeleteUser();
 
   const { data: userInfo } = useGetUserInfo();
 
@@ -54,39 +30,9 @@ export const MypageSidebar = ({
     { label: "최근 조회한 장소", value: recentCount },
   ];
 
-  const [isSidebarListPinned, setIsSidebarListPinned] = useState(false);
-  const [sidebarListLeft, setSidebarListLeft] = useState(0);
-  const [sidebarListWidth, setSidebarListWidth] = useState(0);
-  const [sidebarListHeight, setSidebarListHeight] = useState(0);
   const sidebarRef = useRef<HTMLElement | null>(null);
   const sidebarListSlotRef = useRef<HTMLDivElement | null>(null);
   const sidebarListRef = useRef<HTMLDivElement | null>(null);
-
-  const scrollToSection = (
-    sectionId: (typeof sidebarSections)[number]["id"],
-  ) => {
-    onSelectSection(sectionId);
-    document
-      .getElementById(`mypage-${sectionId}`)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  const handleDeleteUser = async () => {
-    const confirmed = window.confirm(
-      "회원 탈퇴 후에는 계정을 복구할 수 없습니다. 정말 탈퇴하시겠습니까?",
-    );
-
-    if (!confirmed) return;
-
-    try {
-      await deleteUser();
-      logout();
-      navigate("/");
-      showToast("회원 탈퇴가 완료되었습니다.", "success");
-    } catch {
-      showToast("회원 탈퇴에 실패했습니다. 다시 시도해주세요.", "error");
-    }
-  };
 
   useEffect(() => {
     const updateSidebarListPosition = () => {
@@ -97,23 +43,6 @@ export const MypageSidebar = ({
       if (!sidebarElement || !sidebarListSlotElement || !sidebarListElement) {
         return;
       }
-
-      if (window.innerWidth <= 980) {
-        setIsSidebarListPinned(false);
-        setSidebarListLeft(0);
-        setSidebarListWidth(0);
-        setSidebarListHeight(0);
-
-        return;
-      }
-
-      const sidebarRect = sidebarElement.getBoundingClientRect();
-      const slotRect = sidebarListSlotElement.getBoundingClientRect();
-
-      setSidebarListLeft(slotRect.left);
-      setSidebarListWidth(sidebarRect.width);
-      setSidebarListHeight(sidebarListElement.offsetHeight);
-      setIsSidebarListPinned(slotRect.top <= SIDEBAR_LIST_TOP);
     };
 
     updateSidebarListPosition();
@@ -174,44 +103,6 @@ export const MypageSidebar = ({
           ))}
         </StatList>
       </ProfileCard>
-      {/* <SidebarListSlot
-        ref={sidebarListSlotRef}
-        $height={isSidebarListPinned ? sidebarListHeight : undefined}
-      >
-        <SidebarList
-          ref={sidebarListRef}
-          $pinned={isSidebarListPinned}
-          $left={sidebarListLeft}
-          $width={sidebarListWidth}
-        >
-          {sidebarSections.map((section) => {
-            const Icon = section.icon;
-
-            return (
-              <SidebarButton
-                key={section.id}
-                type="button"
-                $active={selectedSection === section.id}
-                onClick={() => scrollToSection(section.id)}
-              >
-                <Icon size={17} />
-                <span>{section.label}</span>
-              </SidebarButton>
-            );
-          })}
-
-
-          <SidebarWithdrawal
-            type="button"
-            $active={false}
-            onClick={handleDeleteUser}
-            disabled={isDeletingUser}
-          >
-            <UserRoundX size={17} />
-            <span>{isDeletingUser ? "탈퇴 처리 중..." : "회원 탈퇴"}</span>
-          </SidebarWithdrawal>
-        </SidebarList>
-      </SidebarListSlot> */}
     </Sidebar>
   );
 };
@@ -378,7 +269,7 @@ const LogoutButton = styled.button`
 
   padding: 8px 16px;
 
-  background-color: #fcfaf5;
+  background-color: #fffefc;
   border: 1px solid #dbd6cb;
   border-radius: 12px;
 
@@ -411,63 +302,3 @@ const Sidebar = styled.aside`
     border-bottom: none;
   }
 `;
-
-// const SidebarListSlot = styled.div<{ $height?: number }>`
-//   min-height: ${({ $height }) => ($height ? `${$height}px` : "auto")};
-
-//   @media (max-width: 980px) {
-//     display: none;
-//     min-height: auto;
-//   }
-// `;
-
-// const SidebarList = styled.div<{
-//   $pinned: boolean;
-//   $left: number;
-//   $width: number;
-// }>`
-//   position: ${({ $pinned }) => ($pinned ? "fixed" : "relative")};
-//   top: ${({ $pinned }) => ($pinned ? `${SIDEBAR_LIST_TOP}px` : "auto")};
-//   left: ${({ $pinned, $left }) => ($pinned ? `${$left}px` : "auto")};
-//   width: ${({ $pinned, $width }) => ($pinned ? `${$width}px` : "100%")};
-//   z-index: ${({ $pinned }) => ($pinned ? 10 : 1)};
-//   overflow: hidden;
-//   border: 1px solid rgba(36, 149, 155, 0.08);
-//   border-radius: 24px;
-//   background: rgba(255, 255, 255, 0.84);
-//   box-shadow: 0 18px 34px rgba(35, 49, 44, 0.05);
-
-//   @media (max-width: 980px) {
-//     position: relative;
-//     top: auto;
-//     left: auto;
-//     width: 100%;
-//   }
-// `;
-
-// const SidebarButton = styled.button<{ $active: boolean }>`
-//   display: flex;
-//   align-items: center;
-//   gap: 12px;
-//   width: 100%;
-//   padding: 16px 18px;
-//   border: 0;
-//   border-bottom: 1px solid rgba(36, 149, 155, 0.06);
-//   background: ${({ $active }) =>
-//     $active ? "rgba(36, 149, 155, 0.08)" : "transparent"};
-//   color: ${({ $active }) => ($active ? colors.main : "#65716b")};
-//   font-size: 0.95rem;
-//   font-weight: 700;
-//   text-align: left;
-//   cursor: pointer;
-// `;
-
-// const SidebarWithdrawal = styled(SidebarButton)`
-//   color: #ef6a56;
-//   border-bottom: 0;
-
-//   &:disabled {
-//     cursor: not-allowed;
-//     opacity: 0.6;
-//   }
-// `;
