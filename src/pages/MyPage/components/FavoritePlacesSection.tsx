@@ -384,7 +384,7 @@ const FavoriteImage = styled.img`
 
 const FavoriteMeta = styled.p`
   margin: 0;
-  color: #666;
+  color: #888;
   font-size: 0.75rem;
   white-space: nowrap;
   overflow: hidden;

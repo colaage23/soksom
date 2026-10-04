@@ -247,7 +247,7 @@ const MiniCardText = styled.div`
 `;
 
 const MiniCardTitle = styled.h4`
-  margin: 0 0 6px 0;
+  margin: 0 0 2px 0;
   color: #24302a;
   font-size: 1.125rem;
   letter-spacing: -0.5px;
@@ -259,14 +259,14 @@ const MiniCardTitle = styled.h4`
 
 const MiniCardMeta = styled.p`
   margin: 0;
-  color: #8b9892;
+  color: #888;
   font-size: 0.75rem;
   line-height: 1;
 `;
 
 const RecentTags = styled.p`
   margin: 0;
-  color: #93a19b;
+  color: #666;
   font-size: 0.75rem;
   font-weight: 500;
   line-height: 1;
