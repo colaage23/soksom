@@ -157,7 +157,7 @@ const SectionBlock = styled.section`
   background: rgba(255, 255, 255, 0.84);
   box-shadow: 0 20px 38px rgba(35, 49, 44, 0.05); */
 
-  @media (max-width: 768px) {
+  @media (max-width: 640px) {
     padding: 18px;
   }
 `;
@@ -233,12 +233,9 @@ const AddPlaceCard = styled.button`
   }
 
   @media (max-width: 1024px) {
-    height: 240px;
+    height: 191px;
     flex-direction: row;
     padding: 16px;
-  }
-  @media (max-width: 768px) {
-    height: 191px;
   }
 `;
 
@@ -261,7 +258,7 @@ const FavoriteGrid = styled.div`
   @media (max-width: 1024px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  @media (max-width: 768px) {
+  @media (max-width: 640px) {
     grid-template-columns: 1fr;
   }
 `;
@@ -283,7 +280,7 @@ const FavoriteCard = styled.article`
   flex-direction: column;
   overflow: hidden;
   border-radius: 14px;
-  background: #fcfaf5;
+  background: #fffefc;
   border: 1px solid #e9e4da;
   cursor: pointer;
 
@@ -336,7 +333,7 @@ const FavoriteBody = styled.div`
   gap: 4px;
   padding: 16px;
 
-  @media (max-width: 768px) {
+  @media (max-width: 640px) {
     height: fit-content;
     padding: 14px;
   }
@@ -363,7 +360,7 @@ const FavoriteTitle = styled.h4`
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.2;
-  @media (max-width: 768px) {
+  @media (max-width: 640px) {
     font-size: 1.25rem;
   }
 `;
@@ -377,7 +374,7 @@ const FavoriteImage = styled.img`
   @media (max-width: 1024px) {
     height: 140px;
   }
-  @media (max-width: 768px) {
+  @media (max-width: 640px) {
     height: 100px;
   }
 `;
@@ -389,7 +386,7 @@ const FavoriteMeta = styled.p`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  @media (max-width: 768px) {
+  @media (max-width: 640px) {
     font-size: 0.65rem;
   }
 `;
@@ -402,7 +399,7 @@ const FavoriteTags = styled.p`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  @media (max-width: 768px) {
+  @media (max-width: 640px) {
     font-size: 0.65rem;
   }
 `;
