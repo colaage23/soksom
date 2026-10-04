@@ -1,27 +1,21 @@
-import { useState } from "react";
 import styled from "styled-components";
 import { FavoritePlacesSection } from "./components/FavoritePlacesSection";
 import { MypageSidebar } from "./components/MypageSidebar";
 import { RecentPlacesSection } from "./components/RecentPlacesSection";
 import { TripScheduleSection } from "./components/TripScheduleSection";
+import { WithdrawalFooter } from "./components/WithdrawalFooter";
 
 const Mypage = () => {
-  const [selectedSection, setSelectedSection] = useState<
-    "recent" | "favorites" | "trips"
-  >("recent");
-
   return (
     <PageShell>
       <PageInner>
         <DashboardGrid>
-          <MypageSidebar
-            selectedSection={selectedSection}
-            onSelectSection={setSelectedSection}
-          />
+          <MypageSidebar />
           <RecentPlacesSection />
           <FavoritePlacesSection />
           <TripScheduleSection />
         </DashboardGrid>
+        <WithdrawalFooter />
       </PageInner>
     </PageShell>
   );
@@ -34,7 +28,7 @@ const PageShell = styled.div`
   overflow-x: hidden;
   overflow-y: visible;
   min-height: calc(100vh - 72px);
-  padding: 24px 20px 72px;
+  padding: 24px 20px 32px;
   background: #f6f2e9;
 
   @media (max-width: 768px) {
