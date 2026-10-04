@@ -29,7 +29,7 @@ export const RecentPlacesSection = () => {
   const navigate = useNavigate();
   const { data: recentSearchPlaces = [], isLoading: isRecentLoading } =
     useGetRecentSearchPlaces();
-  const previewRecentPlaces = recentSearchPlaces.slice(0, 2);
+  const previewRecentPlaces = recentSearchPlaces.slice(0, 3);
 
   const handleMoveToPlace = (title: string, contentId: string) => {
     const searchParams = new URLSearchParams({ keyword: title });
@@ -134,11 +134,11 @@ export const RecentPlacesSection = () => {
 
 const SectionBlock = styled.section`
   scroll-margin-top: 92px;
-  padding: 22px;
-  border: 1px solid rgba(36, 149, 155, 0.08);
+  padding: 8px 22px;
+  /* border: 1px solid rgba(36, 149, 155, 0.08);
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.84);
-  box-shadow: 0 20px 38px rgba(35, 49, 44, 0.05);
+  box-shadow: 0 20px 38px rgba(35, 49, 44, 0.05); */
 
   @media (max-width: 768px) {
     padding: 18px;
@@ -162,7 +162,7 @@ const SectionTitle = styled.h3`
   margin: 0;
   color: #24302a;
   font-size: 1.3rem;
-  font-weight: 800;
+  font-weight: 700;
 `;
 
 const SectionLink = styled.button`
@@ -173,14 +173,22 @@ const SectionLink = styled.button`
   background: transparent;
   color: ${colors.main};
   font-size: 0.92rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
+
+  svg {
+    transition: transform 0.2s ease;
+  }
+
+  &:hover svg {
+    transform: translateX(4px);
+  }
 `;
 
 const RecentGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) 0.55fr;
+  gap: 12px;
 
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
@@ -190,26 +198,34 @@ const RecentGrid = styled.div`
 const MiniCard = styled.article`
   display: grid;
   grid-template-columns: 76px 1fr;
-  gap: 14px;
-  min-height: 154px;
-  padding: 16px;
-  border-radius: 20px;
-  background: linear-gradient(180deg, #fbfdfb 0%, #f6faf7 100%);
-  border: 1px solid rgba(36, 149, 155, 0.08);
+  gap: 16px;
+  height: 98px;
+  padding: 10px;
+  border-radius: 14px;
+  background: #fcfaf5;
+  border: 1px solid #e9e4da;
   cursor: pointer;
 
-  &:focus-visible {
+  /* &:focus-visible {
     outline: 2px solid ${colors.main};
     outline-offset: 2px;
+  } */
+
+  transition: border-color 0.3s ease;
+
+  &:hover {
+    border-color: rgba(12, 151, 153, 0.5);
   }
 `;
 
 const MiniCardVisual = styled.div`
+  aspect-ratio: 1 / 1;
+
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: 18px;
+  border-radius: 8px;
   background: linear-gradient(
     180deg,
     rgba(36, 149, 155, 0.12),
@@ -231,45 +247,71 @@ const MiniCardText = styled.div`
 `;
 
 const MiniCardTitle = styled.h4`
-  margin: 0;
+  margin: 0 0 6px 0;
   color: #24302a;
-  font-size: 1.1rem;
+  font-size: 1.125rem;
+  letter-spacing: -0.5px;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 const MiniCardMeta = styled.p`
   margin: 0;
   color: #8b9892;
-  font-size: 0.88rem;
+  font-size: 0.75rem;
+  line-height: 1;
 `;
 
 const RecentTags = styled.p`
   margin: 0;
   color: #93a19b;
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 const HighlightCard = styled.article`
-  display: grid;
-  align-content: center;
-  gap: 12px;
-  min-height: 154px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 7px;
+
+  min-height: 98px;
   padding: 18px;
-  border-radius: 20px;
-  background: linear-gradient(145deg, #156c6f, ${colors.main});
+
+  border-radius: 16px;
+  border: 1px solid rgba(12, 151, 153, 0.18);
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(255, 255, 255, 0.2),
+      transparent 45%
+    ),
+    linear-gradient(145deg, rgba(12, 151, 153, 0.92), rgba(36, 149, 155, 0.78));
+
   color: white;
+  box-shadow: 0 8px 20px rgba(12, 151, 153, 0.12);
 `;
 
 const HighlightNumber = styled.strong`
-  font-size: 3rem;
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -1px;
   line-height: 1;
 `;
 
 const HighlightText = styled.p`
   margin: 0;
-  color: rgba(255, 255, 255, 0.84);
-  font-size: 0.96rem;
-  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: -0.2px;
 `;
 
 const RecentEmptyCard = styled.article`
