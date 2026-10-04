@@ -1,4 +1,12 @@
-import { ChevronRight, LogOut, UserRound, X } from "lucide-react";
+import {
+  BookOpen,
+  ChevronLeft,
+  House,
+  LogOut,
+  Telescope,
+  UserRound,
+  type LucideIcon,
+} from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import colors from "../../constants/colors";
@@ -11,6 +19,12 @@ import { AUTH_PROVIDER_LOGO } from "../../constants/authProvider";
 type HamburgerProps = {
   isOpen: boolean;
   onClose: () => void;
+};
+
+const NAV_ICONS: Record<string, LucideIcon> = {
+  홈: House,
+  탐색: Telescope,
+  "이용 가이드": BookOpen,
 };
 
 const Hamburger = ({ isOpen, onClose }: HamburgerProps) => {
@@ -48,17 +62,6 @@ const Hamburger = ({ isOpen, onClose }: HamburgerProps) => {
         onClick={handleClose}
       />
       <Panel id="mobile-menu" $isOpen={isOpen} aria-label="모바일 메뉴">
-        <PanelHeader>
-          <PanelTitle>메뉴</PanelTitle>
-          <CloseButton
-            type="button"
-            onClick={handleClose}
-            aria-label="메뉴 닫기"
-          >
-            <CloseIcon />
-          </CloseButton>
-        </PanelHeader>
-
         {isLoggedIn && (
           <ProfileSection
             type="button"
@@ -100,17 +103,27 @@ const Hamburger = ({ isOpen, onClose }: HamburgerProps) => {
           </ProfileSection>
         )}
 
+        <OverviewText>메뉴</OverviewText>
         <NavList>
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              $isActive={pathname === item.path}
-              onClick={handleClose}
-            >
-              {item.label}
-            </NavLink>
-          ))}
+          {navItems.map((item) => {
+            const isActive = pathname === item.path;
+            const Icon = NAV_ICONS[item.label];
+
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                $isActive={isActive}
+                aria-current={isActive ? "page" : undefined}
+                onClick={handleClose}
+              >
+                <NavLabel>
+                  {Icon && <Icon size={18} aria-hidden />}
+                  {item.label}
+                </NavLabel>
+              </NavLink>
+            );
+          })}
         </NavList>
 
         <BottomSection>
@@ -172,9 +185,8 @@ const Panel = styled.aside<{ $isOpen: boolean }>`
     position: absolute;
     top: 0;
     right: 0;
-    width: min(82vw, 320px);
+    width: min(82vw, 260px);
     height: 100%;
-    padding: 20px 18px 24px;
     background: rgba(255, 255, 255, 0.98);
     box-shadow: -18px 0 40px rgba(15, 23, 42, 0.18);
     transform: ${({ $isOpen }) =>
@@ -184,54 +196,64 @@ const Panel = styled.aside<{ $isOpen: boolean }>`
   }
 `;
 
-const PanelHeader = styled.div`
+const OverviewText = styled.p`
+  height: 32px;
+
   display: flex;
+  justify-content: start;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-`;
-
-const PanelTitle = styled.h2`
   margin: 0;
-  color: #111827;
-  font-size: 1rem;
-  font-weight: 700;
-`;
+  padding: 0 0 0 16px;
 
-const CloseButton = styled.button`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 0;
-  border-radius: 999px;
-  background: #f3f4f6;
-  color: #111827;
-`;
+  color: #b8af9f;
 
-const CloseIcon = styled(X)`
-  width: 18px;
-  height: 18px;
-  stroke-width: 2.4;
+  font-size: 12px;
 `;
 
 const NavList = styled.nav`
-  display: grid;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  padding: 0px 8px 0 8px;
+  cursor: pointer;
+`;
+
+const NavLabel = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+
+  svg {
+    flex-shrink: 0;
+    stroke-width: 2;
+  }
 `;
 
 const NavLink = styled(Link)<{ $isActive: boolean }>`
+  position: relative;
   display: flex;
   align-items: center;
-  min-height: 52px;
-  padding: 0 16px;
-  border-radius: 16px;
-  background: ${({ $isActive }) => ($isActive ? "#e8f6f5" : "#f9fafb")};
-  color: ${({ $isActive }) => ($isActive ? colors.main : "#1f2937")};
+  justify-content: start;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 0 0 10px;
+  color: ${({ $isActive }) => ($isActive ? "#0C9799" : "#2a2621")};
+  background-color: ${({ $isActive }) =>
+    $isActive ? "#0c979919" : "transparent"};
+  font-size: 14px;
+  font-weight: 500;
   text-decoration: none;
-  font-size: 1rem;
-  font-weight: 600;
+  transition: background-color 0.2s ease;
+  border-radius: 8px;
+
+  &:hover {
+    background: #0c979919;
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${colors.main};
+    outline-offset: -2px;
+    border-radius: 8px;
+  }
 `;
 
 const BottomSection = styled.div`
@@ -269,18 +291,18 @@ const ProfileSection = styled.button`
 
   width: 100%;
 
-  padding: 0 0 20px;
-  margin-bottom: 20px;
+  padding: 16px 20px 16px 16px;
+  margin-bottom: 8px;
 
   border: none;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #efebe3;
   background: transparent;
 
   cursor: pointer;
   transition: opacity 0.15s ease;
 
   &:hover {
-    opacity: 0.7;
+    opacity: 0.8;
   }
 `;
 
@@ -292,20 +314,20 @@ const ProfileRow = styled.div`
   min-width: 0;
 `;
 
-const ProfileArrowIcon = styled(ChevronRight)`
+const ProfileArrowIcon = styled(ChevronLeft)`
   width: 18px;
   height: 18px;
   flex-shrink: 0;
 
-  stroke: #9ca3af;
+  stroke: #c4bdb0;
   stroke-width: 2.2;
 `;
 
 const ProfileImage = styled.img`
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
 
-  border-radius: 50%;
+  border-radius: 16px;
   object-fit: cover;
 
   background-color: #f5f2eb;
@@ -315,7 +337,7 @@ const ProfileTextBox = styled.div`
   display: flex;
   align-items: start;
   flex-direction: column;
-  gap: 2px;
+  gap: 5px;
 
   min-width: 0;
 `;
@@ -326,8 +348,8 @@ const ProfileNickname = styled.span`
   gap: 6px;
 
   color: #111827;
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
 
   white-space: nowrap;
   overflow: hidden;
@@ -343,7 +365,8 @@ const ProviderLogo = styled.img`
 
 const ProfileEmail = styled.span`
   color: #6b7280;
-  font-size: 0.8125rem;
+  font-size: 12px;
+  font-weight: 300;
 
   white-space: nowrap;
   overflow: hidden;
@@ -351,28 +374,34 @@ const ProfileEmail = styled.span`
 `;
 
 const LogoutButton = styled.button`
-  width: 100%;
   min-height: 48px;
 
   display: flex;
   align-items: center;
   gap: 8px;
-  justify-content: center;
+  justify-content: start;
 
   margin-top: auto;
 
-  padding: 0 16px;
+  padding: 16px 8px 16px 10px;
+  margin: 8px;
 
   border: 0;
-  border-radius: 14px;
+  border-radius: 10px;
   background: transparent;
+  transition: all 0.2s ease;
 
-  color: #ef4444;
+  color: #2a2621;
 
-  font-size: 0.9375rem;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 500;
 
   cursor: pointer;
+
+  &:hover {
+    color: #ef4444;
+    background-color: rgba(239, 68, 68, 0.1);
+  }
 `;
 
 const ProfileImagePlaceholder = styled.div`
