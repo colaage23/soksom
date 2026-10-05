@@ -3,6 +3,7 @@ import {
   ChevronRight,
   Ellipsis,
   MoreVertical,
+  Plus,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -251,44 +252,48 @@ export const TripScheduleSection = () => {
           }
         }}
       >
-        <UpcomingVisual $index={index}>
-          <UpcomingVisualTitle>{trip.tripName}</UpcomingVisualTitle>
-          <TripMenuWrapper
-            ref={trip.tripId === openMenuTripId ? openMenuContainerRef : null}
-          >
-            <TripMenuButton
-              type="button"
-              aria-label="일정 메뉴 열기"
-              onClick={(event) => handleToggleTripMenu(event, trip.tripId)}
-            >
-              <MoreVertical size={17} />
-            </TripMenuButton>
-            {openMenuTripId === trip.tripId && (
-              <TripMenuDropdown>
-                {showEdit && (
-                  <TripMenuEditButton
-                    type="button"
-                    onClick={(event) => handleEditTrip(event, trip.tripId)}
-                  >
-                    일정 수정
-                  </TripMenuEditButton>
-                )}
-                <TripMenuDeleteButton
-                  type="button"
-                  onClick={(event) => handleDeleteTrip(event, trip.tripId)}
-                >
-                  일정 삭제
-                </TripMenuDeleteButton>
-              </TripMenuDropdown>
-            )}
-          </TripMenuWrapper>
-        </UpcomingVisual>
         <UpcomingImage src={tripImage} alt="" />
         <UpcomingBody>
-          <UpcomingMeta>
-            {formatTripDateRange(trip.startDate, trip.endDate)}
-          </UpcomingMeta>
-          <UpcomingMeta>{trip.cnt}개 장소</UpcomingMeta>
+          <UpcomingVisual>
+            <UpcomingInfo>
+              <UpcomingVisualTitle>{trip.tripName}</UpcomingVisualTitle>
+              <UpcomingMeta>
+                {formatTripDateRange(trip.startDate, trip.endDate)}
+              </UpcomingMeta>
+            </UpcomingInfo>
+
+            <TripMenuWrapper
+              ref={trip.tripId === openMenuTripId ? openMenuContainerRef : null}
+            >
+              <TripMenuButton
+                type="button"
+                aria-label="일정 메뉴 열기"
+                onClick={(event) => handleToggleTripMenu(event, trip.tripId)}
+              >
+                <MoreVertical size={18} />
+              </TripMenuButton>
+              {openMenuTripId === trip.tripId && (
+                <TripMenuDropdown>
+                  {showEdit && (
+                    <TripMenuEditButton
+                      type="button"
+                      onClick={(event) => handleEditTrip(event, trip.tripId)}
+                    >
+                      일정 수정
+                    </TripMenuEditButton>
+                  )}
+                  <TripMenuDeleteButton
+                    type="button"
+                    onClick={(event) => handleDeleteTrip(event, trip.tripId)}
+                  >
+                    일정 삭제
+                  </TripMenuDeleteButton>
+                </TripMenuDropdown>
+              )}
+            </TripMenuWrapper>
+          </UpcomingVisual>
+
+          <UpcomingMeta $accent>{trip.cnt}개 장소</UpcomingMeta>
         </UpcomingBody>
       </UpcomingCard>
     );
@@ -354,14 +359,16 @@ export const TripScheduleSection = () => {
         {selectedTripFilter === "전체" && !isTripLoading && !isTripError && (
           <>
             <TripGroupTitle>진행 예정</TripGroupTitle>
-            <TripGroupGrid $hasMore={upcomingTrips.length > 3}>
+            <TripGroupGrid $hasMore={upcomingTrips.length > 4}>
               {upcomingTrips.length > 0 ? (
                 upcomingTrips
-                  .slice(0, 3)
+                  .slice(0, 4)
                   .map((trip, index) => renderTripCard(trip, index, true))
               ) : (
                 <AddTripCard type="button" onClick={() => navigate("/map")}>
-                  <AddCircle>+</AddCircle>
+                  <AddCircle>
+                    <Plus size={18} strokeWidth={3} />
+                  </AddCircle>
                   일정 추가하기
                 </AddTripCard>
               )}
@@ -382,9 +389,9 @@ export const TripScheduleSection = () => {
                 <TripGroupTitle>지난 여행</TripGroupTitle>
                 <TripGroupGrid $hasMore={pastTrips.length > 3}>
                   {pastTrips
-                    .slice(0, 3)
+                    .slice(0, 4)
                     .map((trip, index) => renderTripCard(trip, index))}
-                  {pastTrips.length > 3 && (
+                  {pastTrips.length > 4 && (
                     <TripGroupMoreButton
                       type="button"
                       title="지난 여행 전체 보기"
@@ -412,7 +419,9 @@ export const TripScheduleSection = () => {
           selectedTripFilter === "진행 예정" &&
           visibleTrips.length === 0 && (
             <AddTripCard type="button" onClick={() => navigate("/map")}>
-              <AddCircle>+</AddCircle>
+              <AddCircle>
+                <Plus size={18} strokeWidth={3} />
+              </AddCircle>
               일정 추가하기
             </AddTripCard>
           )}
@@ -460,12 +469,12 @@ export const TripScheduleSection = () => {
 const SectionBlock = styled.section`
   scroll-margin-top: 92px;
   padding: 22px;
-  border: 1px solid rgba(36, 149, 155, 0.08);
+  /* border: 1px solid rgba(36, 149, 155, 0.08);
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.84);
-  box-shadow: 0 20px 38px rgba(35, 49, 44, 0.05);
+  box-shadow: 0 20px 38px rgba(35, 49, 44, 0.05); */
 
-  @media (max-width: 768px) {
+  @media (max-width: 640px) {
     padding: 18px;
   }
 `;
@@ -477,9 +486,9 @@ const SectionHeader = styled.div`
   gap: 14px;
   margin-bottom: 16px;
 
-  @media (max-width: 640px) {
-    align-items: flex-start;
+  @media (max-width: 480px) {
     flex-direction: column;
+    align-items: start;
   }
 `;
 
@@ -487,7 +496,7 @@ const SectionTitle = styled.h3`
   margin: 0;
   color: #24302a;
   font-size: 1.3rem;
-  font-weight: 800;
+  font-weight: 700;
 `;
 
 const SegmentedTabs = styled.div`
@@ -497,8 +506,16 @@ const SegmentedTabs = styled.div`
   align-items: center;
   flex: 0 0 auto;
   padding: 0px 4px;
-  border-radius: 999px;
-  background: #f3f6f2;
+  border-radius: 20px;
+  background: #e9e4da;
+
+  @media (max-width: 640px) {
+    border-radius: 18px;
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+  }
 `;
 
 const SegmentIndicator = styled.div<{ $selectedIndex: number }>`
@@ -507,25 +524,33 @@ const SegmentIndicator = styled.div<{ $selectedIndex: number }>`
   left: 4px;
   width: calc((100% - 8px) / 3);
   height: calc(100% - 8px);
-  border-radius: 999px;
+  border-radius: 16px;
   background: ${colors.main};
   transform: translateX(${({ $selectedIndex }) => `${$selectedIndex * 100}%`});
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  @media (max-width: 640px) {
+    border-radius: 14px;
+  }
 `;
 
 const SegmentChip = styled.button<{ $active?: boolean }>`
   position: relative;
   z-index: 1;
   min-width: 0;
-  padding: 12px 14px;
+  padding: 14px 16px;
   border: 0;
-  border-radius: 999px;
+  border-radius: 16px;
   background: transparent;
-  color: ${({ $active }) => ($active ? "white" : "#7d8782")};
-  font-size: 0.82rem;
-  font-weight: 600;
+  color: ${({ $active }) => ($active ? "white" : "#b8b1a2")};
+  font-size: 0.875rem;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
+
+  @media (max-width: 640px) {
+    padding: 12px 12px;
+    border-radius: 14px;
+  }
 `;
 
 const CurrentTrips = styled.div`
@@ -590,10 +615,13 @@ const CurrentTripCarousel = styled.div`
 
 const UpcomingGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 
-  @media (max-width: 960px) {
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (max-width: 640px) {
     grid-template-columns: 1fr;
   }
 `;
@@ -601,20 +629,23 @@ const UpcomingGrid = styled.div`
 const TripGroupTitle = styled.h4`
   grid-column: 1 / -1;
   margin: 8px 0 0;
-  color: #52615a;
+  color: #706e68;
   font-size: 0.95rem;
-  font-weight: 800;
+  font-weight: 600;
 `;
 
 const TripGroupGrid = styled.div<{ $hasMore: boolean }>`
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: ${({ $hasMore }) =>
-    $hasMore ? "repeat(3, minmax(0, 1fr)) 34px" : "repeat(3, minmax(0, 1fr))"};
+    $hasMore ? "repeat(4, minmax(0, 1fr)) 34px" : "repeat(4, minmax(0, 1fr))"};
   align-items: center;
   gap: 14px;
 
-  @media (max-width: 960px) {
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (max-width: 640px) {
     grid-template-columns: 1fr;
   }
 `;
@@ -692,56 +723,118 @@ const PageNumberButton = styled(PageButton)<{ $active: boolean }>`
 `;
 
 const UpcomingCard = styled.article`
-  overflow: hidden;
-  border: 1px solid rgba(36, 149, 155, 0.08);
-  border-radius: 20px;
-  background: white;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e4ddcf;
+  border-radius: 14px;
+  background: #fffefc;
   cursor: pointer;
+
+  transition: border-color 0.3s ease;
 
   &:focus-visible {
     outline: 2px solid ${colors.main};
     outline-offset: 2px;
   }
+
+  &:hover {
+    border-color: rgba(12, 151, 153, 0.5);
+  }
 `;
 
-const UpcomingVisual = styled.div<{ $index: number }>`
+const UpcomingImage = styled.img`
+  display: block;
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  background: #e8e2d4;
+  border-radius: 13px 13px 0 0;
+
+  @media (max-width: 1024px) {
+    height: 140px;
+  }
+  @media (max-width: 640px) {
+    height: 100px;
+  }
+`;
+
+const UpcomingBody = styled.div`
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+
+  @media (max-width: 640px) {
+    height: fit-content;
+    padding: 14px;
+  }
+`;
+
+const UpcomingVisual = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 14px 16px;
-  background: ${({ $index }) =>
-    $index === 0
-      ? "linear-gradient(135deg, rgba(155, 212, 239, 0.6), rgba(241, 250, 255, 0.95))"
-      : "linear-gradient(135deg, rgba(196, 239, 170, 0.6), rgba(248, 252, 244, 0.95))"};
+  gap: 12px;
+`;
+
+const UpcomingInfo = styled.div`
+  min-width: 0;
 `;
 
 const UpcomingVisualTitle = styled.h4`
   margin: 0;
-  overflow: hidden;
-  color: #245f62;
-  font-size: 1rem;
-  text-overflow: ellipsis;
+  padding-bottom: 4px;
+  color: #222;
+  font-size: 1.5rem;
+  font-family: Gowun Batang;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+
+  @media (max-width: 640px) {
+    font-size: 1.25rem;
+  }
+`;
+
+const UpcomingMeta = styled.p<{ $accent?: boolean }>`
+  margin: 0;
+  color: ${({ $accent }) => ($accent ? "#666" : "#888")};
+  font-size: 0.75rem;
+  font-weight: ${({ $accent }) => ($accent ? 500 : 400)};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (max-width: 640px) {
+    font-size: 0.65rem;
+  }
 `;
 
 const TripMenuWrapper = styled.div`
   position: relative;
   flex: 0 0 auto;
+  align-self: start;
 `;
 
 const TripMenuButton = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 17px;
-  height: 17px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   border: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0);
-  color: #245f62;
+  border-radius: 12px;
+  background: transparent;
+  color: #6f6a60;
   cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: rgba(241, 236, 226, 0.5);
+  }
 `;
 
 const TripMenuDropdown = styled.div`
@@ -750,7 +843,7 @@ const TripMenuDropdown = styled.div`
   right: 0;
   z-index: 10;
   overflow: hidden;
-  border: 1px solid rgba(36, 149, 155, 0.14);
+  border: 1px solid #e4ddcf;
   border-radius: 12px;
   background: white;
   box-shadow: 0 12px 24px rgba(35, 49, 44, 0.14);
@@ -759,7 +852,7 @@ const TripMenuDropdown = styled.div`
 const TripMenuEditButton = styled.button`
   padding: 10px 16px;
   border: 0;
-  border-bottom: 1px solid rgba(36, 149, 155, 0.1);
+  border-bottom: 1px solid #e4ddcf;
   background: white;
   color: #245f62;
   font-size: 0.85rem;
@@ -787,42 +880,35 @@ const TripMenuDeleteButton = styled.button`
   }
 `;
 
-const UpcomingBody = styled.div`
-  display: grid;
-  gap: 8px;
-  padding: 16px;
-  color: ${colors.main};
-`;
-
-const UpcomingImage = styled.img`
-  display: block;
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-`;
-
-const UpcomingMeta = styled.p`
-  margin: 0;
-  color: #7f8d86;
-  font-size: 0.9rem;
-`;
-
 const AddTripCard = styled.button`
-  display: grid;
-  place-items: center;
-  gap: 12px;
-  min-height: 100%;
+  height: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   padding: 18px;
-  border: 1px dashed rgba(36, 149, 155, 0.18);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.66);
-  color: #8b9892;
-  font-size: 0.95rem;
-  font-weight: 700;
+  border: 1px dashed rgba(12, 151, 153, 0.3);
+  border-radius: 14px;
+  background: rgba(252, 250, 245, 0.5);
+  color: #7d8a84;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
 
-  @media (max-width: 960px) {
-    min-height: 140px;
+  &:hover {
+    border-color: rgba(12, 151, 153, 0.5);
+    color: ${colors.main};
+  }
+
+  @media (max-width: 1024px) {
+    flex-direction: row;
+    padding: 16px;
+    height: 191px;
   }
 `;
 

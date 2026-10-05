@@ -122,16 +122,18 @@ const SpotCardContainer = styled.div<{ $isActive: boolean }>`
   padding: 12px;
   margin: 0px 16px 0;
 
-  border: 1px solid ${({ $isActive }) => ($isActive ? "#72c9c3" : "#f5f2eb")};
+  border: 1px solid
+    ${({ $isActive }) => ($isActive ? "rgba(12, 151, 153, 0.35)" : "#f5f2eb")};
   border-radius: 1rem;
 
-  background-color: ${({ $isActive }) => ($isActive ? "#e5faf8" : "#fdfcf8")};
+  background-color: ${({ $isActive }) =>
+    $isActive ? "rgba(229, 250, 248, 0.8)" : "#fffefd"};
 
   transition: 0.15s border cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
     cursor: pointer;
-    border: 1px solid #72c9c3;
+    border: 1px solid rgba(12, 151, 153, 0.35);
   }
 
   &:hover ${ArrowButton} {
@@ -194,10 +196,12 @@ const IconButton = styled.button<{ $active?: boolean }>`
 
   &:hover {
     cursor: pointer;
+    background-color: ${({ $active }) => ($active ? "#fffafccc" : "#f77036")};
   }
 
   &:hover ${LikeIcon} {
-    stroke: ${({ $active }) => ($active ? "none" : "#f77036")};
+    stroke: ${({ $active }) => ($active ? "#999fa6" : "#fdfcf8")};
+    fill: ${({ $active }) => ($active ? "none" : "#fdfcf8")};
   }
 `;
 
@@ -262,7 +266,7 @@ const CongestionBadge = styled.div`
 
   padding: 4px 8px;
 
-  border-radius: 30px;
+  border-radius: 10px;
 
   color: #20201f;
   font-size: 0.6875rem;

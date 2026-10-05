@@ -74,12 +74,6 @@ const SpotDetail = ({ spot }: ISpotDetailProps) => {
 
   const status = getCongestionStyle(rawRate);
 
-  console.log({
-    congestionLevel,
-    contentid: spot?.contentid,
-    title: spot?.title,
-  });
-
   const { data: alternativeSpots, isLoading: isAlternativeLoading } =
     useAlternativeSpots({
       keyword: spot?.title ?? "",
@@ -97,10 +91,8 @@ const SpotDetail = ({ spot }: ISpotDetailProps) => {
 
   if (!spotDetail) return null;
 
-  // const status = congestionStyle[spotDetail?.congestion];
   const isLongText = spotDetail?.common?.overview?.length > 80;
 
-  // 콘텐츠 타입(관광지/쇼핑 등)에 따라 intro 필드명이 다르게 내려와서 통일
   const useTimeInfo = spotDetail?.intro?.usetime || spotDetail?.intro?.opentime;
   const parkingInfo =
     spotDetail?.intro?.parking || spotDetail?.intro?.parkingshopping;
@@ -111,14 +103,13 @@ const SpotDetail = ({ spot }: ISpotDetailProps) => {
   const saleItemInfo = spotDetail?.intro?.saleitem;
   const restroomInfo = spotDetail?.intro?.restroom;
   const homepageInfo = spotDetail?.common?.homepage;
-  // homepage는 API마다 형태가 달라서 두 케이스 모두 처리:
-  // 1) <a href="...">...</a> 형태의 HTML 문자열
-  // 2) "http://..." 같은 순수 URL 문자열
+
+  // homepage는 API마다 달라서 두 케이스(HTML, URL) 모두 처리.
   const homepageUrl =
     homepageInfo?.match(/href=["']([^"']+)["']/)?.[1] ||
     (homepageInfo?.startsWith("http") ? homepageInfo : undefined);
 
-  // 문자열 안의 전화번호를 tel: 링크로 감싸서 실제 전화 연결 가능하게 처리
+  // tel: 링크로 감싸서 실제 전화 연결 가능하게 처리.
   const linkifyPhoneNumbers = (html?: string) => {
     if (!html) return html;
     return html.replace(
@@ -126,10 +117,6 @@ const SpotDetail = ({ spot }: ISpotDetailProps) => {
       (match) => `<a href="tel:${match.replace(/-/g, "")}">${match}</a>`,
     );
   };
-
-  // 숙박(contenttypeid: 32)은 info[] 안에 infoname/infotext가 아니라
-  // roomtitle 등 객실 전용 필드가 내려오므로 별도 카드로 렌더링
-  const isRoomInfo = spotDetail?.info?.some((item) => !!item.roomtitle);
 
   const handleAddToPlan = () => {
     if (isLoggedIn) toggleWayPoint(spot);
@@ -345,7 +332,7 @@ const SpotDetail = ({ spot }: ISpotDetailProps) => {
           )}
         </InfoContainer>
 
-        {spotDetail?.info?.length > 0 && !isRoomInfo && (
+        {spotDetail?.info?.length > 0 && (
           <InfoListBox>
             <OverviewTitle style={{ gridColumn: "1 / -1" }}>
               상세 안내

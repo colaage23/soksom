@@ -261,7 +261,7 @@ const CongestionBadge = styled.span<{ $bg: string; $color: string }>`
   flex-shrink: 0;
 
   padding: 2px 7px;
-  border-radius: 999px;
+  border-radius: 10px;
 
   background: ${({ $bg }) => $bg};
   color: ${({ $color }) => $color};

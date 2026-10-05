@@ -10,7 +10,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import fallbackImage from "../../../assets/fallback.png";
-import colors from "../../../constants/colors";
 import { useJejuWeather } from "../../../hooks/useJejuWeather";
 import { useGetFavoriteSpots } from "../../../hooks/favorite/useGetFavoriteSpots";
 import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
@@ -159,13 +158,20 @@ const WeatherSection = () => {
             ) : (
               <>
                 {places.map((place) => (
-                  <SpotCard key={place.contentid} $isWide={places.length === 1}>
+                  <SpotCard
+                    key={place.contentid}
+                    $isWide={places.length === 1}
+                    onClick={() =>
+                      handleMoveToSpot(place.title, place.contentid)
+                    }
+                  >
                     <SpotImage $image={place.firstimage || fallbackImage}>
                       <FavoriteButton
                         type="button"
                         disabled={isFavoritePending || !place.favoriteId}
                         aria-label={`${place.title} 즐겨찾기 해제`}
-                        onClick={() => {
+                        onClick={(event) => {
+                          event.stopPropagation();
                           if (place.favoriteId) {
                             toggleFavorite(place, place.favoriteId);
                           }
@@ -184,13 +190,7 @@ const WeatherSection = () => {
                         </SpotArea>
                         <SpotName>{place.title}</SpotName>
                       </SpotText>
-                      <SpotAction
-                        type="button"
-                        aria-label={`${place.title} 보기`}
-                        onClick={() =>
-                          handleMoveToSpot(place.title, place.contentid)
-                        }
-                      >
+                      <SpotAction aria-label={`${place.title} 보기`}>
                         <ArrowUpRight size={16} />
                       </SpotAction>
                     </SpotBody>
@@ -289,15 +289,15 @@ const ContentGrid = styled.div`
 
 const WeatherCard = styled.article`
   padding: 32px 30px 30px;
-  border-radius: 38px;
+  border-radius: 18px;
   color: #f6faf8;
   background:
     radial-gradient(
-      circle at top right,
-      rgba(88, 177, 176, 0.42),
-      transparent 26%
+      circle at 100% 0%,
+      rgba(255, 255, 255, 0.2),
+      transparent 45%
     ),
-    linear-gradient(160deg, ${colors.main} 0%, #136f72 100%);
+    linear-gradient(145deg, rgba(12, 151, 153, 0.92), rgba(36, 149, 155, 0.78));
   box-shadow: 0 24px 44px rgba(28, 104, 102, 0.18);
 
   @media (max-width: 768px) {
@@ -332,8 +332,8 @@ const WeatherIconWrap = styled.div`
   place-items: center;
   width: 92px;
   height: 92px;
-  border-radius: 26px;
-  background: rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.25);
 
   svg {
     width: 40px;
@@ -385,7 +385,7 @@ const WeatherDetails = styled.p`
 const ForecastStrip = styled.div`
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 8px;
+  gap: 4px;
 
   @media (max-width: 480px) {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -397,7 +397,7 @@ const ForecastItem = styled.div`
   justify-items: center;
   gap: 8px;
   padding: 12px 6px;
-  border-radius: 16px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.08);
   color: rgba(246, 250, 248, 0.92);
 `;
@@ -475,45 +475,14 @@ const PlacesMessageButton = styled.button`
 const SpotCard = styled.article<{ $isWide: boolean }>`
   grid-column: ${({ $isWide }) => ($isWide ? "span 2" : "span 1")};
   overflow: hidden;
-  border-radius: 26px;
+  border: 1px solid #e4ddcf;
+  border-radius: 18px;
   background: rgba(255, 251, 245, 0.92);
   box-shadow: 0 18px 36px rgba(89, 71, 46, 0.08);
+  cursor: pointer;
 
   @media (max-width: 900px) {
     grid-column: span 1;
-  }
-`;
-
-const SpotImage = styled.div<{ $image: string }>`
-  position: relative;
-  min-height: 320px;
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.08)),
-    url(${({ $image }) => $image}) center center / cover no-repeat;
-
-  @media (max-width: 900px) {
-    min-height: 280px;
-  }
-`;
-
-const FavoriteButton = styled.button`
-  position: absolute;
-  right: 14px;
-  top: 14px;
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(255, 251, 245, 0.96);
-  color: #ff7b3d;
-  box-shadow: 0 10px 24px rgba(50, 35, 18, 0.12);
-  cursor: pointer;
-
-  &:disabled {
-    cursor: wait;
-    opacity: 0.6;
   }
 `;
 
@@ -523,6 +492,83 @@ const SpotBody = styled.div`
   justify-content: space-between;
   gap: 16px;
   padding: 16px 18px 20px;
+  border-top: 1px solid #e4ddcf;
+`;
+
+const SpotImage = styled.div<{ $image: string }>`
+  position: relative;
+  min-height: 320px;
+  overflow: hidden;
+  isolation: isolate;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(180deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.08)),
+      url(${({ $image }) => $image}) center center / cover no-repeat;
+    transition: transform 0.7s cubic-bezier(0.2, 0.6, 0.2, 1);
+  }
+
+  ${SpotCard}:hover &::before {
+    transform: scale(1.05);
+  }
+
+  @media (max-width: 900px) {
+    min-height: 280px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::before {
+      transition: none;
+    }
+  }
+`;
+
+const FavoriteButton = styled.button`
+  position: absolute;
+  right: 14px;
+  top: 14px;
+
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  outline: none;
+  border: none;
+  border-radius: 30px;
+
+  background-color: #f77036;
+
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    stroke: none;
+    fill: #fdfcf8;
+    stroke-width: 2;
+  }
+
+  &:hover {
+    background-color: #f7f2eb;
+  }
+
+  &:hover svg {
+    stroke: #1b2024;
+    fill: none;
+  }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
 `;
 
 const SpotText = styled.div`
@@ -540,6 +586,26 @@ const SpotAction = styled.button`
   background: #111111;
   color: white;
   cursor: pointer;
+
+  svg {
+    transition: transform 0.25s ease;
+  }
+
+  ${SpotCard}:hover & svg,
+  &:focus-visible svg {
+    transform: translate(2px, -2px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #111111;
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    svg {
+      transition: none;
+    }
+  }
 `;
 
 const SpotArea = styled.p`

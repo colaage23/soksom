@@ -80,6 +80,7 @@ const HotPlaceSection = () => {
                   key={place.hubTatsCd}
                   $featured={isFeatured}
                   $tone="hot"
+                  onClick={() => handleMoveToPlace(place.hubTatsNm)}
                 >
                   <PlaceImage $image={placeImage} $featured={isFeatured}>
                     <CardTop>
@@ -104,11 +105,7 @@ const HotPlaceSection = () => {
                       >
                         관광지 상세 보기
                       </RouteHint>
-                      <ArrowButton
-                        type="button"
-                        aria-label={`${place.hubTatsNm} 상세 보기`}
-                        onClick={() => handleMoveToPlace(place.hubTatsNm)}
-                      >
+                      <ArrowButton aria-label={`${place.hubTatsNm} 상세 보기`}>
                         <ArrowUpRight size={16} />
                       </ArrowButton>
                     </CardFooter>
@@ -168,71 +165,6 @@ const Accent = styled.span`
   color: #ff7d43;
 `;
 
-// const Description = styled.div`
-//   ${homeSectionDescription};
-//   max-width: 760px;
-
-//   p {
-//     margin: 0;
-//   }
-
-//   p + p {
-//     margin-top: 4px;
-//   }
-// `;
-
-// const FilterGroup = styled.div`
-//   display: inline-flex;
-//   align-items: center;
-//   gap: 10px;
-//   margin-top: 58px;
-//   padding: 4px;
-//   border: 1px solid rgba(124, 111, 84, 0.08);
-//   border-radius: 999px;
-//   background: rgba(255, 255, 255, 0.72);
-//   box-shadow: 0 18px 34px rgba(97, 81, 46, 0.08);
-
-//   @media (max-width: 980px) {
-//     margin-top: 0;
-//   }
-
-//   @media (max-width: 480px) {
-//     width: 100%;
-//     justify-content: space-between;
-//   }
-// `;
-
-// const FilterButton = styled.button<{ $active: boolean }>`
-//   display: inline-flex;
-//   align-items: center;
-//   justify-content: center;
-//   gap: 8px;
-//   min-width: 120px;
-//   padding: 10px 16px;
-//   border: 0;
-//   border-radius: 999px;
-//   background: ${({ $active }) => ($active ? colors.main : "transparent")};
-//   color: ${({ $active }) => ($active ? "#f8f6f0" : "#40382d")};
-//   font-size: 0.92rem;
-//   font-weight: 600;
-//   white-space: nowrap;
-//   cursor: pointer;
-//   transition:
-//     background-color 0.2s ease,
-//     color 0.2s ease,
-//     transform 0.2s ease;
-
-//   &:hover {
-//     transform: translateY(-1px);
-//   }
-
-//   @media (max-width: 480px) {
-//     min-width: auto;
-//     flex: 1;
-//     padding: 11px 12px;
-//   }
-// `;
-
 const CardGrid = styled.div`
   display: grid;
   grid-template-columns: 1.8fr 0.9fr;
@@ -262,9 +194,10 @@ const PlaceCard = styled.article<{ $featured?: boolean; $tone: PlaceTone }>`
   height: 470px;
   overflow: hidden;
   border: 1px solid rgba(124, 111, 84, 0.08);
-  border-radius: 34px;
+  border-radius: 24px;
   background: rgba(255, 251, 245, 0.88);
   box-shadow: 0 22px 44px rgba(97, 81, 46, 0.08);
+  cursor: pointer;
 
   ${({ $tone }) => css`
     box-shadow: 0 22px 44px ${toneStyles[$tone].glow};
@@ -280,13 +213,33 @@ const PlaceImage = styled.div<{ $image: string; $featured?: boolean }>`
   position: relative;
   height: 250px;
   padding: 18px;
-  background:
-    linear-gradient(rgba(25, 21, 17, 0.08), rgba(25, 21, 17, 0.08)),
-    url(${({ $image }) => $image}) center center / cover no-repeat;
+  overflow: hidden;
+  isolation: isolate;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(rgba(25, 21, 17, 0.08), rgba(25, 21, 17, 0.08)),
+      url(${({ $image }) => $image}) center center / cover no-repeat;
+    transition: transform 0.7s cubic-bezier(0.2, 0.6, 0.2, 1);
+  }
+
+  ${PlaceCard}:hover &::before {
+    transform: scale(1.05);
+  }
 
   @media (max-width: 768px) {
     height: 220px;
     padding: 14px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::before {
+      transition: none;
+    }
   }
 `;
 
@@ -301,7 +254,7 @@ const TagPill = styled.span<{ $tone: PlaceTone }>`
   display: inline-flex;
   align-items: center;
   padding: 8px 12px;
-  border-radius: 999px;
+  border-radius: 13px;
   background: whitesmoke;
   color: ${({ $tone }) => toneStyles[$tone].pillFg};
   font-size: 0.78rem;
@@ -376,4 +329,20 @@ const ArrowButton = styled.button`
   background: #12100d;
   color: #f8f5ee;
   cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  svg {
+    transition: transform 0.25s ease;
+  }
+
+  ${PlaceCard}:hover & svg {
+    transform: translate(2px, -2px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &,
+    svg {
+      transition: none;
+    }
+  }
 `;
