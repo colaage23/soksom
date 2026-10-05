@@ -168,11 +168,6 @@ const SectionHeader = styled.div`
   justify-content: space-between;
   gap: 14px;
   margin-bottom: 16px;
-
-  @media (max-width: 640px) {
-    align-items: flex-start;
-    flex-direction: column;
-  }
 `;
 
 const SectionTitle = styled.h3`

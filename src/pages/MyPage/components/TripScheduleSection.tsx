@@ -485,6 +485,11 @@ const SectionHeader = styled.div`
   justify-content: space-between;
   gap: 14px;
   margin-bottom: 16px;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: start;
+  }
 `;
 
 const SectionTitle = styled.h3`
@@ -506,6 +511,10 @@ const SegmentedTabs = styled.div`
 
   @media (max-width: 640px) {
     border-radius: 18px;
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
   }
 `;
 
