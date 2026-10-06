@@ -46,7 +46,7 @@ const HeroSectionComp = () => {
           </InfoBadge>
           <InfoBadge $accent>
             <Sparkles size={14} />
-            AI 혼잡도 베타
+            AI 루트 최적화
           </InfoBadge>
         </BadgeRow>
 
@@ -175,7 +175,7 @@ const InfoBadge = styled.div<{ $accent?: boolean }>`
       $accent ? `${colors.main}6b` : "rgba(255, 255, 255, 0.18)"};
   border-radius: 999px;
   background: ${({ $accent }) =>
-    $accent ? `${colors.main}e6` : "rgba(89, 99, 94, 0.28)"};
+    $accent ? `${colors.main}b6` : "rgba(89, 99, 94, 0.28)"};
   color: #f5f0e5;
   font-size: 0.92rem;
   font-weight: 600;
