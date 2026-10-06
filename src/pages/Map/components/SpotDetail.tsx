@@ -1,0 +1,1086 @@
+import styled from "styled-components";
+import {
+  ArrowUpRight,
+  CalendarPlus,
+  CalendarX,
+  Check,
+  Clock,
+  Globe,
+  Heart,
+  LogIn,
+  MoveLeft,
+  Phone,
+  Sparkles,
+  Ticket,
+  Toilet,
+} from "lucide-react";
+import { useState } from "react";
+import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
+import { useWayPointStore } from "../../../stores/useWayPointStore";
+import { useGetSpotDetail } from "../../../hooks/spot/useGetSpotDetail";
+import {
+  getCongestionLevel,
+  getCongestionStyle,
+} from "../../../constants/congestion.utils";
+import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
+import FallBackImage from "../../../assets/fallback.png";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuthStore } from "../../../stores/auth/authStore";
+import type { ISpotListItem } from "../../../types/spot";
+import { useAlternativeSpots } from "../../../hooks/spot/useAlternativeSpots";
+
+interface ISpotDetailProps {
+  spot: ISpotListItem;
+}
+
+const getCurrentBaseYm = () => {
+  const today = new Date();
+  today.setMonth(today.getMonth() - 2);
+  return `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}`;
+};
+
+const SpotDetail = ({ spot }: ISpotDetailProps) => {
+  const navigate = useNavigate();
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const isLoggedIn = Boolean(accessToken);
+
+  const { likedSpotMap } = useLikedSpotStore();
+  const { toggleFavorite, isPending: isFavoritePending } = useToggleFavorite();
+  const likedSpot = spot ? likedSpotMap[spot.contentid] : undefined;
+  const isLiked = Boolean(likedSpot);
+
+  const { toggleWayPoint, isSelected } = useWayPointStore();
+
+  const { data: spotDetail } = useGetSpotDetail({
+    contentid: spot?.contentid ?? "",
+    contenttypeid: spot?.contenttypeid,
+    spotName: spot?.title,
+    areaCd: spot?.lDongRegnCd,
+    signguCd: spot?.lDongSignguCd,
+  });
+
+  const rawRate =
+    spotDetail?.congestion?.cnctrRate ?? spot?.congestion?.cnctrRate ?? null;
+
+  const displayRate =
+    rawRate !== null && rawRate !== undefined
+      ? Math.round(parseFloat(String(rawRate)))
+      : null;
+
+  const congestionLevel = getCongestionLevel(rawRate);
+
+  const status = getCongestionStyle(rawRate);
+
+  const { data: alternativeSpots, isLoading: isAlternativeLoading } =
+    useAlternativeSpots({
+      keyword: spot?.title ?? "",
+      contentId: spot?.contentid ?? "",
+      areaCd: spot?.lDongRegnCd ?? "",
+      signguCd:
+        spot?.lDongRegnCd && spot?.lDongSignguCd
+          ? `${spot.lDongRegnCd}${spot.lDongSignguCd}`
+          : "",
+      baseYm: getCurrentBaseYm(),
+      enabled: congestionLevel === "혼잡",
+    });
+
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  if (!spotDetail) return null;
+
+  const isLongText = spotDetail?.common?.overview?.length > 80;
+
+  const useTimeInfo = spotDetail?.intro?.usetime || spotDetail?.intro?.opentime;
+  const parkingInfo =
+    spotDetail?.intro?.parking || spotDetail?.intro?.parkingshopping;
+  const restDateInfo =
+    spotDetail?.intro?.restdate || spotDetail?.intro?.restdateshopping;
+  const infoCenterInfo =
+    spotDetail?.intro?.infocenter || spotDetail?.intro?.infocentershopping;
+  const saleItemInfo = spotDetail?.intro?.saleitem;
+  const restroomInfo = spotDetail?.intro?.restroom;
+  const homepageInfo = spotDetail?.common?.homepage;
+
+  // homepage는 API마다 달라서 두 케이스(HTML, URL) 모두 처리.
+  const homepageUrl =
+    homepageInfo?.match(/href=["']([^"']+)["']/)?.[1] ||
+    (homepageInfo?.startsWith("http") ? homepageInfo : undefined);
+
+  // tel: 링크로 감싸서 실제 전화 연결 가능하게 처리.
+  const linkifyPhoneNumbers = (html?: string) => {
+    if (!html) return html;
+    return html.replace(
+      /(\d{2,4}-\d{3,4}-\d{4})/g,
+      (match) => `<a href="tel:${match.replace(/-/g, "")}">${match}</a>`,
+    );
+  };
+
+  const handleAddToPlan = () => {
+    if (isLoggedIn) toggleWayPoint(spot);
+  };
+
+  const clampedPosition =
+    displayRate !== null ? Math.min(95, Math.max(5, displayRate)) : null;
+
+  const handleGoToLogin = () => {
+    navigate("/auth");
+  };
+
+  return (
+    <SpotDetailContainer>
+      <SpotHeaderWrapper>
+        <SpotImage
+          draggable={false}
+          src={spotDetail?.common?.firstimage || FallBackImage}
+        />
+
+        <SpotActions>
+          <IconButton
+            onClick={() => {
+              const newParams = new URLSearchParams(searchParams);
+              newParams.delete("contentId");
+              setSearchParams(newParams);
+            }}
+          >
+            <BackIcon />
+          </IconButton>
+
+          <RightGroup>
+            <IconButton
+              $active={isLiked}
+              disabled={isFavoritePending}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isLoggedIn) {
+                  handleGoToLogin();
+                  return;
+                }
+                if (spot) toggleFavorite(spot, likedSpot?.favoriteId);
+              }}
+            >
+              <LikeIcon $active={isLiked} />
+            </IconButton>
+          </RightGroup>
+        </SpotActions>
+
+        <SpotHeader>
+          <SpotName>{spotDetail?.common?.title}</SpotName>
+          <SpotAddress>{spotDetail?.common?.addr1}</SpotAddress>
+        </SpotHeader>
+      </SpotHeaderWrapper>
+
+      <SpotContent>
+        {rawRate !== null ? (
+          <CongestionBox>
+            <CongestionTitle>
+              <span>혼잡도</span>
+              <CongestionBadge
+                style={{
+                  backgroundColor:
+                    congestionLevel === "혼잡"
+                      ? status.bgColor
+                      : `${status.bgColor}65`,
+                  color: status.color,
+                }}
+              >
+                {status.label}
+              </CongestionBadge>
+            </CongestionTitle>
+
+            <ProgressBarWrapper>
+              {clampedPosition !== null && (
+                <RateIndicator
+                  $position={clampedPosition}
+                  $color={status.bgColor}
+                >
+                  <RateLabel $color={status.bgColor}>{displayRate}%</RateLabel>
+                  <RateArrow $color={status.bgColor} />
+                </RateIndicator>
+              )}
+
+              <CongestionProgressBar>
+                <CongestionProgressFill
+                  style={{
+                    backgroundColor: status.bgColor,
+                    width: `${displayRate}%`,
+                  }}
+                />
+              </CongestionProgressBar>
+            </ProgressBarWrapper>
+
+            <CongestionText>
+              <span>0%</span>
+              <span>100%</span>
+            </CongestionText>
+
+            <CongestionDescription>{status.description}</CongestionDescription>
+          </CongestionBox>
+        ) : (
+          <NoCongestionText>
+            ※ 혼잡도 정보를 제공하지 않는 관광지입니다.
+          </NoCongestionText>
+        )}
+
+        <OverviewBox>
+          <OverviewTitle>상세 정보</OverviewTitle>
+          <OverviewDescription $expanded={isExpanded}>
+            {spotDetail?.common?.overview}
+          </OverviewDescription>
+          {isLongText && (
+            <MoreButton onClick={() => setIsExpanded((prev) => !prev)}>
+              {isExpanded ? "접기" : "더보기"}
+            </MoreButton>
+          )}
+        </OverviewBox>
+
+        <InfoContainer>
+          <InfoBox style={{ gridColumn: "1 / -1" }}>
+            <InfoIconBadge>
+              <ClockIcon />
+            </InfoIconBadge>
+            <InfoTitle>이용 시간</InfoTitle>
+            <InfoText
+              dangerouslySetInnerHTML={{
+                __html: useTimeInfo || "-",
+              }}
+            />
+          </InfoBox>
+
+          {parkingInfo && (
+            <InfoBox>
+              <InfoIconBadge>
+                <TicketIcon />
+              </InfoIconBadge>
+              <InfoTitle>주차</InfoTitle>
+              <InfoText>{parkingInfo}</InfoText>
+            </InfoBox>
+          )}
+
+          {restDateInfo && (
+            <InfoBox>
+              <InfoIconBadge>
+                <CalendarXIcon />
+              </InfoIconBadge>
+              <InfoTitle>휴무일</InfoTitle>
+              <InfoText
+                dangerouslySetInnerHTML={{ __html: restDateInfo || "-" }}
+              />
+            </InfoBox>
+          )}
+
+          {infoCenterInfo && (
+            <InfoBox style={{ gridColumn: "1 / -1" }}>
+              <InfoIconBadge>
+                <PhoneIcon />
+              </InfoIconBadge>
+              <InfoTitle>문의처</InfoTitle>
+              <InfoText
+                dangerouslySetInnerHTML={{
+                  __html: linkifyPhoneNumbers(infoCenterInfo) || "",
+                }}
+              />
+            </InfoBox>
+          )}
+
+          {restroomInfo && (
+            <InfoBox>
+              <InfoIconBadge>
+                <ToiletIcon />
+              </InfoIconBadge>
+              <InfoTitle>화장실</InfoTitle>
+              <InfoText>{restroomInfo}</InfoText>
+            </InfoBox>
+          )}
+
+          {saleItemInfo && (
+            <InfoBox style={{ gridColumn: "1 / -1" }}>
+              <InfoIconBadge>
+                <SparklesIcon />
+              </InfoIconBadge>
+              <InfoTitle>판매 품목</InfoTitle>
+              <InfoText>{saleItemInfo}</InfoText>
+            </InfoBox>
+          )}
+
+          {homepageUrl && (
+            <InfoBox style={{ gridColumn: "1 / -1" }}>
+              <InfoIconBadge>
+                <GlobeIcon />
+              </InfoIconBadge>
+              <InfoTitle>홈페이지</InfoTitle>
+              <InfoText>
+                <a href={homepageUrl} target="_blank" rel="noopener noreferrer">
+                  {homepageUrl}
+                </a>
+              </InfoText>
+            </InfoBox>
+          )}
+
+          {spotDetail?.intro?.chkpet && (
+            <InfoBox
+              style={{ gridColumn: "1 / -1", backgroundColor: "#e5faf880" }}
+            >
+              <InfoIconBadge>
+                <SparklesIcon />
+              </InfoIconBadge>
+              <InfoTitle>애완동물 동반</InfoTitle>
+              <InfoText>{spotDetail?.intro?.chkpet}</InfoText>
+            </InfoBox>
+          )}
+        </InfoContainer>
+
+        {spotDetail?.info?.length > 0 && (
+          <InfoListBox>
+            <OverviewTitle style={{ gridColumn: "1 / -1" }}>
+              상세 안내
+            </OverviewTitle>
+            {spotDetail?.info.map((item) => (
+              <InfoListItem key={item.serialnum}>
+                <InfoListLabel>{item.infoname}</InfoListLabel>
+                <InfoListText
+                  dangerouslySetInnerHTML={{ __html: item.infotext || "" }}
+                />
+              </InfoListItem>
+            ))}
+          </InfoListBox>
+        )}
+
+        {congestionLevel === "혼잡" &&
+          alternativeSpots &&
+          alternativeSpots.length > 0 && (
+            <RecommendationBox>
+              <RecommendationTitle>{status.recommendation}</RecommendationTitle>
+
+              {isAlternativeLoading && (
+                <RecommendationLoading>
+                  대체 관광지를 찾는 중...
+                </RecommendationLoading>
+              )}
+
+              <RecommendationGrid>
+                {alternativeSpots.map((item, idx) => (
+                  <RecommendationCard
+                    key={item.rlteTatsCd}
+                    onClick={() => {
+                      const newParams = new URLSearchParams(searchParams);
+                      newParams.delete("contentId");
+                      newParams.set("keyword", item.rlteTatsNm);
+                      setSearchParams(newParams);
+                    }}
+                  >
+                    <RecommendationRank>{idx + 1}</RecommendationRank>
+
+                    <RecommendationTop>
+                      <RecommendationName>{item.rlteTatsNm}</RecommendationName>
+                      <ArrowIcon />
+                    </RecommendationTop>
+
+                    <RecommendationTagBox>
+                      <RecommendationTag>
+                        #{item.rlteCtgryMclsNm}
+                      </RecommendationTag>
+                      <RecommendationTag>
+                        #{item.rlteCtgrySclsNm}
+                      </RecommendationTag>
+                    </RecommendationTagBox>
+                  </RecommendationCard>
+                ))}
+              </RecommendationGrid>
+            </RecommendationBox>
+          )}
+      </SpotContent>
+
+      <FixedButtonWrapper>
+        <AddToPlanButton onClick={handleAddToPlan}>
+          {!isLoggedIn ? (
+            <>
+              <LoginIcon /> 로그인 후 일정에 추가하기
+            </>
+          ) : spot && isSelected(spot) ? (
+            <>
+              <CheckIcon /> 일정에 추가되었습니다
+            </>
+          ) : (
+            <>
+              <CalendarPlusIcon /> 내 일정에 추가
+            </>
+          )}
+        </AddToPlanButton>
+      </FixedButtonWrapper>
+    </SpotDetailContainer>
+  );
+};
+
+const SpotDetailContainer = styled.div`
+  height: 100%;
+  width: 420px;
+
+  display: flex;
+  flex-direction: column;
+
+  border-left: 1px solid #f5f2eb;
+
+  background-color: #fdfcf8;
+
+  @media (max-width: 768px) {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    width: 100%;
+    height: 100dvh;
+
+    border-left: none;
+  }
+`;
+
+const SpotHeaderWrapper = styled.div`
+  position: relative;
+`;
+
+const SpotImage = styled.img`
+  height: 192px;
+  width: 100%;
+
+  display: block;
+
+  object-fit: cover;
+`;
+
+const SpotActions = styled.div`
+  position: absolute;
+
+  width: 100%;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 0 16px 0;
+
+  top: 1rem;
+`;
+
+const RightGroup = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+`;
+
+const BackIcon = styled(MoveLeft)`
+  width: 16px;
+  height: 16px;
+  stroke: #1b2024;
+  stroke-width: 2;
+`;
+
+const LikeIcon = styled(Heart)<{ $active?: boolean }>`
+  width: 16px;
+  height: 16px;
+
+  stroke: ${({ $active }) => ($active ? "none" : "#1b2024")};
+  fill: ${({ $active }) => ($active ? "#fdfcf8" : "none")};
+
+  stroke-width: 2;
+`;
+
+const IconButton = styled.button<{ $active?: boolean }>`
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  outline: none;
+  border: none;
+  border-radius: 30px;
+
+  background-color: ${({ $active }) => ($active ? "#f77036" : "#f7f2ebbf")};
+
+  transition: 0.2s all ease;
+
+  &:hover {
+    cursor: pointer;
+    background-color: rgba(247, 242, 235, 1);
+  }
+
+  &:hover ${LikeIcon} {
+    stroke: ${({ $active }) => ($active ? "#1b2024" : "#f77036")};
+    fill: ${({ $active }) => ($active ? "none" : "#fdfcf8")};
+  }
+`;
+
+const SpotHeader = styled.div`
+  position: absolute;
+
+  display: flex;
+  flex-direction: column;
+
+  bottom: 1rem;
+  left: 1rem;
+`;
+
+const SpotName = styled.h2`
+  font-family: Gowun Batang;
+  font-weight: 600;
+  font-size: 1.25rem;
+
+  margin: 0;
+
+  color: #fffafc;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+
+  line-height: 1.75rem;
+`;
+
+const SpotAddress = styled.p`
+  font-size: 0.75rem;
+
+  margin: 0;
+
+  color: #fffafccc;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
+
+  line-height: 1rem;
+`;
+
+const SpotContent = styled.div`
+  flex: 1;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
+
+  padding: 20px;
+
+  overflow-y: auto;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
+const FixedButtonWrapper = styled.div`
+  flex-shrink: 0;
+
+  padding: 12px 20px;
+
+  border-top: 1px solid #f5f2eb;
+  background-color: #fdfcf8;
+`;
+
+const CongestionBox = styled.div`
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: space-between;
+
+  padding: 16px;
+  margin: 0 0 20px;
+
+  border: 1px solid #f5f3eb;
+  border-radius: 16px;
+`;
+
+const CongestionTitle = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin: 0 0 12px;
+
+  color: #2e3339;
+  font-size: 0.75rem;
+  font-weight: 500;
+`;
+
+const CongestionBadge = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 4px 8px;
+
+  border-radius: 30px;
+
+  color: #20201f;
+  font-size: 0.75rem;
+  font-weight: 500;
+`;
+
+const CongestionProgressBar = styled.div`
+  height: 8px;
+  width: 100%;
+
+  border-radius: 30px;
+
+  background-color: #eae6dd;
+`;
+
+const ProgressBarWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  margin-top: 24px;
+`;
+
+const RateIndicator = styled.div<{ $position: number; $color: string }>`
+  position: absolute;
+  bottom: 100%;
+  left: ${({ $position }) => $position}%;
+  transform: translateX(-50%);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  margin-bottom: 2px;
+
+  pointer-events: none;
+`;
+
+const RateLabel = styled.span<{ $color: string }>`
+  color: ${({ $color }) => $color};
+  font-size: 0.75rem;
+  font-weight: 700;
+
+  white-space: nowrap;
+`;
+
+const RateArrow = styled.div<{ $color: string }>`
+  width: 0;
+  height: 0;
+
+  margin-top: 2px;
+
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid ${({ $color }) => $color};
+`;
+
+const NoCongestionText = styled.p`
+  width: 100%;
+
+  margin: 0 0 12px;
+  padding: 4px 6px;
+
+  border-radius: 16px;
+
+  color: #6c727a;
+  font-size: 0.8125rem;
+
+  text-align: center;
+`;
+
+const CongestionProgressFill = styled.div`
+  height: 8px;
+
+  border-radius: 30px;
+`;
+
+const CongestionText = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin: 8px 0 0;
+
+  color: #6c727a;
+  font-size: 0.75rem;
+`;
+
+const CongestionDescription = styled.p`
+  display: flex;
+  justify-content: start;
+  align-items: center;
+
+  margin: 12px 0 0;
+
+  color: #484e54;
+  font-size: 0.75rem;
+`;
+
+const OverviewBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 20px;
+`;
+
+const OverviewTitle = styled.h3`
+  margin: 0 0 8px;
+
+  color: #2e3339;
+  font-size: 0.75rem;
+  font-weight: 500;
+
+  line-height: 1rem;
+  letter-spacing: 0.05em;
+`;
+
+const OverviewDescription = styled.p<{ $expanded: boolean }>`
+  margin: 0;
+
+  color: #1c2024;
+  font-size: 0.875rem;
+  font-weight: 300;
+
+  line-height: 1.625;
+
+  word-break: keep-all;
+
+  display: -webkit-box;
+  -webkit-line-clamp: ${({ $expanded }) => ($expanded ? "unset" : 2)};
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+`;
+
+const MoreButton = styled.button`
+  margin-top: 6px;
+
+  background: none;
+  border: none;
+  padding: 0;
+
+  font-size: 0.75rem;
+  color: #298e8c;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  align-self: flex-start;
+`;
+
+const InfoContainer = styled.div`
+  width: 100%;
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 12px;
+
+  margin: 0 0 20px;
+`;
+
+const InfoBox = styled.div`
+  height: 100%;
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: start;
+
+  padding: 12px;
+
+  border: 1px solid #f5f3eb;
+  border-radius: 16px;
+`;
+
+const ClockIcon = styled(Clock)`
+  width: 16px;
+  height: 16px;
+  stroke: #097575;
+  stroke-width: 2;
+`;
+
+const TicketIcon = styled(Ticket)`
+  width: 16px;
+  height: 16px;
+  stroke: #097575;
+  stroke-width: 2;
+`;
+
+const CalendarXIcon = styled(CalendarX)`
+  width: 16px;
+  height: 16px;
+  stroke: #097575;
+  stroke-width: 2;
+`;
+
+const PhoneIcon = styled(Phone)`
+  width: 16px;
+  height: 16px;
+  stroke: #097575;
+  stroke-width: 2;
+`;
+
+const ToiletIcon = styled(Toilet)`
+  width: 16px;
+  height: 16px;
+  stroke: #097575;
+  stroke-width: 2;
+`;
+
+const SparklesIcon = styled(Sparkles)`
+  width: 16px;
+  height: 16px;
+  stroke: #097575;
+  stroke-width: 2;
+`;
+
+const GlobeIcon = styled(Globe)`
+  width: 16px;
+  height: 16px;
+  stroke: #097575;
+  stroke-width: 2;
+`;
+
+const InfoIconBadge = styled.div`
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  margin: 0 0 8px;
+
+  background-color: #cbf1ee;
+
+  border-radius: 14px;
+`;
+
+const InfoTitle = styled.p`
+  margin: 0;
+  color: #6c727a;
+  font-size: 0.6875rem;
+  line-height: 1rem;
+`;
+
+const InfoText = styled.p`
+  margin: 0;
+
+  color: #100c0d;
+  font-size: 0.875rem;
+  font-weight: 500;
+
+  word-break: keep-all;
+
+  line-height: 1.25rem;
+
+  a {
+    color: #097575;
+    text-decoration: underline;
+  }
+`;
+
+const RecommendationBox = styled.div`
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: start;
+
+  margin: 0 0 20px;
+
+  gap: 8px;
+`;
+
+const RecommendationTitle = styled.h3`
+  margin: 0 0 8px;
+  color: #2e3339;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1rem;
+  letter-spacing: 0.05em;
+`;
+
+const RecommendationName = styled.p`
+  margin: 0;
+  color: #100c0d;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.625rem;
+`;
+
+const RecommendationGrid = styled.div`
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+`;
+
+const RecommendationCard = styled.div`
+  position: relative;
+  flex: 1 1 0;
+  min-width: 90px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  padding: 12px;
+  border: 1px solid #f0ede3;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fbfaf5 0%, #ffffff 100%);
+
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+
+  &:hover {
+    border-color: #0c9799;
+    box-shadow: 0 4px 14px rgba(12, 151, 153, 0.12);
+    transform: translateY(-2px);
+  }
+`;
+
+const RecommendationRank = styled.span`
+  position: absolute;
+  top: -6px;
+  left: 10px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+
+  background: #0c9799;
+  color: #fdfcf8;
+  font-size: 0.625rem;
+  font-weight: 700;
+`;
+
+const RecommendationTop = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 4px;
+  margin-top: 4px;
+`;
+
+const ArrowIcon = styled(ArrowUpRight)`
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+  stroke: #b3ada0;
+  stroke-width: 2.2;
+  transition: stroke 0.15s ease;
+
+  ${RecommendationCard}:hover & {
+    stroke: #0c9799;
+  }
+`;
+
+const RecommendationTagBox = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+`;
+
+const RecommendationTag = styled.span`
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #eef6f5;
+
+  color: #359799;
+  font-size: 0.5625rem;
+  font-weight: 600;
+`;
+
+const RecommendationLoading = styled.p`
+  margin: 0;
+  color: #6c727a;
+  font-size: 0.75rem;
+`;
+
+const CalendarPlusIcon = styled(CalendarPlus)`
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
+`;
+
+const CheckIcon = styled(Check)`
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2.5;
+`;
+
+const LoginIcon = styled(LogIn)`
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
+`;
+
+const AddToPlanButton = styled.button`
+  box-sizing: border-box;
+
+  height: 48px;
+  width: 100%;
+
+  flex-shrink: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+
+  outline: none;
+  border: none;
+  border-radius: 9999px;
+
+  background-color: #0c9799;
+
+  color: #fffafc;
+  font-size: 0.875rem;
+  font-weight: 500;
+
+  line-height: 1.25rem;
+
+  &:hover {
+    background-color: #0fa0a3;
+    cursor: pointer;
+  }
+`;
+
+const InfoListBox = styled.div`
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 20px;
+`;
+
+const InfoListItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  border: 1px solid #f5f3eb;
+  border-radius: 12px;
+`;
+
+const InfoListLabel = styled.span`
+  color: #6c727a;
+  font-size: 0.6875rem;
+`;
+
+const InfoListText = styled.p`
+  margin: 0;
+  color: #1c2024;
+  font-size: 0.875rem;
+  font-weight: 300;
+  line-height: 1.5;
+
+  a {
+    color: #0c9799;
+  }
+`;
+
+export default SpotDetail;

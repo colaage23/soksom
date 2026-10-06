@@ -1,0 +1,88 @@
+import type { ISpotDetailRequest } from "../types/spot";
+
+export const insightSpots: (Omit<ISpotDetailRequest, "baseYmd"> & {
+  name: string;
+  latitude: number;
+  longitude: number;
+})[] = [
+  {
+    name: "성산일출봉",
+    contentid: "126435",
+    contenttypeid: "12",
+    spotName: "성산일출봉",
+    areaCd: "50",
+    signguCd: "130",
+    latitude: 33.4580801942,
+    longitude: 126.9415003865,
+  },
+  {
+    name: "산굼부리",
+    contentid: "126474",
+    contenttypeid: "12",
+    spotName: "산굼부리",
+    areaCd: "50",
+    signguCd: "110",
+    latitude: 33.4323127375,
+    longitude: 126.6928183084,
+  },
+  {
+    name: "협재해수욕장",
+    contentid: "127490",
+    contenttypeid: "12",
+    spotName: "협재해수욕장",
+    areaCd: "50",
+    signguCd: "110",
+    latitude: 33.393776477,
+    longitude: 126.239441896,
+  },
+  {
+    name: "비자림",
+    contentid: "126472",
+    contenttypeid: "12",
+    spotName: "비자림",
+    areaCd: "50",
+    signguCd: "110",
+    latitude: 33.4862219608,
+    longitude: 126.8074760594,
+  },
+  {
+    name: "쇠소깍",
+    contentid: "129617",
+    contenttypeid: "12",
+    spotName: "쇠소깍",
+    areaCd: "50",
+    signguCd: "130",
+    latitude: 33.254275717,
+    longitude: 126.6224173342,
+  },
+  {
+    name: "월정리해변",
+    contentid: "1918639",
+    contenttypeid: "12",
+    spotName: "월정리해변",
+    areaCd: "50",
+    signguCd: "110",
+    latitude: 33.5550461413,
+    longitude: 126.7982299577,
+  },
+  {
+    name: "카멜리아 힐",
+    contentid: "741109",
+    contenttypeid: "12",
+    spotName: "카멜리아힐",
+    areaCd: "50",
+    signguCd: "130",
+    latitude: 33.2898683072143,
+    longitude: 126.368254661009,
+  },
+  {
+    name: "용두암",
+    contentid: "228853",
+    contenttypeid: "12",
+    spotName: "용두암",
+    areaCd: "50",
+    signguCd: "110",
+    latitude: 33.5147812884,
+    longitude: 126.5125098697,
+  },
+];

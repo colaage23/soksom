@@ -1,0 +1,287 @@
+import type { ICongestion } from "../../types/congestion";
+import type {
+  ITrip,
+  ITripDetail,
+  ITripListParams,
+  ITripListResult,
+} from "../../types/trip";
+import { axiosInstance } from "../axiosInstance";
+
+export interface IRawTripDetail {
+  detailId?: number | string;
+  tripId?: number | string;
+  contentId?: string;
+  contentid?: string;
+  contentTypeId?: string;
+  contenttypeid?: string;
+  zipcode?: string;
+  addr1?: string;
+  addr2?: string;
+  firstimage?: string;
+  mapx?: number | string;
+  mapy?: number | string;
+  tel?: string;
+  title?: string;
+  lclsSystm1?: string;
+  lclsSystm2?: string;
+  lclsSystm3?: string;
+  lclsSystm1Nm?: string;
+  lclsSystm2Nm?: string;
+  lclsSystm3Nm?: string;
+  ldongRegnCd?: string;
+  ldongSignguCd?: string;
+  visitOrder?: number | string;
+  visitDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  congestion?: ICongestion;
+}
+
+interface IRawTrip {
+  tripId?: number | string;
+  userId?: number | string;
+  tripName?: string;
+  startDate?: string;
+  endDate?: string;
+  isAiRoute?: string;
+  shareCode?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  cnt?: number | string;
+  firstimage?: string | null;
+  details?: IRawTripDetail[] | null;
+}
+
+interface IRawTripListData {
+  content?: IRawTrip[];
+  totalCount?: number;
+  pageNo?: number;
+  numOfRows?: number;
+  totalPages?: number;
+}
+
+interface ITripListResponse {
+  success?: boolean;
+  message?: string;
+  data?: IRawTripListData;
+}
+
+const toNumber = (value?: number | string) => {
+  const nextValue = Number(value);
+  return Number.isFinite(nextValue) ? nextValue : 0;
+};
+
+export const normalizeTripDetail = (detail: IRawTripDetail): ITripDetail => ({
+  detailId: toNumber(detail.detailId),
+  tripId: toNumber(detail.tripId),
+  contentid: detail.contentId ?? detail.contentid ?? "",
+  contenttypeid: detail.contentTypeId ?? detail.contenttypeid ?? "",
+  zipcode: detail.zipcode ?? "",
+  addr1: detail.addr1 ?? "",
+  addr2: detail.addr2 ?? "",
+  firstimage: detail.firstimage ?? "",
+  mapx: detail.mapx !== undefined ? String(detail.mapx) : "",
+  mapy: detail.mapy !== undefined ? String(detail.mapy) : "",
+  tel: detail.tel ?? "",
+  title: detail.title ?? "이름 없는 장소",
+  lclsSystm1: detail.lclsSystm1 ?? "",
+  lclsSystm2: detail.lclsSystm2 ?? "",
+  lclsSystm3: detail.lclsSystm3 ?? "",
+  lclsSystm1Nm: detail.lclsSystm1Nm ?? "",
+  lclsSystm2Nm: detail.lclsSystm2Nm ?? "",
+  lclsSystm3Nm: detail.lclsSystm3Nm ?? "",
+  ldongRegnCd: detail.ldongRegnCd ?? "",
+  ldongSignguCd: detail.ldongSignguCd ?? "",
+  visitOrder: detail.visitOrder !== undefined ? String(detail.visitOrder) : "",
+  visitDate: detail.visitDate ?? "",
+  createdAt: detail.createdAt ?? "",
+  updatedAt: detail.updatedAt ?? "",
+  congestion: detail.congestion,
+});
+
+const normalizeTrip = (trip: IRawTrip): ITrip => {
+  const details = Array.isArray(trip.details)
+    ? trip.details.map(normalizeTripDetail)
+    : [];
+
+  return {
+    tripId: toNumber(trip.tripId),
+    userId: toNumber(trip.userId),
+    tripName: trip.tripName ?? "이름 없는 여행",
+    startDate: trip.startDate ?? "",
+    endDate: trip.endDate ?? "",
+    isAiRoute: trip.isAiRoute ?? "",
+    shareCode: trip.shareCode ?? "",
+    createdAt: trip.createdAt ?? "",
+    updatedAt: trip.updatedAt ?? "",
+    cnt: trip.cnt === undefined ? details.length : toNumber(trip.cnt),
+    firstimage:
+      trip.firstimage ??
+      details.find((detail) => detail.firstimage)?.firstimage ??
+      "",
+    details,
+  };
+};
+
+const getTripsByPath = async (
+  path: "/trip" | "/trip/next" | "/trip/pre",
+  { spotName, pageNo = 1, numOfRows = 20 }: ITripListParams = {},
+): Promise<ITripListResult> => {
+  try {
+    const { data } = await axiosInstance.get<ITripListResponse>(path, {
+      params: {
+        ...(spotName ? { spotName } : {}),
+        pageNo,
+        numOfRows,
+      },
+    });
+
+    const tripData = data.data;
+    const content = Array.isArray(tripData?.content)
+      ? tripData.content.map(normalizeTrip)
+      : [];
+
+    return {
+      content,
+      totalCount: tripData?.totalCount ?? content.length,
+      pageNo: tripData?.pageNo ?? pageNo,
+      numOfRows: tripData?.numOfRows ?? numOfRows,
+      totalPages: tripData?.totalPages ?? (content.length > 0 ? 1 : 0),
+    };
+  } catch (error) {
+    console.error("Fetch Trips Error:", error);
+    throw new Error("Fail to fetch trips.", { cause: error });
+  }
+};
+
+export const getTrips = (params?: ITripListParams) =>
+  getTripsByPath("/trip", params);
+
+export const getNextTrips = (params?: ITripListParams) =>
+  getTripsByPath("/trip/next", params);
+
+export const getPreviousTrips = (params?: ITripListParams) =>
+  getTripsByPath("/trip/pre", params);
+
+export interface ICreateTripDetailPayload {
+  contentid: string;
+  contenttypeid?: string;
+  zipcode?: string;
+  addr1?: string;
+  addr2?: string;
+  firstimage?: string;
+  mapx?: string;
+  mapy?: string;
+  tel?: string;
+  title: string;
+  lclsSystm1?: string;
+  lclsSystm2?: string;
+  lclsSystm3?: string;
+  lclsSystm1Nm?: string;
+  lclsSystm2Nm?: string;
+  lclsSystm3Nm?: string;
+  ldongRegnCd?: string;
+  ldongSignguCd?: string;
+  visitOrder: string;
+  visitDate: string;
+}
+
+export interface ICreateTripPayload {
+  tripName: string;
+  startDate: string;
+  endDate: string;
+  isAiRoute: "Y" | "N";
+  shareCode?: string;
+  details: ICreateTripDetailPayload[];
+}
+
+export interface IUpdateTripPayload {
+  tripName: string;
+  startDate: string;
+  endDate: string;
+  isAiRoute: string;
+  shareCode: string;
+  details: ICreateTripDetailPayload[];
+}
+
+interface ICreateTripResponse {
+  success: boolean;
+  message?: string;
+  data: number; // tripId
+}
+
+export const createTrip = async (
+  payload: ICreateTripPayload,
+): Promise<number> => {
+  try {
+    const response = await axiosInstance.post<ICreateTripResponse>(
+      "/trip",
+      payload,
+    );
+    return response.data.data;
+  } catch (error) {
+    console.error("Create Trip Error: ", error);
+    throw new Error("Fail to create Trip.", { cause: error });
+  }
+};
+
+interface IUpdateTripResponse {
+  success?: boolean;
+  message?: string;
+  data?: unknown;
+}
+
+export const updateTrip = async ({
+  tripId,
+  payload,
+}: {
+  tripId: number;
+  payload: IUpdateTripPayload;
+}): Promise<void> => {
+  try {
+    await axiosInstance.put<IUpdateTripResponse>(`/trip/${tripId}`, payload);
+  } catch (error) {
+    console.error("Update Trip Error:", error);
+    throw new Error("Fail to update trip.", { cause: error });
+  }
+};
+
+interface ITripDetailResponse {
+  success?: boolean;
+  message?: string;
+  data?: IRawTrip;
+}
+
+export const getTripDetail = async (
+  tripId: number | string,
+): Promise<ITrip> => {
+  try {
+    const { data } = await axiosInstance.get<ITripDetailResponse>(
+      `/trip/${tripId}`,
+    );
+
+    if (!data.data) {
+      throw new Error("No trip data returned.");
+    }
+
+    return normalizeTrip(data.data);
+  } catch (error) {
+    console.error("Fetch Trip Detail Error:", error);
+    throw new Error("Fail to fetch trip detail.", { cause: error });
+  }
+};
+
+interface IDeleteTripResponse {
+  success: boolean;
+  message?: string;
+  data?: unknown;
+}
+
+export const deleteTrip = async (tripId: number): Promise<void> => {
+  try {
+    await axiosInstance.delete<IDeleteTripResponse>(`/trip/${tripId}`);
+  } catch (error) {
+    console.error("Delete Trip Error: ", error);
+    throw new Error("Fail to delete Trip.", { cause: error });
+  }
+};

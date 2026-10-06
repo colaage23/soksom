@@ -1,64 +1,210 @@
-import logoImage from "../../assets/icons/soksom-logo.svg";
-import { Menu, User } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { LogOut, Menu, User, UserCircle, UserRound } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-
-const navItems = [
-  { label: "홈", path: "/" },
-  { label: "탐색", path: "/map" },
-  { label: "이용 가이드", path: "/guide" },
-];
+import colors from "../../constants/colors";
+import Hamburger from "./Hamburger";
+import { navItems } from "../../constants/navItems";
+import SoksomLogo from "../../../public/logo.svg";
+import { useAuthStore } from "../../stores/auth/authStore";
+import { useGetUserInfo } from "../../hooks/auth/useGetUserInfo";
+import { useLogout } from "../../hooks/auth/useAuth";
+import { AUTH_PROVIDER_LOGO } from "../../constants/authProvider";
 
 const Header = () => {
   const { pathname } = useLocation();
+  const isHomePage = pathname === "/";
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  const navigate = useNavigate();
+
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const isInitialized = useAuthStore((state) => state.isInitialized);
+
+  const logout = useLogout();
+
+  const isLoggedIn = isInitialized && Boolean(accessToken);
+
+  const { data: userInfo } = useGetUserInfo();
+
+  useEffect(() => {
+    const updateScrollState = () => {
+      setIsScrolled(window.scrollY > 12);
+    };
+
+    updateScrollState();
+    window.addEventListener("scroll", updateScrollState, { passive: true });
+
+    return () => window.removeEventListener("scroll", updateScrollState);
+  }, [pathname]);
+
+  const [prevPathname, setPrevPathname] = useState(pathname);
+
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
+    setIsMenuOpen(false);
+    setIsUserMenuOpen(false);
+  }
+
+  useEffect(() => {
+    document.body.style.overflow = isMenuOpen ? "hidden" : "";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMenuOpen]);
+
+  useEffect(() => {
+    if (!isUserMenuOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(e.target as Node)
+      ) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isUserMenuOpen]);
+
+  const handleLogout = () => {
+    logout();
+    setIsUserMenuOpen(false);
+    navigate("/");
+  };
+
+  const isSolid = !isHomePage || isScrolled;
 
   return (
-    <HeaderShell>
-      <HeaderInner>
-        <BrandBlock>
-          <BrandImage src={logoImage} alt="속솜" />
-          <BrandText>
-            <h3>속솜</h3>
-          </BrandText>
-        </BrandBlock>
+    <>
+      <HeaderShell $isSolid={isSolid}>
+        <HeaderInner>
+          <div>
+            <BrandBlock onClick={() => navigate("/")}>
+              <BrandImage src={SoksomLogo} alt="속솜" />
+              <BrandText $isSolid={isSolid}>
+                <h3>속솜</h3>
+              </BrandText>
+            </BrandBlock>
+          </div>
 
-        <DesktopNav aria-label="주요 메뉴">
-          {navItems.map((item) => (
-            <NavItem
-              key={item.path}
-              to={item.path}
-              $isActive={pathname === item.path}
+          <DesktopNav aria-label="주요 메뉴">
+            {navItems.map((item) => (
+              <NavItem
+                key={item.path}
+                to={item.path}
+                $isActive={pathname === item.path}
+                $isSolid={isSolid}
+              >
+                {item.label}
+              </NavItem>
+            ))}
+          </DesktopNav>
+
+          <Actions>
+            <DesktopActions>
+              {isLoggedIn ? (
+                <UserMenuWrapper ref={userMenuRef}>
+                  <UserIcon
+                    $isSolid={isSolid}
+                    onClick={() => setIsUserMenuOpen((prev) => !prev)}
+                  />
+                  {isUserMenuOpen && (
+                    <UserDropdown>
+                      <UserProfileBox>
+                        {userInfo?.img ? (
+                          <ProfileImage
+                            src={userInfo.img}
+                            alt={userInfo?.nickname ?? "프로필"}
+                          />
+                        ) : (
+                          <ProfileImagePlaceholder>
+                            <ProfileFallbackIcon />
+                          </ProfileImagePlaceholder>
+                        )}
+                        <ProfileTextBox>
+                          <ProfileNickname>
+                            {userInfo?.authProvider &&
+                              userInfo.authProvider !== "LOCAL" &&
+                              AUTH_PROVIDER_LOGO[userInfo.authProvider] && (
+                                <ProviderLogo
+                                  src={
+                                    AUTH_PROVIDER_LOGO[userInfo.authProvider]
+                                  }
+                                  alt={userInfo.authProvider}
+                                />
+                              )}
+                            {userInfo?.nickname ?? "-"}
+                          </ProfileNickname>
+                          {userInfo?.authProvider === "LOCAL" && (
+                            <ProfileEmail>
+                              {userInfo?.email ?? "-"}
+                            </ProfileEmail>
+                          )}
+                        </ProfileTextBox>
+                      </UserProfileBox>
+
+                      <DropdownDivider />
+
+                      <DropdownItem
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          navigate("/mypage");
+                        }}
+                      >
+                        <UserCircleIcon />
+                        마이페이지
+                      </DropdownItem>
+                      <DropdownItem onClick={handleLogout}>
+                        <LogOutIcon />
+                        로그아웃
+                      </DropdownItem>
+                    </UserDropdown>
+                  )}
+                </UserMenuWrapper>
+              ) : (
+                <LoginBtn $isSolid={isSolid} onClick={() => navigate("/auth")}>
+                  로그인
+                </LoginBtn>
+              )}
+            </DesktopActions>
+            <HamburgerBtn
+              $isSolid={isSolid}
+              onClick={() => setIsMenuOpen(true)}
+              aria-label="메뉴 열기"
             >
-              {item.label}
-            </NavItem>
-          ))}
-        </DesktopNav>
-
-        <Actions>
-          <DesktopActions>
-            <IconLink>
-              <UserIcon />
-            </IconLink>
-            <LoginBtn>로그인</LoginBtn>
-          </DesktopActions>
-          <HamburgerBtn>
-            <MenuIcon />
-          </HamburgerBtn>
-        </Actions>
-      </HeaderInner>
-    </HeaderShell>
+              <MenuIcon />
+            </HamburgerBtn>
+          </Actions>
+        </HeaderInner>
+      </HeaderShell>
+      <Hamburger isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+    </>
   );
 };
 
-const HeaderShell = styled.header`
-  position: sticky;
+const HeaderShell = styled.header<{ $isSolid: boolean }>`
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 20;
   width: 100%;
-  background: transparent;
-  border-bottom: 1px solid #e9e9e9;
+  background: ${({ $isSolid }) =>
+    $isSolid ? "rgba(255, 255, 255, 0.96)" : "transparent"};
+  box-shadow: ${({ $isSolid }) =>
+    $isSolid ? "0 10px 30px rgba(15, 23, 42, 0.08)" : "none"};
+  backdrop-filter: ${({ $isSolid }) => ($isSolid ? "blur(12px)" : "none")};
+  transition:
+    background-color 0.24s ease,
+    box-shadow 0.24s ease,
+    backdrop-filter 0.24s ease;
 `;
 
 const HeaderInner = styled.div`
@@ -67,17 +213,16 @@ const HeaderInner = styled.div`
   align-items: center;
   gap: 24px;
   width: 100%;
-  padding: 8px 30px;
+  min-height: 72px;
+  padding: 0px 45px;
   box-sizing: border-box;
 
   @media (max-width: 960px) {
-    height: 72px;
     padding: 0 20px;
   }
 
   @media (max-width: 768px) {
     grid-template-columns: auto 1fr auto;
-    height: 62px;
     gap: 12px;
     padding: 0 16px;
   }
@@ -89,16 +234,14 @@ const BrandBlock = styled.div`
   min-width: fit-content;
   text-decoration: none;
   gap: 5px;
+
+  cursor: pointer;
 `;
 
 const BrandImage = styled.img`
   display: block;
-  width: 35px;
+  width: 32px;
   height: auto;
-
-  @media (max-width: 768px) {
-    width: 74px;
-  }
 `;
 
 const DesktopNav = styled.nav`
@@ -116,21 +259,33 @@ const DesktopNav = styled.nav`
   }
 `;
 
-const BrandText = styled.div`
+const BrandText = styled.div<{ $isSolid: boolean }>`
   display: grid;
   gap: 2px;
+  color: ${({ $isSolid }) => ($isSolid ? "#111827" : "white")};
+
+  h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    font-family: Gowun Batang;
+  }
 `;
 
-const NavItem = styled(Link)<{ $isActive: boolean }>`
-  color: ${({ $isActive }) => ($isActive ? "#24959b" : "#5a635f")};
+const NavItem = styled(Link)<{ $isActive: boolean; $isSolid: boolean }>`
+  color: ${({ $isActive, $isSolid }) => {
+    if ($isActive) return colors.main;
+
+    return $isSolid ? "#374151" : "white";
+  }};
   text-decoration: none;
-  font-size: 0.84rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 500;
   letter-spacing: -0.03em;
   transition: color 0.2s ease;
 
   &:hover {
-    color: #24959b;
+    color: ${colors.main};
   }
 `;
 
@@ -155,7 +310,7 @@ const DesktopActions = styled.div`
   }
 `;
 
-const HamburgerBtn = styled.button`
+const HamburgerBtn = styled.button<{ $isSolid: boolean }>`
   display: none;
   align-items: center;
   justify-content: center;
@@ -165,7 +320,7 @@ const HamburgerBtn = styled.button`
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: #101714;
+  color: ${({ $isSolid }) => ($isSolid ? "#111827" : "white")};
   cursor: pointer;
 
   @media (max-width: 768px) {
@@ -173,19 +328,19 @@ const HamburgerBtn = styled.button`
   }
 `;
 
-const IconLink = styled.div`
-  display: grid;
-  place-items: center;
-  width: 18px;
-  height: 18px;
-  color: #101714;
-`;
-
-const UserIcon = styled(User)`
-  width: 18px;
-  height: 18px;
+const UserIcon = styled(User)<{ $isSolid: boolean }>`
+  padding: 0.5rem;
+  width: 36px;
+  height: 36px;
   stroke: currentColor;
   stroke-width: 2.2;
+  color: ${({ $isSolid }) => ($isSolid ? "#111827" : "white")};
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: ${colors.main};
+  }
 `;
 
 const MenuIcon = styled(Menu)`
@@ -195,7 +350,7 @@ const MenuIcon = styled(Menu)`
   stroke-width: 2.2;
 `;
 
-const LoginBtn = styled.button`
+const LoginBtn = styled.button<{ $isSolid: boolean }>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -203,16 +358,168 @@ const LoginBtn = styled.button`
   height: 36px;
   padding: 0 18px;
   border-radius: 999px;
-  background: #111111;
-  color: #fbf8f1;
-  text-decoration: none;
-  font-size: 0.76rem;
+  background: ${({ $isSolid }) => ($isSolid ? colors.main : "white")};
+  color: ${({ $isSolid }) => ($isSolid ? "white" : "black")};
+  font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: -0.03em;
+  border: 0;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+
+  cursor: pointer;
 
   &:hover {
-    background: #1e1e1e;
+    background: #0c9799;
+    color: white;
   }
+`;
+
+const UserMenuWrapper = styled.div`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+`;
+
+const DropdownItem = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 10px 12px;
+
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 500;
+
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: #f5f2eb;
+  }
+`;
+
+const UserCircleIcon = styled(UserCircle)`
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
+`;
+
+const LogOutIcon = styled(LogOut)`
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
+`;
+
+const UserDropdown = styled.div`
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+
+  min-width: 220px;
+  max-width: 260px;
+
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+
+  z-index: 30;
+`;
+
+const UserProfileBox = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 12px 12px;
+`;
+
+const ProfileImage = styled.img`
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+
+  border-radius: 13px;
+  object-fit: cover;
+
+  background-color: #f5f2eb;
+`;
+
+const ProfileTextBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  min-width: 0;
+  flex: 1;
+`;
+
+const ProfileNickname = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  color: #101714;
+  font-size: 0.875rem;
+  font-weight: 600;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const ProfileEmail = styled.span`
+  color: #7b827d;
+  font-size: 0.75rem;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const DropdownDivider = styled.div`
+  height: 1px;
+  margin: 2px -6px 8px;
+
+  background-color: #f2eee6;
+`;
+
+const ProfileImagePlaceholder = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  width: 36px;
+  height: 36px;
+
+  border-radius: 50%;
+  background-color: #f5f2eb;
+`;
+
+const ProfileFallbackIcon = styled(UserRound)`
+  width: 22px;
+  height: 22px;
+  stroke: #b5b1a7;
+  stroke-width: 1.6;
+`;
+
+const ProviderLogo = styled.img`
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  object-fit: contain;
 `;
 
 export default Header;

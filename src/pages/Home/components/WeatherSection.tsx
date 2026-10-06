@@ -1,0 +1,630 @@
+import {
+  ArrowUpRight,
+  CircleAlert,
+  Cloud,
+  CloudRain,
+  Heart,
+  Sun,
+  SunMedium,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
+import fallbackImage from "../../../assets/fallback.png";
+import { useJejuWeather } from "../../../hooks/useJejuWeather";
+import { useGetFavoriteSpots } from "../../../hooks/favorite/useGetFavoriteSpots";
+import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
+import { useAuthStore } from "../../../stores/auth/authStore";
+import {
+  homeSectionDescription,
+  homeSectionEyebrow,
+  homeSectionInner,
+  homeSectionTitle,
+} from "../styles/homeSectionStyles.ts";
+
+const weatherIconByCode = (weatherCode: number, size: number, isDay = true) => {
+  if (weatherCode === 0) {
+    return isDay ? <SunMedium size={size} /> : <Cloud size={size} />;
+  }
+
+  if ([1, 2, 3, 45, 48].includes(weatherCode)) {
+    return <Cloud size={size} />;
+  }
+
+  if ([51, 53, 55, 61, 63, 65, 80, 81, 82, 95].includes(weatherCode)) {
+    return <CloudRain size={size} />;
+  }
+
+  return <Sun size={size} />;
+};
+
+const WeatherSection = () => {
+  const navigate = useNavigate();
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const { data: weather, isLoading, isError } = useJejuWeather();
+  const { data: favoriteSpots = [], isLoading: isFavoriteLoading } =
+    useGetFavoriteSpots();
+  const { toggleFavorite, isPending: isFavoritePending } = useToggleFavorite();
+
+  const forecastItems = weather?.forecast ?? [];
+  const places = favoriteSpots.slice(0, 3);
+
+  const handleMoveToSpot = (title: string, contentId: string) => {
+    const searchParams = new URLSearchParams({ keyword: title, contentId });
+    navigate({ pathname: "/map", search: `?${searchParams.toString()}` });
+  };
+
+  return (
+    <Section>
+      <Inner>
+        <Header>
+          <Eyebrow>JEJU AT A GLANCE</Eyebrow>
+          <Title>
+            날씨 한 번 슬쩍,
+            <br />
+            관심 장소 바로 출발.
+          </Title>
+          <HeaderDescription>
+            오늘 제주 하늘과 함께, 지금 바로 들르기 좋은 장소를 같은 흐름으로
+            묶어 보여드려요.
+          </HeaderDescription>
+          <MoreLink type="button" onClick={() => navigate("/mypage/favorites")}>
+            관심 관광지 전체 보기
+            <ArrowUpRight size={16} />
+          </MoreLink>
+        </Header>
+
+        <ContentGrid>
+          <WeatherCard>
+            <WeatherTop>
+              <div>
+                <WeatherMeta>
+                  {weather?.locationLabel ?? "제주시 · 지금"}
+                </WeatherMeta>
+                <WeatherSummary>
+                  {isLoading
+                    ? "제주 날씨를 불러오는 중이에요"
+                    : isError
+                      ? "날씨 정보를 불러오지 못했어요"
+                      : weather?.summary}
+                </WeatherSummary>
+              </div>
+              <WeatherIconWrap>
+                {weatherIconByCode(
+                  weather?.weatherCode ?? 0,
+                  20,
+                  weather?.isDay ?? true,
+                )}
+              </WeatherIconWrap>
+            </WeatherTop>
+
+            <WeatherInfoRow>
+              <CurrentTemp>{weather?.temperature ?? "--°"}</CurrentTemp>
+              <WeatherDetailGroup>
+                <WeatherDetails>
+                  체감 {weather?.apparentTemperature ?? "--°"} · 습도{" "}
+                  {weather?.humidity ?? "--%"}
+                </WeatherDetails>
+                <WeatherDetails>
+                  바람 {weather?.windSpeed ?? "--m/s"} · 자외선{" "}
+                  {weather?.uvIndex ?? "--"}
+                </WeatherDetails>
+              </WeatherDetailGroup>
+            </WeatherInfoRow>
+
+            <ForecastStrip>
+              {forecastItems.map(
+                ({ day, weatherCode, temperature, rainProbability }) => (
+                  <ForecastItem key={day}>
+                    <ForecastDay>{day}</ForecastDay>
+                    {weatherIconByCode(weatherCode, 16)}
+                    <ForecastTemp>{temperature}</ForecastTemp>
+                    <ForecastRain>{rainProbability}</ForecastRain>
+                  </ForecastItem>
+                ),
+              )}
+            </ForecastStrip>
+
+            <WeatherNote>
+              <CircleAlert size={14} />
+              Open-Meteo 예보 기준. 최대 7일 제공
+            </WeatherNote>
+          </WeatherCard>
+
+          <PlacesGrid>
+            {!accessToken ? (
+              <PlacesMessage>
+                <span>로그인하고 관심 관광지를 확인해 보세요.</span>
+                <PlacesMessageButton
+                  type="button"
+                  onClick={() => navigate("/auth")}
+                >
+                  로그인하기
+                  <ArrowUpRight size={16} />
+                </PlacesMessageButton>
+              </PlacesMessage>
+            ) : isFavoriteLoading ? (
+              <PlacesMessage>관심 관광지를 불러오는 중이에요.</PlacesMessage>
+            ) : places.length === 0 ? (
+              <PlacesMessage>
+                <span>아직 즐겨찾기한 관광지가 없어요.</span>
+                <PlacesMessageButton
+                  type="button"
+                  onClick={() => navigate("/map")}
+                >
+                  관광지 탐색하기
+                  <ArrowUpRight size={16} />
+                </PlacesMessageButton>
+              </PlacesMessage>
+            ) : (
+              <>
+                {places.map((place) => (
+                  <SpotCard
+                    key={place.contentid}
+                    $isWide={places.length === 1}
+                    onClick={() =>
+                      handleMoveToSpot(place.title, place.contentid)
+                    }
+                  >
+                    <SpotImage $image={place.firstimage || fallbackImage}>
+                      <FavoriteButton
+                        type="button"
+                        disabled={isFavoritePending || !place.favoriteId}
+                        aria-label={`${place.title} 즐겨찾기 해제`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          if (place.favoriteId) {
+                            toggleFavorite(place, place.favoriteId);
+                          }
+                        }}
+                      >
+                        <Heart size={16} fill="currentColor" />
+                      </FavoriteButton>
+                    </SpotImage>
+
+                    <SpotBody>
+                      <SpotText>
+                        <SpotArea>
+                          {[place.addr1, place.addr2]
+                            .filter(Boolean)
+                            .join(" ") || "주소 정보 없음"}
+                        </SpotArea>
+                        <SpotName>{place.title}</SpotName>
+                      </SpotText>
+                      <SpotAction aria-label={`${place.title} 보기`}>
+                        <ArrowUpRight size={16} />
+                      </SpotAction>
+                    </SpotBody>
+                  </SpotCard>
+                ))}
+
+                {places.length < 3 && (
+                  <ExplorePlacesMessage>
+                    <span>관심 관광지를 더 추가해 보세요.</span>
+                    <PlacesMessageButton
+                      type="button"
+                      onClick={() => navigate("/map")}
+                    >
+                      관광지 탐색하기
+                      <ArrowUpRight size={16} />
+                    </PlacesMessageButton>
+                  </ExplorePlacesMessage>
+                )}
+              </>
+            )}
+          </PlacesGrid>
+        </ContentGrid>
+      </Inner>
+    </Section>
+  );
+};
+
+export default WeatherSection;
+
+const Section = styled.section`
+  padding: 180px 24px;
+  background: linear-gradient(180deg, #f3eee3 0%, #f6f2e9 100%);
+
+  @media (max-width: 768px) {
+    padding: 40px 16px 80px;
+  }
+`;
+
+const Inner = styled.div`
+  ${homeSectionInner};
+`;
+
+const Header = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 30px;
+
+  @media (max-width: 900px) {
+    align-items: start;
+  }
+`;
+
+const Eyebrow = styled.span`
+  ${homeSectionEyebrow};
+`;
+
+const Title = styled.h2`
+  ${homeSectionTitle};
+`;
+
+const HeaderDescription = styled.p`
+  ${homeSectionDescription};
+  max-width: 680px;
+`;
+
+const MoreLink = styled.button`
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-end;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #2e2a24;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+
+  @media (max-width: 900px) {
+    align-self: flex-start;
+  }
+`;
+
+const ContentGrid = styled.div`
+  display: grid;
+  grid-template-columns: minmax(360px, 450px) minmax(0, 1fr);
+  gap: 18px;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const WeatherCard = styled.article`
+  padding: 32px 30px 30px;
+  border-radius: 18px;
+  color: #f6faf8;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(255, 255, 255, 0.2),
+      transparent 45%
+    ),
+    linear-gradient(145deg, rgba(12, 151, 153, 0.92), rgba(36, 149, 155, 0.78));
+  box-shadow: 0 24px 44px rgba(28, 104, 102, 0.18);
+
+  @media (max-width: 768px) {
+    padding: 22px;
+    border-radius: 28px;
+  }
+`;
+
+const WeatherTop = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+`;
+
+const WeatherMeta = styled.span`
+  display: block;
+  margin-bottom: 10px;
+  color: rgba(238, 248, 245, 0.72);
+  font-size: 0.84rem;
+  font-weight: 600;
+`;
+
+const WeatherSummary = styled.p`
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+`;
+
+const WeatherIconWrap = styled.div`
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.25);
+
+  svg {
+    width: 40px;
+    height: 40px;
+  }
+`;
+
+const CurrentTemp = styled.p`
+  margin: 0;
+  font-size: clamp(3.1rem, 8vw, 4.6rem);
+  line-height: 0.88;
+  letter-spacing: -0.05em;
+  font-family: Gowun Batang;
+`;
+
+const WeatherInfoRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  margin: 42px 0 28px;
+
+  @media (max-width: 640px) {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+    margin: 30px 0 22px;
+  }
+`;
+
+const WeatherDetailGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+
+  @media (max-width: 640px) {
+    padding-top: 0;
+  }
+`;
+
+const WeatherDetails = styled.p`
+  margin: 0;
+  color: rgba(238, 248, 245, 0.8);
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.35;
+`;
+
+const ForecastStrip = styled.div`
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+`;
+
+const ForecastItem = styled.div`
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 12px 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(246, 250, 248, 0.92);
+`;
+
+const ForecastDay = styled.span`
+  font-size: 0.72rem;
+  font-weight: 700;
+`;
+
+const ForecastTemp = styled.span`
+  font-size: 0.92rem;
+  font-weight: 700;
+`;
+
+const ForecastRain = styled.span`
+  color: rgba(238, 248, 245, 0.7);
+  font-size: 0.72rem;
+  font-weight: 600;
+`;
+
+const WeatherNote = styled.p`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 18px 0 0;
+  color: rgba(238, 248, 245, 0.72);
+  font-size: 0.78rem;
+  font-weight: 600;
+`;
+
+const PlacesGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const PlacesMessage = styled.div`
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 320px;
+  padding: 24px;
+  border-radius: 26px;
+  background: rgba(255, 251, 245, 0.92);
+  color: #7b746b;
+  font-weight: 600;
+  text-align: center;
+`;
+
+const ExplorePlacesMessage = styled(PlacesMessage)`
+  grid-column: auto;
+`;
+
+const PlacesMessageButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 20px;
+  background: #111111;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+`;
+
+const SpotCard = styled.article<{ $isWide: boolean }>`
+  grid-column: ${({ $isWide }) => ($isWide ? "span 2" : "span 1")};
+  overflow: hidden;
+  border: 1px solid #e4ddcf;
+  border-radius: 18px;
+  background: rgba(255, 251, 245, 0.92);
+  box-shadow: 0 18px 36px rgba(89, 71, 46, 0.08);
+  cursor: pointer;
+
+  @media (max-width: 900px) {
+    grid-column: span 1;
+  }
+`;
+
+const SpotBody = styled.div`
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px 20px;
+  border-top: 1px solid #e4ddcf;
+`;
+
+const SpotImage = styled.div<{ $image: string }>`
+  position: relative;
+  min-height: 320px;
+  overflow: hidden;
+  isolation: isolate;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(180deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.08)),
+      url(${({ $image }) => $image}) center center / cover no-repeat;
+    transition: transform 0.7s cubic-bezier(0.2, 0.6, 0.2, 1);
+  }
+
+  ${SpotCard}:hover &::before {
+    transform: scale(1.05);
+  }
+
+  @media (max-width: 900px) {
+    min-height: 280px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::before {
+      transition: none;
+    }
+  }
+`;
+
+const FavoriteButton = styled.button`
+  position: absolute;
+  right: 14px;
+  top: 14px;
+
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  outline: none;
+  border: none;
+  border-radius: 30px;
+
+  background-color: #f77036;
+
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    stroke: none;
+    fill: #fdfcf8;
+    stroke-width: 2;
+  }
+
+  &:hover {
+    background-color: #f7f2eb;
+  }
+
+  &:hover svg {
+    stroke: #1b2024;
+    fill: none;
+  }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
+`;
+
+const SpotText = styled.div`
+  min-width: 0;
+`;
+
+const SpotAction = styled.button`
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: #111111;
+  color: white;
+  cursor: pointer;
+
+  svg {
+    transition: transform 0.25s ease;
+  }
+
+  ${SpotCard}:hover & svg,
+  &:focus-visible svg {
+    transform: translate(2px, -2px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #111111;
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    svg {
+      transition: none;
+    }
+  }
+`;
+
+const SpotArea = styled.p`
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0 0 6px;
+  color: #9f988d;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+`;
+
+const SpotName = styled.h3`
+  overflow: hidden;
+  margin: 0;
+  color: #171311;
+  font-size: 1.5rem;
+  font-family: Gowun Batang;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;

@@ -1,0 +1,286 @@
+import styled from "styled-components";
+import { Heart, MoveRight } from "lucide-react";
+import { useLikedSpotStore } from "../../../stores/useLikedSpotStore";
+import type { ISpotListItem } from "../../../types/spot";
+import FallBackImage from "../../../assets/fallback.png";
+import { useToggleFavorite } from "../../../hooks/favorite/useToggleFavorite";
+import {
+  getCongestionLevel,
+  getCongestionStyle,
+} from "../../../constants/congestion.utils";
+
+interface ISpotCardProps {
+  spot: ISpotListItem;
+  isActive: boolean;
+  onClick: () => void;
+}
+
+const SpotCard = ({ spot, isActive, onClick }: ISpotCardProps) => {
+  const likedSpotMap = useLikedSpotStore((state) => state.likedSpotMap);
+  const { toggleFavorite, isPending } = useToggleFavorite();
+
+  if (!spot) return null;
+
+  const likedSpot = likedSpotMap[spot.contentid];
+  const isLiked = Boolean(likedSpot);
+
+  const rawRate = spot.congestion?.cnctrRate ?? null;
+  const congestionLevel = getCongestionLevel(rawRate);
+  const status = getCongestionStyle(rawRate);
+
+  return (
+    <SpotCardContainer $isActive={isActive} onClick={onClick}>
+      <SpotImageWrapper>
+        <SpotImage src={spot.firstimage || FallBackImage} alt={spot.title} />
+        <IconButton
+          $active={isLiked}
+          disabled={isPending}
+          onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+            e.stopPropagation();
+            toggleFavorite(spot, likedSpot?.favoriteId);
+          }}
+        >
+          <LikeIcon $active={isLiked} />
+        </IconButton>
+      </SpotImageWrapper>
+
+      <SpotInfoBox>
+        <SubInfoText>
+          <span>{spot.addr1?.split(" ").slice(1, 3).join(" ")}</span>
+          <span style={{ color: "#c0c5ca" }}>·</span>
+          <span>{spot.lclsSystm2Nm}</span>
+        </SubInfoText>
+
+        <SpotName>{spot.title}</SpotName>
+
+        {rawRate !== null ? (
+          <CongestionBox>
+            <CongestionProgressBar>
+              <CongestionProgressFill
+                style={{
+                  backgroundColor: status.bgColor,
+                  width: `${status.progress}%`,
+                }}
+              />
+            </CongestionProgressBar>
+            <CongestionBadge
+              style={{
+                backgroundColor:
+                  congestionLevel === "혼잡"
+                    ? status.bgColor
+                    : `${status.bgColor}65`,
+                color: status.color,
+              }}
+            >
+              {status.label}
+            </CongestionBadge>
+          </CongestionBox>
+        ) : (
+          <CongestionBox>
+            <NoCongestionBadge>혼잡도 정보 없음</NoCongestionBadge>
+          </CongestionBox>
+        )}
+      </SpotInfoBox>
+
+      <ArrowButton>
+        <ArrowIcon />
+      </ArrowButton>
+    </SpotCardContainer>
+  );
+};
+
+const ArrowButton = styled.button`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  height: 32px;
+  width: 32px;
+
+  outline: none;
+  border: none;
+  border-radius: 30px;
+
+  background-color: #000;
+
+  opacity: 0;
+  visibility: hidden;
+
+  transition: all 0.1s ease;
+
+  &:hover {
+    cursor: pointer;
+  }
+`;
+
+const SpotCardContainer = styled.div<{ $isActive: boolean }>`
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  gap: 16px;
+
+  padding: 12px;
+  margin: 0px 16px 0;
+
+  border: 1px solid
+    ${({ $isActive }) => ($isActive ? "rgba(12, 151, 153, 0.35)" : "#f5f2eb")};
+  border-radius: 1rem;
+
+  background-color: ${({ $isActive }) =>
+    $isActive ? "rgba(229, 250, 248, 0.8)" : "#fffefd"};
+
+  transition: 0.15s border cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    cursor: pointer;
+    border: 1px solid rgba(12, 151, 153, 0.35);
+  }
+
+  &:hover ${ArrowButton} {
+    opacity: 1;
+    visibility: visible;
+  }
+`;
+
+const ArrowIcon = styled(MoveRight)`
+  width: 14px;
+  height: 14px;
+  stroke: #ffffff;
+  stroke-width: 2;
+`;
+
+const SpotImageWrapper = styled.div`
+  position: relative;
+
+  width: 80px;
+  height: 80px;
+`;
+
+const SpotImage = styled.img`
+  width: 80px;
+  height: 80px;
+
+  border-radius: 0.75rem;
+`;
+
+const LikeIcon = styled(Heart)<{ $active?: boolean }>`
+  width: 14px;
+  height: 14px;
+  stroke: ${({ $active }) => ($active ? "none" : "#999fa6")};
+  fill: ${({ $active }) => ($active ? "#fdfcf8" : "none")};
+  stroke-width: 2;
+`;
+
+const IconButton = styled.button<{ $active?: boolean }>`
+  position: absolute;
+
+  top: 6px;
+  left: 6px;
+
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  outline: none;
+  border: none;
+  border-radius: 30px;
+
+  background-color: ${({ $active }) => ($active ? "#f77036" : "#fffafccc")};
+
+  transition: 0.2s all ease;
+
+  z-index: 999;
+
+  &:hover {
+    cursor: pointer;
+    background-color: ${({ $active }) => ($active ? "#fffafccc" : "#f77036")};
+  }
+
+  &:hover ${LikeIcon} {
+    stroke: ${({ $active }) => ($active ? "#999fa6" : "#fdfcf8")};
+    fill: ${({ $active }) => ($active ? "none" : "#fdfcf8")};
+  }
+`;
+
+const SpotInfoBox = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: start;
+`;
+
+const SubInfoText = styled.div`
+  height: 20px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+
+  color: #6e767c;
+  font-size: 0.6875rem;
+  font-weight: 300;
+
+  margin: 0 0 4px;
+`;
+
+const SpotName = styled.h4`
+  margin: 0;
+  color: #0e1013;
+  font-size: 0.875rem;
+  font-weight: 500;
+`;
+
+const CongestionBox = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+
+  margin: 6px 0 0;
+`;
+
+const CongestionProgressBar = styled.div`
+  height: 4px;
+  width: 64px;
+
+  border-radius: 30px;
+
+  background-color: #eae6dd;
+`;
+
+const CongestionProgressFill = styled.div`
+  height: 4px;
+
+  border-radius: 30px;
+`;
+
+const CongestionBadge = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 4px 8px;
+
+  border-radius: 10px;
+
+  color: #20201f;
+  font-size: 0.6875rem;
+  font-weight: 500;
+`;
+const NoCongestionBadge = styled.span`
+  padding: 3px 8px;
+
+  border-radius: 30px;
+  background-color: #f0efe9;
+
+  color: #9a958a;
+  font-size: 0.625rem;
+  font-weight: 500;
+`;
+
+export default SpotCard;

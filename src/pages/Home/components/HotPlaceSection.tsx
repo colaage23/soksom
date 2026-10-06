@@ -1,0 +1,348 @@
+import { ArrowUpRight, Flame } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import styled, { css } from "styled-components";
+import colors from "../../../constants/colors";
+import { useGetHotPlaces } from "../../../hooks/hotPlace/useGetHotPlaces";
+import {
+  homeSectionEyebrow,
+  homeSectionInner,
+  homeSectionTitle,
+} from "../styles/homeSectionStyles.ts";
+
+type PlaceTone = "calm" | "hot";
+
+const placeImages = [
+  "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1400&q=80",
+  "https://images.unsplash.com/photo-1493558103817-58b2924bce98?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=900&q=80",
+];
+
+const getCurrentBaseYm = () => {
+  const today = new Date();
+  today.setMonth(today.getMonth() - 2);
+  return `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}`;
+};
+
+const toneStyles = {
+  calm: {
+    pillBg: "rgba(36, 149, 155, 0.14)",
+    pillFg: colors.main,
+    glow: "rgba(36, 149, 155, 0.2)",
+  },
+  hot: {
+    pillBg: "rgba(255, 132, 77, 0.16)",
+    pillFg: "#ff7d43",
+    glow: "rgba(255, 143, 92, 0.22)",
+  },
+} as const;
+
+const HotPlaceSection = () => {
+  const navigate = useNavigate();
+  const baseYm = getCurrentBaseYm();
+  const { data: places = [], isLoading, isError } = useGetHotPlaces(baseYm);
+
+  const handleMoveToPlace = (placeName: string) => {
+    const searchParams = new URLSearchParams({ keyword: placeName });
+    navigate({ pathname: "/map", search: `?${searchParams.toString()}` });
+  };
+
+  return (
+    <Section>
+      <Inner>
+        <HeaderRow>
+          <HeadingBlock>
+            <Eyebrow>CURATED BY SOKSOM</Eyebrow>
+            <Title>
+              머물고 싶은 풍경,
+              <br />
+              <Accent>다시 찾고 싶은 여행지</Accent>.
+            </Title>
+          </HeadingBlock>
+        </HeaderRow>
+
+        {isLoading ? (
+          <StatusCard>핫플레이스를 불러오는 중이에요.</StatusCard>
+        ) : isError ? (
+          <StatusCard>핫플레이스를 불러오지 못했어요.</StatusCard>
+        ) : places.length === 0 ? (
+          <StatusCard>이번 달 핫플레이스 정보가 아직 없어요.</StatusCard>
+        ) : (
+          <CardGrid>
+            {places.map((place, index) => {
+              const isFeatured = index === 0;
+              const placeImage = place.thumbnail
+                ? place.thumbnail.replace(/^http:\/\//, "https://")
+                : placeImages[index % placeImages.length];
+
+              return (
+                <PlaceCard
+                  key={place.hubTatsCd}
+                  $featured={isFeatured}
+                  $tone="hot"
+                  onClick={() => handleMoveToPlace(place.hubTatsNm)}
+                >
+                  <PlaceImage $image={placeImage} $featured={isFeatured}>
+                    <CardTop>
+                      <TagPill $tone="hot">
+                        <Flame size={15} />
+                        <span style={{ color: "black" }}>핫플레이스</span>
+                      </TagPill>
+                    </CardTop>
+                  </PlaceImage>
+
+                  <PlaceBody $featured={isFeatured}>
+                    <Meta>{place.signguNm || place.areaNm}</Meta>
+                    <Name>{place.hubTatsNm}</Name>
+                    <Subtitle>{place.hubCtgryMclsNm}</Subtitle>
+                    <Summary>
+                      {place.hubCtgryLclsNm} 분야에서 주목받는 제주 인기
+                      관광지예요.
+                    </Summary>
+                    <CardFooter>
+                      <RouteHint
+                        onClick={() => handleMoveToPlace(place.hubTatsNm)}
+                      >
+                        관광지 상세 보기
+                      </RouteHint>
+                      <ArrowButton aria-label={`${place.hubTatsNm} 상세 보기`}>
+                        <ArrowUpRight size={16} />
+                      </ArrowButton>
+                    </CardFooter>
+                  </PlaceBody>
+                </PlaceCard>
+              );
+            })}
+          </CardGrid>
+        )}
+      </Inner>
+    </Section>
+  );
+};
+
+export default HotPlaceSection;
+
+const Section = styled.section`
+  padding: 180px 24px;
+  background: linear-gradient(180deg, #f6f2e9 0%, #f8f2e2 240px);
+
+  @media (max-width: 768px) {
+    padding: 24px 16px 88px;
+  }
+`;
+
+const Inner = styled.div`
+  ${homeSectionInner};
+`;
+
+const HeaderRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 28px;
+  margin-bottom: 42px;
+
+  @media (max-width: 980px) {
+    flex-direction: column;
+    margin-bottom: 28px;
+  }
+`;
+
+const HeadingBlock = styled.div`
+  max-width: 760px;
+`;
+
+const Eyebrow = styled.span`
+  ${homeSectionEyebrow};
+`;
+
+const Title = styled.h2`
+  ${homeSectionTitle};
+`;
+
+const Accent = styled.span`
+  font-family: Gowun Batang;
+  color: #ff7d43;
+`;
+
+const CardGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1.8fr 0.9fr;
+  gap: 18px;
+  align-items: start;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const StatusCard = styled.div`
+  display: grid;
+  place-items: center;
+  min-height: 320px;
+  padding: 24px;
+  border-radius: 26px;
+  background: rgba(255, 251, 245, 0.88);
+  color: #7d7568;
+  font-weight: 600;
+  text-align: center;
+`;
+
+const PlaceCard = styled.article<{ $featured?: boolean; $tone: PlaceTone }>`
+  display: flex;
+  flex-direction: column;
+  height: 470px;
+  overflow: hidden;
+  border: 1px solid rgba(124, 111, 84, 0.08);
+  border-radius: 24px;
+  background: rgba(255, 251, 245, 0.88);
+  box-shadow: 0 22px 44px rgba(97, 81, 46, 0.08);
+  cursor: pointer;
+
+  ${({ $tone }) => css`
+    box-shadow: 0 22px 44px ${toneStyles[$tone].glow};
+  `}
+
+  @media (max-width: 768px) {
+    height: 420px;
+    border-radius: 28px;
+  }
+`;
+
+const PlaceImage = styled.div<{ $image: string; $featured?: boolean }>`
+  position: relative;
+  height: 250px;
+  padding: 18px;
+  overflow: hidden;
+  isolation: isolate;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(rgba(25, 21, 17, 0.08), rgba(25, 21, 17, 0.08)),
+      url(${({ $image }) => $image}) center center / cover no-repeat;
+    transition: transform 0.7s cubic-bezier(0.2, 0.6, 0.2, 1);
+  }
+
+  ${PlaceCard}:hover &::before {
+    transform: scale(1.05);
+  }
+
+  @media (max-width: 768px) {
+    height: 220px;
+    padding: 14px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::before {
+      transition: none;
+    }
+  }
+`;
+
+const CardTop = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+`;
+
+const TagPill = styled.span<{ $tone: PlaceTone }>`
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 13px;
+  background: whitesmoke;
+  color: ${({ $tone }) => toneStyles[$tone].pillFg};
+  font-size: 0.78rem;
+  font-weight: 600;
+  backdrop-filter: blur(12px);
+  gap: 6px;
+`;
+
+const PlaceBody = styled.div<{ $featured?: boolean }>`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px 22px 20px;
+
+  @media (max-width: 768px) {
+    padding: 20px 18px 18px;
+  }
+`;
+
+const Meta = styled.span`
+  color: #9a9284;
+  font-size: 0.82rem;
+  font-weight: 600;
+`;
+
+const Name = styled.h3`
+  margin: 0;
+  color: #15120f;
+  font-family: Gowun Batang;
+  font-size: clamp(1.8rem, 3vw, 2.35rem);
+  line-height: 1.12;
+`;
+
+const Subtitle = styled.p`
+  margin: 0;
+  color: #2d2822;
+  font-size: 0.98rem;
+  font-weight: 600;
+`;
+
+const Summary = styled.p`
+  margin: 0;
+  color: #6c6559;
+  font-size: 0.93rem;
+  line-height: 1.7;
+`;
+
+const CardFooter = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: auto;
+  padding-top: 18px;
+`;
+
+const RouteHint = styled.span`
+  color: #7d7568;
+  font-size: 0.84rem;
+  font-weight: 600;
+`;
+
+const ArrowButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 999px;
+  background: #12100d;
+  color: #f8f5ee;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  svg {
+    transition: transform 0.25s ease;
+  }
+
+  ${PlaceCard}:hover & svg {
+    transform: translate(2px, -2px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &,
+    svg {
+      transition: none;
+    }
+  }
+`;
